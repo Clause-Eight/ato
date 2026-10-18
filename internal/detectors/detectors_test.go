@@ -248,7 +248,7 @@ func TestRegistry(t *testing.T) {
 			}
 		}
 	}
-	for _, n := range []string{"ro-cnp", "bg-egn", "bg-lnch", "hu-taj", "hu-tax-id", "iban", "card"} {
+	for _, n := range []string{"ro-cnp", "bg-egn", "bg-lnch", "hu-taj", "hu-tax-id", "iban", "card", "eu-vat", "email", "eu-phone", "pl-pesel", "cz-birth-number", "hr-oib"} {
 		if !names[n] {
 			t.Errorf("missing detector %s", n)
 		}
