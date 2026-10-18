@@ -48,6 +48,12 @@ func TestBoundariesRejectLongerTokens(t *testing.T) {
 	if fs := scan(t, "a.txt", "x1234567 12345677 ID1234567\n"); len(fs) != 0 {
 		t.Fatalf("expected none, got %+v", fs)
 	}
+	if fs := scan(t, "a.txt", "x = 3.1234567 and 1234567.5 and 1,1234567 and {-1234567, -1234567}\n"); len(fs) != 0 {
+		t.Fatalf("digits of a decimal number are not values: %+v", fs)
+	}
+	if fs := scan(t, "a.txt", "end of sentence 1234567. Next, 1234567, done\n"); len(fs) != 2 {
+		t.Fatalf("a full stop or comma after a value is a boundary: %+v", fs)
+	}
 	if fs := scan(t, "a.txt", `"1234567",(1234567)`+"\n"); len(fs) != 2 {
 		t.Fatalf("punctuation is a boundary: %+v", fs)
 	}
@@ -160,5 +166,12 @@ func TestIgnoreComments(t *testing.T) {
 	fs = scan(t, "a.html", "<!-- pii-eu:ignore -->\n1234567\n")
 	if len(fs) != 1 || fs[0].Ignored || !strings.Contains(strings.Join(fs[0].Reasons, ";"), "no reason") {
 		t.Fatalf("an ignore without a reason must not apply: %+v", fs)
+	}
+}
+
+func TestNumberTablesAreLowered(t *testing.T) {
+	fs := scan(t, "a.go", "seeds = {1234567, 9876543210, 1234567890123, 5555555555}\n")
+	if len(fs) != 1 || fs[0].Confidence != domain.Low {
+		t.Fatalf("got %+v", fs)
 	}
 }
