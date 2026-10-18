@@ -8,7 +8,8 @@ pii-eu finds EU personal data (national IDs, IBANs, cards, VAT numbers, contact 
 - Commit identity, set locally: `user.name "Kiwi"`, `user.email "53535321+Kiwi-toor@users.noreply.github.com"`. Check `git config --local user.email` before committing.
 - Found values never appear in reports, logs, fingerprints, test names or commit messages. Reporters only see masked values.
 - Conventional commits, branches `<type>/<topic>`, no Claude attribution, merge commits.
-- The repository stays private until the owner says otherwise.
+- The repository is public (since v0.2.0). Anything committed is published: no internal links, no real data, no employer material.
+- Releases: tag `vX.Y.Z` on main; the release workflow builds, signs and publishes. The Homebrew formula in `Clause-Eight/homebrew-tap` is updated after each release.
 
 ## Commands
 

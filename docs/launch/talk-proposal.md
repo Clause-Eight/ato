@@ -1,6 +1,6 @@
 # Draft: conference talk proposal
 
-Status: draft, for a security or developer conference after the public launch (#95).
+Status: draft, ready to submit to a security or developer conference.
 
 **Title:** Check digits beat regex: finding EU personal data in code without drowning in false positives
 
