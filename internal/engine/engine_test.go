@@ -147,3 +147,18 @@ func TestVeryLongLinesDoNotFail(t *testing.T) {
 		t.Fatalf("got %+v", fs)
 	}
 }
+
+func TestIgnoreComments(t *testing.T) {
+	fs := scan(t, "a.go", "x := 1234567 // pii-eu:ignore synthetic test value\n")
+	if len(fs) != 1 || !fs[0].Ignored {
+		t.Fatalf("same-line ignore: %+v", fs)
+	}
+	fs = scan(t, "a.py", "# pii-eu:ignore: documented example\nx = 1234567\n")
+	if len(fs) != 1 || !fs[0].Ignored {
+		t.Fatalf("previous-line ignore: %+v", fs)
+	}
+	fs = scan(t, "a.html", "<!-- pii-eu:ignore -->\n1234567\n")
+	if len(fs) != 1 || fs[0].Ignored || !strings.Contains(strings.Join(fs[0].Reasons, ";"), "no reason") {
+		t.Fatalf("an ignore without a reason must not apply: %+v", fs)
+	}
+}

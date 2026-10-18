@@ -29,6 +29,8 @@ type jsonSummary struct {
 	FilesScanned int           `json:"files_scanned"`
 	FilesSkipped []jsonSkipped `json:"files_skipped"`
 	Unreadable   []jsonSkipped `json:"unreadable"`
+	Ignored      int           `json:"ignored"`
+	Baselined    int           `json:"baselined"`
 }
 
 type jsonSkipped struct {
@@ -60,6 +62,8 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 			FilesScanned: r.Summary.FilesScanned,
 			FilesSkipped: nonNil(r.Summary.FilesSkipped),
 			Unreadable:   nonNil(r.Summary.Unreadable),
+			Ignored:      r.Summary.Ignored,
+			Baselined:    r.Summary.Baselined,
 		},
 		Findings: make([]jsonFinding, 0, len(r.Findings)),
 	}

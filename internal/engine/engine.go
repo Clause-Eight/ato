@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"runtime"
 	"sort"
 	"sync"
@@ -92,9 +91,9 @@ func Scan(req Request) (Result, error) {
 }
 
 func scanFile(f walk.File, dets []detectors.Detector) ([]domain.Finding, *domain.Skipped, error) {
-	fh, err := os.Open(f.Abs)
+	fh, err := walk.Open(f)
 	if err != nil {
-		return nil, nil, errors.Unwrap(err)
+		return nil, nil, err
 	}
 	defer fh.Close()
 	r := bufio.NewReaderSize(fh, 64<<10)
