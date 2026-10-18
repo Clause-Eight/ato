@@ -31,6 +31,13 @@ type match struct {
 	sample     bool
 }
 
+var longNumber = regexp.MustCompile(`\d{10,}`)
+
+// numberTable reports whether a line holds three or more long numbers, like a table of constants.
+func numberTable(line string) bool {
+	return len(longNumber.FindAllStringIndex(line, 3)) >= 3
+}
+
 var testPathRe = regexp.MustCompile(`(?i)(^|/)(tests?|__tests__|spec|specs|fixtures?|testdata|test_data|examples?|samples?|mocks?|__mocks__|stubs?)(/|$)|(^|/)[^/]*([._-](test|spec)s?\.[a-z0-9]+|test_[^/]*)$`)
 
 // IsTestPath reports whether a path looks like tests, fixtures or examples.
@@ -116,6 +123,10 @@ func evaluate(ctx lineContext, d detectors.Detector, start, end int, lower strin
 		m.confidence = domain.Low
 		m.reasons = append(m.reasons, "a published sample value")
 	}
+	if !m.sample && numberTable(ctx.line) {
+		m.confidence = lower1(m.confidence)
+		m.reasons = append(m.reasons, "in a line of long numbers, which is usually data such as seeds or constants")
+	}
 	if ctx.testPath && !m.sample {
 		m.confidence = lower1(m.confidence)
 		m.reasons = append(m.reasons, "in a test, fixture or example path")
@@ -140,21 +151,35 @@ func validEnd(line string, d detectors.Detector, start, end int) (int, bool) {
 	}
 }
 
+// bounded rejects a candidate that is part of a longer token, including the digits of a decimal number
+// such as 7.6971174701310497 or 1,234567890123.
 func bounded(line string, start, end int) bool {
 	if start > 0 {
-		r, _ := utf8.DecodeLastRuneInString(line[:start])
-		if isAlnum(r) {
+		r, n := utf8.DecodeLastRuneInString(line[:start])
+		if isAlnum(r) || isDecimalMark(r) && start-n > 0 && isDigit(line[start-n-1]) || r == '-' && isSign(line, start-n) {
 			return false
 		}
 	}
 	if end < len(line) {
-		r, _ := utf8.DecodeRuneInString(line[end:])
-		if isAlnum(r) {
+		r, n := utf8.DecodeRuneInString(line[end:])
+		if isAlnum(r) || isDecimalMark(r) && end+n < len(line) && isDigit(line[end+n]) {
 			return false
 		}
 	}
 	return true
 }
+
+func isDecimalMark(r rune) bool { return r == '.' || r == ',' }
+
+// isSign reports whether the minus at i is a number's sign: at the start, or after a space, bracket, comma or operator.
+func isSign(line string, i int) bool {
+	if i == 0 {
+		return true
+	}
+	return strings.ContainsRune(" \t([{,=:", rune(line[i-1]))
+}
+
+func isDigit(b byte) bool { return b >= '0' && b <= '9' }
 
 func isAlnum(r rune) bool {
 	return r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
