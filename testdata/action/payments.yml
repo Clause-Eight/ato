@@ -1,0 +1,3 @@
+# Synthetic value for the action test; it passes the Luhn check but belongs to nobody.
+payment:
+  card_number: "4916001234567892"

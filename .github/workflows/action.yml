@@ -1,0 +1,37 @@
+name: action
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - id: dirty
+        uses: ./
+        continue-on-error: true
+        with:
+          path: testdata/action
+          sarif: pii-eu.sarif
+      - name: The synthetic card is found and fails the step
+        env:
+          OUTCOME: ${{ steps.dirty.outcome }}
+          FINDINGS: ${{ steps.dirty.outputs.findings }}
+        run: |
+          test "$OUTCOME" = failure
+          test "$FINDINGS" = 1
+          python3 -c 'import json; d=json.load(open("pii-eu.sarif")); assert d["version"] == "2.1.0" and len(d["runs"][0]["results"]) == 1'
+      - id: clean
+        uses: ./
+        with:
+          path: internal/domain
+      - name: A clean folder passes
+        env:
+          FINDINGS: ${{ steps.clean.outputs.findings }}
+        run: test "$FINDINGS" = 0

@@ -1,0 +1,3 @@
+::error file=app/config.yml,line=3,col=9,title=pii-eu%3A Payment card number::Payment card number ••••••••••••0006 (high confidence): brand prefix, length and Luhn check are valid; the word "card" is nearby
+::notice file=tests/fixtures/users.json,line=14,col=12,title=pii-eu%3A Romanian personal number (CNP)::Romanian personal number (CNP) ••••••••••••• (low confidence): date, county code and check digit are valid; in a test, fixture or example path
+2 findings in 2 files · 42 files scanned · 1 skipped
