@@ -11,7 +11,8 @@ import (
 
 // Detector finds one kind of identifier. Pattern finds candidates; Validate confirms them with the
 // identifier's own rules (check digits, dates, lengths). A detector without Validate reports every
-// candidate at its base confidence.
+// candidate at its base confidence. TrimGroups retries a failed candidate without its last
+// space- or dash-separated group, for numbers often followed by more digits (an expiry date, a reference).
 type Detector struct {
 	Name        string
 	Label       string
@@ -25,6 +26,7 @@ type Detector struct {
 	Base        domain.Confidence
 	Samples     map[string]bool
 	Validation  string
+	TrimGroups  bool
 }
 
 var registry = map[string]Detector{}
@@ -39,6 +41,10 @@ func Register(d Detector) {
 	}
 	if d.Mask == nil {
 		d.Mask = MaskAll
+	}
+	if d.Pattern != nil {
+		d.Pattern = regexp.MustCompile(d.Pattern.String())
+		d.Pattern.Longest()
 	}
 	registry[d.Name] = d
 }
