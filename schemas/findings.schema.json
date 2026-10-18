@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Clause-Eight/pii-eu/schemas/findings.schema.json",
+  "title": "pii-eu findings report",
+  "description": "Output of `pii-eu scan --format json`. Found values are never included; `masked` keeps at most the last few characters.",
+  "type": "object",
+  "required": ["schema_version", "tool", "summary", "findings"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": { "name": { "type": "string" }, "version": { "type": "string" } }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["findings", "files_scanned", "files_skipped", "unreadable"],
+      "properties": {
+        "findings": { "type": "integer", "minimum": 0 },
+        "files_scanned": { "type": "integer", "minimum": 0 },
+        "files_skipped": { "type": "array", "items": { "$ref": "#/$defs/skipped" } },
+        "unreadable": { "type": "array", "items": { "$ref": "#/$defs/skipped" } }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["detector", "label", "country", "path", "line", "column", "confidence", "masked", "reasons", "sample", "test_path", "fingerprint"],
+        "properties": {
+          "detector": { "type": "string", "description": "Detector name, as listed by `pii-eu detectors`." },
+          "label": { "type": "string" },
+          "country": { "type": "string", "description": "ISO country code, or EU for identifiers used across countries." },
+          "path": { "type": "string", "description": "Path relative to the scanned folder, with forward slashes." },
+          "line": { "type": "integer", "minimum": 1 },
+          "column": { "type": "integer", "minimum": 1 },
+          "confidence": { "enum": ["low", "medium", "high"] },
+          "masked": { "type": "string" },
+          "reasons": { "type": "array", "items": { "type": "string" } },
+          "sample": { "type": "boolean", "description": "The value is a published example, such as a documentation IBAN or a test card." },
+          "test_path": { "type": "boolean" },
+          "fingerprint": { "type": "string", "description": "Stable ID derived from the detector, path and the line with values replaced; never from the value." }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "skipped": {
+      "type": "object",
+      "required": ["path", "reason"],
+      "properties": { "path": { "type": "string" }, "reason": { "type": "string" } }
+    }
+  }
+}

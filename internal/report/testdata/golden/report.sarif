@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "pii-eu",
+          "version": "test",
+          "informationUri": "https://github.com/Clause-Eight/pii-eu",
+          "rules": [
+            {
+              "id": "card",
+              "name": "PaymentCardNumber",
+              "shortDescription": {
+                "text": "Payment card number"
+              },
+              "fullDescription": {
+                "text": "Payment card number found in the repository. Personal data in code, fixtures and logs is easy to copy and hard to delete."
+              },
+              "help": {
+                "text": "Replace the value with synthetic test data or a reference, and remove it from history if it is real."
+              },
+              "properties": {
+                "tags": [
+                  "privacy",
+                  "gdpr",
+                  "eu"
+                ]
+              }
+            },
+            {
+              "id": "ro-cnp",
+              "name": "RomanianPersonalNumberCNP",
+              "shortDescription": {
+                "text": "Romanian personal number (CNP)"
+              },
+              "fullDescription": {
+                "text": "Romanian personal number (CNP) found in the repository. Personal data in code, fixtures and logs is easy to copy and hard to delete."
+              },
+              "help": {
+                "text": "Replace the value with synthetic test data or a reference, and remove it from history if it is real."
+              },
+              "properties": {
+                "tags": [
+                  "privacy",
+                  "gdpr",
+                  "ro"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "card",
+          "level": "error",
+          "message": {
+            "text": "Payment card number ••••••••••••0006 (high confidence): brand prefix, length and Luhn check are valid; the word \"card\" is nearby"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/config.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "piiEu/v1": "0123456789abcdef0123456789abcdef"
+          },
+          "properties": {
+            "confidence": "high",
+            "sample": false,
+            "testPath": false
+          }
+        },
+        {
+          "ruleId": "ro-cnp",
+          "level": "note",
+          "message": {
+            "text": "Romanian personal number (CNP) ••••••••••••• (low confidence): date, county code and check digit are valid; in a test, fixture or example path"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tests/fixtures/users.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "piiEu/v1": "fedcba9876543210fedcba9876543210"
+          },
+          "properties": {
+            "confidence": "low",
+            "sample": false,
+            "testPath": true
+          }
+        }
+      ]
+    }
+  ]
+}
