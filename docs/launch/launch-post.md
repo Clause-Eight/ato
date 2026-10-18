@@ -1,6 +1,6 @@
 # Draft: launch post
 
-Status: draft. Not to be published until the side-project and IP check (#94) is done and the repository is public (#95).
+Status: ready to post with the v0.2.0 release.
 
 ---
 
@@ -17,7 +17,8 @@ On a synthetic benchmark that mixes generated identifiers with the noise real re
 It never prints what it finds. Reports show masked values (`••••••••••••7892`), and baselines and SARIF fingerprints are derived from the file and the line with values removed, so the scanner does not become one more place the data leaks to.
 
 ```bash
-go install github.com/Clause-Eight/pii-eu/cmd/pii-eu@latest
+brew install clause-eight/tap/pii-eu
+# or: go install github.com/Clause-Eight/pii-eu/cmd/pii-eu@latest
 pii-eu scan .
 ```
 

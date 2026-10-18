@@ -22,6 +22,8 @@ Romanian CNP, Bulgarian EGN and LNCh, Hungarian TAJ and tax ID, Polish PESEL, Cz
 ## Install
 
 ```bash
+brew install clause-eight/tap/pii-eu
+# or
 go install github.com/Clause-Eight/pii-eu/cmd/pii-eu@latest
 ```
 
