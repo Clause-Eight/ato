@@ -277,3 +277,34 @@ func FuzzValidators(f *testing.F) {
 		}
 	})
 }
+
+func TestIBANLayoutPerCountry(t *testing.T) {
+	for cc, n := range IBANLengths {
+		format, ok := bbanFormats[cc]
+		if !ok {
+			t.Errorf("%s has no account layout", cc)
+			continue
+		}
+		total := 0
+		for _, part := range strings.FieldsFunc(format, func(r rune) bool { return r == 'n' || r == 'a' || r == 'c' }) {
+			var k int
+			fmt.Sscan(part, &k)
+			total += k
+		}
+		if total != n-4 {
+			t.Errorf("%s: layout %s covers %d characters, the IBAN has %d after the check digits", cc, format, total, n-4)
+		}
+	}
+	// A Bulgarian bank code is four letters: digits there fail even with a passing mod-97 check.
+	r := rand.New(rand.NewSource(4))
+	for i := 0; i < 50; i++ {
+		v := genIBAN(r, "BG")
+		bad := v[:4] + "1234" + v[8:]
+		for c := 0; c < 100; c++ {
+			candidate := fmt.Sprintf("BG%02d", c) + bad[4:]
+			if validIBAN(candidate) {
+				t.Fatalf("an all-digit Bulgarian bank code was accepted (case %d)", i)
+			}
+		}
+	}
+}
