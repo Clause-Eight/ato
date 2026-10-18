@@ -1,0 +1,32 @@
+package detectors
+
+import (
+	"regexp"
+
+	"github.com/Clause-Eight/pii-eu/internal/domain"
+)
+
+// <Country> <identifier> (<local name>): describe the structure and the check-digit rule in your own words,
+// and name the public source (law, standard or registry documentation).
+func init() {
+	Register(Detector{
+		Name:        "xx-identifier",
+		Label:       "<Country> <identifier> (<local name>)",
+		Country:     "XX",
+		OnByDefault: true,
+		Pattern:     regexp.MustCompile(`\d{10}`),
+		Validate:    validIdentifier,
+		Keywords:    []string{"local name", "english_name"},
+		Base:        domain.Low,
+		Validation:  "date and check digit are valid",
+	})
+}
+
+func validIdentifier(s string) bool {
+	d, ok := Digits(s)
+	if !ok || len(d) != 10 {
+		return false
+	}
+	// Check the date part with ValidDate and compute the check digit here.
+	return false
+}
