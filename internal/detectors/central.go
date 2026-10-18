@@ -21,6 +21,7 @@ func init() {
 		Pattern:     regexp.MustCompile(`\d{11}`),
 		Validate:    validPESEL,
 		Keywords:    []string{"pesel"},
+		Concepts:    []Concept{NationalID},
 		Base:        domain.Low,
 		Validation:  "date and check digit are valid",
 	})
@@ -28,11 +29,14 @@ func init() {
 		Name:        "cz-birth-number",
 		Label:       "Czech or Slovak birth number (rodné číslo)",
 		Country:     "CZ",
+		AlsoIn:      []string{"SK"},
 		OnByDefault: true,
 		Pattern:     regexp.MustCompile(`\d{6}/?\d{3,4}`),
 		Normalize:   DigitsOnly,
 		Validate:    validBirthNumber,
+		Formatted:   regexp.MustCompile(`^\d{6}/\d{3,4}$`),
 		Keywords:    []string{"rodné číslo", "rodne cislo", "rodne_cislo", "rodnecislo", "birth_number", "birthnumber", "rč"},
+		Concepts:    []Concept{NationalID},
 		Base:        domain.Low,
 		Validation:  "date and mod-11 check are valid",
 	})
@@ -44,6 +48,7 @@ func init() {
 		Pattern:     regexp.MustCompile(`\d{11}`),
 		Validate:    func(s string) bool { return len(s) == 11 && mod11_10(s) },
 		Keywords:    []string{"oib"},
+		Concepts:    []Concept{NationalID, TaxID},
 		Base:        domain.Low,
 		Validation:  "ISO 7064 check digit is valid",
 	})

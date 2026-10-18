@@ -18,7 +18,9 @@ func init() {
 		Pattern:     regexp.MustCompile(`[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63})*\.[A-Za-z]{2,24}`),
 		Validate:    validEmail,
 		Mask:        maskEmail,
+		Needs:       Needs{AnyOf: []string{"@"}},
 		Keywords:    []string{"email", "e-mail", "mail", "contact"},
+		Concepts:    []Concept{Email},
 		Base:        domain.Low,
 		Validation:  "an address outside documentation and test domains",
 	})
@@ -32,6 +34,7 @@ func init() {
 		Validate:    validPhone,
 		Mask:        MaskKeepLast(2),
 		Keywords:    []string{"phone", "tel", "telefon", "telephone", "mobile", "mobil", "gsm", "телефон"},
+		Concepts:    []Concept{Phone},
 		Base:        domain.Low,
 		Validation:  "matches a national numbering plan",
 	})

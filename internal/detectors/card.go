@@ -20,6 +20,7 @@ func init() {
 		Validate:    func(s string) bool { return CardBrand(s) != "" },
 		Mask:        MaskKeepLast(4),
 		Keywords:    []string{"card", "pan", "cc_number", "ccnumber", "credit", "debit", "visa", "mastercard", "maestro", "amex", "card_number", "cardnumber"},
+		Concepts:    []Concept{Card},
 		Base:        domain.Medium,
 		Samples: map[string]bool{
 			"4111111111111111": true, "4242424242424242": true, "4012888888881881": true, "4000056655665556": true,
@@ -27,6 +28,7 @@ func init() {
 			"378282246310005": true, "371449635398431": true, "6011111111111117": true, "3530111333300000": true,
 		},
 		TrimGroups: true,
+		Formatted:  regexp.MustCompile(`^\d{4} \d{4} \d{4} \d{4}$|^\d{4}-\d{4}-\d{4}-\d{4}$|^\d{4} \d{6} \d{5}$|^\d{4}-\d{6}-\d{5}$`),
 		Validation: "brand prefix, length and Luhn check are valid",
 	})
 }
