@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -93,5 +94,63 @@ func TestScanWritesEachFormatWithoutValues(t *testing.T) {
 		if strings.Contains(string(data), card) {
 			t.Errorf("%s report file contains the raw value", format)
 		}
+	}
+}
+
+func TestBaselineReportsOnlyNewFindings(t *testing.T) {
+	dir := t.TempDir()
+	card := syntheticCard()
+	write := func(body string) {
+		if err := os.WriteFile(filepath.Join(dir, "pay.txt"), []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("card: " + card + "\n")
+	if code, out, errOut := run("baseline", "--no-git", dir); code != ExitClean || !strings.Contains(out, "1 finding") {
+		t.Fatalf("baseline: %d %q %q", code, out, errOut)
+	}
+	data, _ := os.ReadFile(filepath.Join(dir, ".pii-eu-baseline.json"))
+	if strings.Contains(string(data), card) {
+		t.Fatal("baseline contains the value")
+	}
+	if code, out, _ := run("scan", "--no-git", dir); code != ExitClean || !strings.Contains(out, "1 in the baseline") {
+		t.Fatalf("baselined scan: %d %q", code, out)
+	}
+	write("card: " + card + "\nother card: " + card + "\n")
+	if code, _, _ := run("scan", "--no-git", dir); code != ExitFindings {
+		t.Fatalf("a new finding should fail: %d", code)
+	}
+}
+
+func TestScanStdin(t *testing.T) {
+	Stdin = strings.NewReader("log line card=" + syntheticCard() + "\n")
+	defer func() { Stdin = os.Stdin }()
+	code, out, _ := run("scan", "-")
+	if code != ExitFindings || !strings.Contains(out, "<stdin>") {
+		t.Fatalf("stdin: %d %q", code, out)
+	}
+}
+
+func TestStagedScansTheStagedVersion(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not installed")
+	}
+	dir := t.TempDir()
+	git := func(args ...string) {
+		cmd := exec.Command("git", append([]string{"-C", dir}, args...)...)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v %s", args, err, out)
+		}
+	}
+	git("init", "-q")
+	p := filepath.Join(dir, "pay.txt")
+	_ = os.WriteFile(p, []byte("card: "+syntheticCard()+"\n"), 0o600)
+	git("add", "pay.txt")
+	_ = os.WriteFile(p, []byte("clean now\n"), 0o600)
+	if code, _, errOut := run("scan", "--staged", dir); code != ExitFindings {
+		t.Fatalf("staged content should be scanned: %d %s", code, errOut)
+	}
+	if code, _, _ := run("scan", "--staged", t.TempDir()); code != ExitUsage {
+		t.Fatalf("--staged outside git should be a usage error, got %d", code)
 	}
 }

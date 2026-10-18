@@ -52,7 +52,46 @@ func scanLine(ctx lineContext, dets []detectors.Detector) []domain.Finding {
 		}
 	}
 	matches = dedupe(matches)
-	return toFindings(ctx, matches)
+	findings := toFindings(ctx, matches)
+	applyIgnore(findings, ctx)
+	return findings
+}
+
+const ignoreMarker = "pii-eu:ignore"
+
+// applyIgnore honours `pii-eu:ignore <reason>` on the same line or the line before. Without a reason the comment does not apply.
+func applyIgnore(fs []domain.Finding, ctx lineContext) {
+	if len(fs) == 0 {
+		return
+	}
+	found, reason := ignoreReason(ctx.line)
+	if !found {
+		found, reason = ignoreReason(ctx.previous)
+	}
+	if !found {
+		return
+	}
+	for i := range fs {
+		if reason == "" {
+			fs[i].Reasons = append(fs[i].Reasons, "the ignore comment has no reason, so it does not apply")
+			continue
+		}
+		fs[i].Ignored = true
+	}
+}
+
+func ignoreReason(line string) (bool, string) {
+	i := strings.Index(line, ignoreMarker)
+	if i < 0 {
+		return false, ""
+	}
+	rest := line[i+len(ignoreMarker):]
+	for _, end := range []string{"*/", "-->", "#}", "%}"} {
+		if j := strings.Index(rest, end); j >= 0 {
+			rest = rest[:j]
+		}
+	}
+	return true, strings.TrimSpace(strings.TrimLeft(rest, " :\t-"))
 }
 
 func evaluate(ctx lineContext, d detectors.Detector, start, end int, lower string) (match, bool) {

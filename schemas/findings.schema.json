@@ -20,7 +20,9 @@
         "findings": { "type": "integer", "minimum": 0 },
         "files_scanned": { "type": "integer", "minimum": 0 },
         "files_skipped": { "type": "array", "items": { "$ref": "#/$defs/skipped" } },
-        "unreadable": { "type": "array", "items": { "$ref": "#/$defs/skipped" } }
+        "unreadable": { "type": "array", "items": { "$ref": "#/$defs/skipped" } },
+        "ignored": { "type": "integer", "minimum": 0, "description": "Findings left out by a `pii-eu:ignore <reason>` comment." },
+        "baselined": { "type": "integer", "minimum": 0, "description": "Findings left out because they are in the baseline." }
       }
     },
     "findings": {

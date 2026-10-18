@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -17,9 +18,11 @@ import (
 
 // File is one file to scan. Rel uses forward slashes.
 type File struct {
-	Rel  string
-	Abs  string
-	Size int64
+	Rel    string
+	Abs    string
+	Size   int64
+	Root   string
+	Staged bool
 }
 
 // Options select files.
@@ -28,6 +31,7 @@ type Options struct {
 	Exclude     []string
 	MaxFileSize int64
 	NoGit       bool
+	Staged      bool
 }
 
 var alwaysSkippedDirs = map[string]bool{".git": true, ".hg": true, ".svn": true}
@@ -40,6 +44,9 @@ func Files(root string, opts Options) ([]File, []domain.Skipped, error) {
 	}
 	if !info.IsDir() {
 		return single(root, info, opts)
+	}
+	if opts.Staged {
+		return stagedFiles(root, opts)
 	}
 	rels, err := candidates(root, opts.NoGit)
 	if err != nil {
@@ -68,7 +75,7 @@ func Files(root string, opts Options) ([]File, []domain.Skipped, error) {
 			skipped = append(skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", opts.MaxFileSize)})
 			continue
 		}
-		files = append(files, File{Rel: rel, Abs: abs, Size: st.Size()})
+		files = append(files, File{Rel: rel, Abs: abs, Size: st.Size(), Root: root})
 	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Rel < files[j].Rel })
 	return files, skipped, nil
@@ -145,6 +152,46 @@ func walkFiles(root string) ([]string, error) {
 		return nil, fmt.Errorf("cannot list %s: %w", root, err)
 	}
 	return rels, nil
+}
+
+// ErrNotGit is returned when staged files are asked for outside a git work tree.
+var ErrNotGit = errors.New("--staged needs a git work tree")
+
+func stagedFiles(root string, opts Options) ([]File, []domain.Skipped, error) {
+	out, err := exec.Command("git", "-C", root, "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR").Output()
+	if err != nil {
+		return nil, nil, ErrNotGit
+	}
+	inc, err := compileAll(opts.Include)
+	if err != nil {
+		return nil, nil, err
+	}
+	exc, err := compileAll(opts.Exclude)
+	if err != nil {
+		return nil, nil, err
+	}
+	var files []File
+	for _, p := range bytes.Split(out, []byte{0}) {
+		rel := string(p)
+		if rel == "" || !selected(rel, inc, exc) {
+			continue
+		}
+		files = append(files, File{Rel: rel, Abs: filepath.Join(root, filepath.FromSlash(rel)), Root: root, Staged: true})
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Rel < files[j].Rel })
+	return files, nil, nil
+}
+
+// Open returns the file's content: the staged version for staged files, the working copy otherwise.
+func Open(f File) (io.ReadCloser, error) {
+	if !f.Staged {
+		return os.Open(f.Abs)
+	}
+	out, err := exec.Command("git", "-C", f.Root, "show", ":"+f.Rel).Output()
+	if err != nil {
+		return nil, fmt.Errorf("cannot read the staged version: %w", err)
+	}
+	return io.NopCloser(bytes.NewReader(out)), nil
 }
 
 // IsBinary reports whether the start of a file looks binary.

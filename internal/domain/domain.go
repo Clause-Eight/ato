@@ -57,6 +57,7 @@ type Finding struct {
 	Sample      bool
 	TestPath    bool
 	Fingerprint string
+	Ignored     bool
 }
 
 // Summary describes one scan.
@@ -64,6 +65,8 @@ type Summary struct {
 	FilesScanned int
 	FilesSkipped []Skipped
 	Unreadable   []Skipped
+	Ignored      int
+	Baselined    int
 }
 
 // Skipped is a file that was not scanned, with the reason.
