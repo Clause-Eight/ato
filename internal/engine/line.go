@@ -163,6 +163,9 @@ func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bo
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby", kw))
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
+	} else if w := keyword(ctx.keywordText(), d.Unlikely); w != "" {
+		m.confidence = lower1(m.confidence)
+		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
 	}
 	if d.Samples[value] {
 		m.sample = true
