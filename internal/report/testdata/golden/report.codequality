@@ -1,0 +1,26 @@
+[
+  {
+    "description": "Payment card number ••••••••••••0006 (high confidence): brand prefix, length and Luhn check are valid; the word \"card\" is nearby",
+    "check_name": "pii-eu/card",
+    "fingerprint": "0123456789abcdef0123456789abcdef",
+    "severity": "critical",
+    "location": {
+      "path": "app/config.yml",
+      "lines": {
+        "begin": 3
+      }
+    }
+  },
+  {
+    "description": "Romanian personal number (CNP) ••••••••••••• (low confidence): date, county code and check digit are valid; in a test, fixture or example path",
+    "check_name": "pii-eu/ro-cnp",
+    "fingerprint": "fedcba9876543210fedcba9876543210",
+    "severity": "minor",
+    "location": {
+      "path": "tests/fixtures/users.json",
+      "lines": {
+        "begin": 14
+      }
+    }
+  }
+]

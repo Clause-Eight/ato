@@ -1,0 +1,19 @@
+# Include this file, or copy the job, to scan merge requests for EU personal data.
+# Findings appear in the merge request's Code Quality widget. Set PII_EU_VERSION to a release tag or commit.
+pii-eu:
+  stage: test
+  image: golang:1.24
+  variables:
+    PII_EU_VERSION: main
+    PII_EU_MIN_CONFIDENCE: medium
+  script:
+    - go install "github.com/Clause-Eight/pii-eu/cmd/pii-eu@${PII_EU_VERSION}"
+    - pii-eu scan --format codequality --output gl-code-quality-report.json --min-confidence "$PII_EU_MIN_CONFIDENCE" . || true
+    - pii-eu scan --min-confidence "$PII_EU_MIN_CONFIDENCE" .
+  artifacts:
+    when: always
+    reports:
+      codequality: gl-code-quality-report.json
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
