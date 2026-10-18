@@ -1,0 +1,21 @@
+# Example step for Bitbucket Pipelines. Set PII_EU_VERSION to a release tag or commit.
+definitions:
+  steps:
+    - step: &pii-eu
+        name: pii-eu
+        image: golang:1.24
+        script:
+          - export PII_EU_VERSION="${PII_EU_VERSION:-main}"
+          - go install "github.com/Clause-Eight/pii-eu/cmd/pii-eu@${PII_EU_VERSION}"
+          - pii-eu scan --format json --output pii-eu.json . || code=$?
+          - pii-eu scan .
+        artifacts:
+          - pii-eu.json
+
+pipelines:
+  pull-requests:
+    "**":
+      - step: *pii-eu
+  branches:
+    main:
+      - step: *pii-eu
