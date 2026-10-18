@@ -1,0 +1,19 @@
+# German
+national-id: personenkennzahl, personennummer, identifikationsnummer, ausweisnummer
+tax-id: steuer-identifikationsnummer, steueridentifikationsnummer, steuer-id, steuerid, steuernummer, idnr
+social-security: sozialversicherungsnummer, rentenversicherungsnummer, versicherungsnummer, svnr
+health-insurance: krankenversicherung, krankenversichertennummer, versichertennummer, gesundheitskarte, europäische krankenversicherungskarte
+phone: telefon, telefonnummer, handy, handynummer, mobilnummer, rufnummer
+email: e-mail, e-mail-adresse, emailadresse
+bank-account: bankverbindung, kontonummer, konto, iban
+card: karte, kartennummer, kreditkarte, debitkarte
+vat: umsatzsteuer-identifikationsnummer, ust-idnr, ust-id, ustid, mwst, uid
+passport: reisepass, passnummer, reisepassnummer
+id-card: personalausweis, ausweis, identitätskarte
+birth-date: geburtsdatum, geboren, geb, geburtstag
+address: adresse, anschrift, wohnort, wohnadresse
+postcode: postleitzahl, plz
+driving-licence: führerschein, führerscheinnummer
+licence-plate: kennzeichen, kfz-kennzeichen, nummernschild, amtliches kennzeichen
+location: breitengrad, längengrad, koordinaten, standort
+name: vorname, nachname, familienname, vollständiger name

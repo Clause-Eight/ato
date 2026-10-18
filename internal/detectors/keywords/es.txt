@@ -1,0 +1,19 @@
+# Spanish
+national-id: dni, nie, documento nacional de identidad, número de identidad, número de identificación
+tax-id: nif, número de identificación fiscal, cif
+social-security: seguridad social, número de la seguridad social, número de afiliación, nuss, naf
+health-insurance: tarjeta sanitaria, seguro médico, tarjeta sanitaria europea
+phone: teléfono, número de teléfono, móvil, celular, tlf
+email: correo electrónico, correo, e-mail, email
+bank-account: cuenta bancaria, número de cuenta, ccc, iban
+card: tarjeta, número de tarjeta, tarjeta de crédito, tarjeta de débito
+vat: número de iva, nif-iva, iva
+passport: pasaporte, número de pasaporte
+id-card: documento de identidad, carné de identidad
+birth-date: fecha de nacimiento, nacido, nacida
+address: dirección, domicilio
+postcode: código postal
+driving-licence: permiso de conducir, carné de conducir
+licence-plate: matrícula, placa de matrícula
+location: latitud, longitud, coordenadas, ubicación
+name: apellido, apellidos, nombre completo

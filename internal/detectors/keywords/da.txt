@@ -1,0 +1,19 @@
+# Danish
+national-id: cpr-nummer, cpr, personnummer
+tax-id: skattenummer, skatteidentifikationsnummer
+social-security: socialsikring, sygesikring
+health-insurance: sundhedskort, sygesikringsbevis, det blå sygesikringskort
+phone: telefon, telefonnummer, mobil, mobilnummer, tlf
+email: e-mail, e-mailadresse, mail
+bank-account: bankkonto, kontonummer, reg nr, iban
+card: kort, kortnummer, kreditkort, betalingskort, dankort
+vat: momsnummer, moms, cvr-nummer, cvr
+passport: pasnummer
+id-card: identitetskort, id-kort
+birth-date: fødselsdato, født
+address: adresse, bopæl
+postcode: postnummer
+driving-licence: kørekort
+licence-plate: nummerplade, registreringsnummer
+location: breddegrad, længdegrad, koordinater, placering
+name: fornavn, efternavn, fulde navn

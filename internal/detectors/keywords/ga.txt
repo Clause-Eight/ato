@@ -1,0 +1,19 @@
+# Irish
+national-id: uimhir phearsanta seirbhíse poiblí, uimhir phearsanta, ppsn, pps
+tax-id: uimhir chánach
+social-security: leas sóisialach, árachas sóisialach
+health-insurance: árachas sláinte, cárta árachais sláinte na heorpa
+phone: fón, guthán, uimhir fóin, fón póca
+email: ríomhphost, seoladh ríomhphoist
+bank-account: cuntas bainc, uimhir chuntais, iban
+card: cárta, uimhir cárta, cárta creidmheasa
+vat: uimhir cáin bhreisluacha, cbl
+passport: uimhir pas
+id-card: cárta aitheantais
+birth-date: dáta breithe, rugadh
+address: seoladh, sráid
+postcode: éirchód, cód poist
+driving-licence: ceadúnas tiomána
+licence-plate: uimhirphláta, clárúchán feithicle
+location: domhanleithead, domhanfhad, comhordanáidí, suíomh
+name: céadainm, sloinne, ainm iomlán

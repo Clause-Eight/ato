@@ -1,0 +1,19 @@
+# Romanian
+national-id: cod numeric personal, cod personal, cnp, cod de identificare
+tax-id: cod fiscal, cod de identificare fiscală, cif, nif
+social-security: asigurări sociale, număr de asigurare
+health-insurance: card de sănătate, asigurare de sănătate, card european de asigurări sociale de sănătate
+phone: telefon, mobil, număr de telefon
+email: email, adresă de email, poștă electronică
+bank-account: cont bancar, număr de cont, iban
+card: card bancar, număr card, card de credit, card de debit
+vat: cod tva, cod de tva, tva
+passport: pașaport, număr pașaport
+id-card: carte de identitate, buletin
+birth-date: data nașterii, data de naștere, născut, născută
+address: adresa, adresă, domiciliu
+postcode: cod poștal
+driving-licence: permis de conducere, permis auto
+licence-plate: număr de înmatriculare, nr de înmatriculare, înmatriculare
+location: latitudine, longitudine, coordonate, locație
+name: prenume, nume de familie, nume complet

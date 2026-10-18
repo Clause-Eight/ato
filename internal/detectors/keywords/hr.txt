@@ -1,0 +1,19 @@
+# Croatian
+national-id: osobni identifikacijski broj, oib, jmbg
+tax-id: porezni broj, oib
+social-security: socijalno osiguranje, broj osiguranika, mbo
+health-insurance: zdravstveno osiguranje, zdravstvena iskaznica, europska kartica zdravstvenog osiguranja
+phone: telefon, broj telefona, mobitel
+email: e-mail, e-pošta, adresa e-pošte
+bank-account: bankovni račun, broj računa, iban
+card: kartica, broj kartice, kreditna kartica
+vat: pdv, pdv broj
+passport: putovnica, broj putovnice
+id-card: osobna iskaznica
+birth-date: datum rođenja, rođen, rođena
+address: adresa, prebivalište
+postcode: poštanski broj
+driving-licence: vozačka dozvola
+licence-plate: registarska oznaka, registracija vozila
+location: zemljopisna širina, zemljopisna dužina, koordinate, lokacija
+name: prezime, puno ime

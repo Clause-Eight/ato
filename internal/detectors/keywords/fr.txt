@@ -1,0 +1,19 @@
+# French
+national-id: numéro d'identification, numéro national, numéro de registre national, nir, numéro personnel
+tax-id: numéro fiscal, numéro d'identification fiscale, spi, numéro de contribuable
+social-security: sécurité sociale, numéro de sécurité sociale, numéro d'assuré, nss
+health-insurance: assurance maladie, carte vitale, carte européenne d'assurance maladie, ceam
+phone: téléphone, numéro de téléphone, portable, mobile, tél
+email: courriel, adresse e-mail, e-mail, adresse électronique, mél
+bank-account: compte bancaire, numéro de compte, rib, iban
+card: carte, numéro de carte, carte bancaire, carte de crédit
+vat: numéro de tva, tva intracommunautaire, tva
+passport: passeport, numéro de passeport
+id-card: carte d'identité, carte nationale d'identité, cni
+birth-date: date de naissance, né le, née le
+address: adresse, domicile, adresse postale
+postcode: code postal
+driving-licence: permis de conduire
+licence-plate: plaque d'immatriculation, immatriculation, numéro d'immatriculation
+location: latitude, longitude, coordonnées, localisation
+name: prénom, nom de famille, nom complet
