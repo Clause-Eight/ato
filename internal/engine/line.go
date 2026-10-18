@@ -155,7 +155,11 @@ func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bo
 	if words == nil {
 		words = d.Keywords
 	}
-	if kw := keyword(ctx.keywordText(), words); kw != "" {
+	kw := keyword(ctx.keywordText(), words)
+	if kw == "" && d.NeedsKeyword {
+		return match{}, false
+	}
+	if kw != "" {
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby", kw))
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil

@@ -37,6 +37,9 @@ type Detector struct {
 	TrimGroups  bool
 	Formatted   *regexp.Regexp
 	Needs       Needs
+	// NeedsKeyword drops a match unless a keyword is on the line or the line before, for identifiers with no
+	// check digit that would otherwise match too much (format-only ID card numbers, MAC addresses).
+	NeedsKeyword bool
 	// AlsoIn lists other countries that issue the same identifier (the Czech and Slovak birth number).
 	AlsoIn []string
 
