@@ -13,9 +13,14 @@ import (
 // status is incomplete). LLLLL is the place of birth: a department (01-96, 2A, 2B) and a commune (001-999), or
 // 97/98 with one digit for the overseas collectivity and a two-digit commune, or 99 with a continent digit (1-5)
 // and a two-digit country. OOO is the order number (001-999). The key KK is 97 minus the first 13 digits mod 97,
-// with 2A read as 19 and 2B as 18. Usually printed as 1 85 05 78 006 084 36.
+// with 2A read as 19 and 2B as 18. Usually printed in groups: S YY MM DD CCC OOO KK.
 // Source: DGFiP, Nomenclature des codes, annexe 2 "NIR" (January 2023), and the key rule as described by IREM
 // Limoges, "Codes au quotidien" (https://www.irem.unilim.fr/OLD/fileadmin/documents/ERR/arithmetiquueaulycee/codes_au_quotidien.pdf).
+//
+// French tax number (numéro fiscal de référence, SPI): 13 digits, the first 0-3. The last three digits are the
+// first ten read as a number, mod 511, padded with zeros. Usually printed in groups of 2, 2, 3, 3 and 3 digits.
+// Source: DGFiP, "Règles de vérification de l'algorithme du numéro SPI"
+// (https://www.impots.gouv.fr/sites/default/files/media/1_metier/3_partenaire/tiers_declarants/spi/algorithme_spi.pdf).
 func init() {
 	Register(Detector{
 		Name:        "fr-nir",
@@ -31,6 +36,33 @@ func init() {
 		Base:        domain.Low,
 		Validation:  "sex, month, place of birth and mod-97 check key are valid",
 	})
+	Register(Detector{
+		Name:        "fr-spi",
+		Label:       "French tax number (numéro fiscal, SPI)",
+		Country:     "FR",
+		OnByDefault: true,
+		Pattern:     regexp.MustCompile(`[0-3]\d ?\d{2} ?\d{3} ?\d{3} ?\d{3}`),
+		Normalize:   func(s string) string { return strings.ReplaceAll(s, " ", "") },
+		Validate:    validSPI,
+		Formatted:   regexp.MustCompile(`^\d{2} \d{2} \d{3} \d{3} \d{3}$`),
+		Keywords:    []string{"spi", "numéro fiscal", "numero fiscal de reference", "n° fiscal", "nif", "numéro d'identification fiscale"},
+		Concepts:    []Concept{TaxID},
+		Samples:     map[string]bool{"3023217600053": true},
+		Base:        domain.Low,
+		Validation:  "first digit and mod-511 check key are valid",
+	})
+}
+
+func validSPI(s string) bool {
+	if len(s) != 13 || s[0] < '0' || s[0] > '3' {
+		return false
+	}
+	body, err := strconv.ParseInt(s[:10], 10, 64)
+	if err != nil {
+		return false
+	}
+	key, err := strconv.Atoi(s[10:])
+	return err == nil && DigitsOnly(s) == s && body%511 == int64(key)
 }
 
 func validNIR(s string) bool {

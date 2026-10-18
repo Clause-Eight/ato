@@ -30,4 +30,13 @@ func init() {
 		}
 		return strings.Join([]string{body[:1], body[1:3], body[3:5], body[5:7], body[7:10], body[10:13], key}, " ")
 	})
+	Register("fr-spi", func(r *rand.Rand) string {
+		body := fmt.Sprint(r.Intn(4)) + Digits(r, 9)
+		n, _ := strconv.ParseInt(body, 10, 64)
+		v := body + Pad(int(n%511), 3)
+		if r.Intn(2) == 0 {
+			return v
+		}
+		return strings.Join([]string{v[:2], v[2:4], v[4:7], v[7:10], v[10:]}, " ")
+	})
 }
