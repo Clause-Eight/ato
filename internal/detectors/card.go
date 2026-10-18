@@ -21,6 +21,7 @@ func init() {
 		Mask:        MaskKeepLast(4),
 		Keywords:    []string{"card", "pan", "cc_number", "ccnumber", "credit", "debit", "visa", "mastercard", "maestro", "amex", "card_number", "cardnumber"},
 		Concepts:    []Concept{Card},
+		Unlikely:    []string{"trace", "order", "invoice", "transaction", "txn", "tracking", "correlation", "request", "session", "sequence", "nonce", "timestamp", "serial", "reference", "ref", "build"},
 		Base:        domain.Medium,
 		Samples: map[string]bool{
 			"4111111111111111": true, "4242424242424242": true, "4012888888881881": true, "4000056655665556": true,

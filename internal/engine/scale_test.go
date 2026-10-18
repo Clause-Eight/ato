@@ -115,3 +115,12 @@ func TestKeywordGatedDetectorNeedsAKeyword(t *testing.T) {
 		t.Fatalf("a keyword on the line before must allow it: %+v", fs)
 	}
 }
+
+func TestUnlikelyWordLowersConfidence(t *testing.T) {
+	d := sixDigits
+	d.Base, d.Formatted, d.MatchWords, d.Unlikely = domain.Medium, nil, []string{"pin"}, []string{"order"}
+	fs, _ := ScanReader("a.txt", strings.NewReader("order: 123456\npin order 123456\n"), []detectors.Detector{d})
+	if len(fs) != 2 || fs[0].Confidence != domain.Low || fs[1].Confidence != domain.High {
+		t.Fatalf("got %+v", fs)
+	}
+}

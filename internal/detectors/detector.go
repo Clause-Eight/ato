@@ -37,6 +37,9 @@ type Detector struct {
 	TrimGroups  bool
 	Formatted   *regexp.Regexp
 	Needs       Needs
+	// Unlikely are words that usually label other numbers (trace, order, invoice). With one nearby and no
+	// keyword, a match drops one confidence step. They are folded when the registry is read.
+	Unlikely []string
 	// NeedsKeyword drops a match unless a keyword is on the line or the line before, for identifiers with no
 	// check digit that would otherwise match too much (format-only ID card numbers, MAC addresses).
 	NeedsKeyword bool
@@ -139,6 +142,9 @@ func resolveWords() {
 			}
 		}
 		d.MatchWords = unique(ws)
+		for i, w := range d.Unlikely {
+			d.Unlikely[i] = Fold(w)
+		}
 		registry[name] = d
 	}
 	resolved = true
