@@ -26,6 +26,9 @@ type Config struct {
 	MinConfidence domain.Confidence
 	MaxFileSize   int64
 	Detectors     map[string]bool
+	// DetectorMinConfidence overrides MinConfidence for single detectors.
+	DetectorMinConfidence map[string]domain.Confidence
+	Countries             domain.Countries
 }
 
 type fileConfig struct {
@@ -34,11 +37,14 @@ type fileConfig struct {
 	MinConfidence string          `toml:"min_confidence"`
 	MaxFileSize   int64           `toml:"max_file_size"`
 	Detectors     map[string]bool `toml:"detectors"`
+	Countries     []string        `toml:"countries"`
+	// DetectorMinConfidence is the [min_confidence_per_detector] table.
+	DetectorMinConfidence map[string]string `toml:"min_confidence_per_detector"`
 }
 
 // Default is the configuration used when no file and no flags change it.
 func Default() Config {
-	return Config{MinConfidence: domain.Medium, MaxFileSize: DefaultMaxFileSize, Detectors: map[string]bool{}}
+	return Config{MinConfidence: domain.Medium, MaxFileSize: DefaultMaxFileSize, Detectors: map[string]bool{}, DetectorMinConfidence: map[string]domain.Confidence{}}
 }
 
 // Load reads path, or returns Default when explicit is false and the file does not exist.
@@ -81,13 +87,44 @@ func apply(cfg Config, fc fileConfig) (Config, error) {
 	for name, on := range fc.Detectors {
 		cfg.Detectors[name] = on
 	}
+	for name, level := range fc.DetectorMinConfidence {
+		c, err := domain.ParseConfidence(level)
+		if err != nil {
+			return cfg, fmt.Errorf("min_confidence_per_detector.%s: %w", name, err)
+		}
+		cfg.DetectorMinConfidence[name] = c
+	}
+	countries, err := domain.ParseCountries(fc.Countries)
+	if err != nil {
+		return cfg, fmt.Errorf("countries: %w", err)
+	}
+	cfg.Countries = countries
 	return cfg, nil
 }
 
-// Enabled reports whether a detector should run. Detectors are on unless switched off, except those off by default.
-func (c Config) Enabled(name string, onByDefault bool) bool {
+// MinConfidenceFor is the lowest confidence reported for a detector.
+func (c Config) MinConfidenceFor(detector string) domain.Confidence {
+	if min, ok := c.DetectorMinConfidence[detector]; ok {
+		return min
+	}
+	return c.MinConfidence
+}
+
+// Enabled reports whether a detector should run. A detector switched on or off by name follows that setting.
+// Otherwise a national detector runs when its country is selected by name or preset, even if it is off by
+// default (the EEA, Swiss and UK pack), and every other detector runs when it is on by default and its country
+// is included.
+func (c Config) Enabled(name string, countries []string, onByDefault bool) bool {
 	if on, ok := c.Detectors[name]; ok {
 		return on
 	}
-	return onByDefault
+	for _, country := range countries {
+		if !c.Countries.All() && country != domain.CrossBorder && c.Countries[country] {
+			return true
+		}
+		if onByDefault && c.Countries.Includes(country) {
+			return true
+		}
+	}
+	return false
 }

@@ -45,7 +45,7 @@ ro-cnp = false
 	if cfg.MinConfidence != domain.High || cfg.MaxFileSize != 1000 || len(cfg.Include) != 1 || len(cfg.Exclude) != 1 {
 		t.Fatalf("got %+v", cfg)
 	}
-	if !cfg.Enabled("email", false) || cfg.Enabled("ro-cnp", true) || !cfg.Enabled("iban", true) {
+	if !cfg.Enabled("email", []string{"EU"}, false) || cfg.Enabled("ro-cnp", []string{"RO"}, true) || !cfg.Enabled("iban", []string{"EU"}, true) {
 		t.Fatal("detector switches wrong")
 	}
 }
@@ -60,6 +60,35 @@ func TestBadSettingsAreErrors(t *testing.T) {
 		_, err := Load(write(t, body), true)
 		if err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("%s: got %v, want error containing %q", body, err, want)
+		}
+	}
+}
+
+func TestCountriesAndPerDetectorConfidence(t *testing.T) {
+	p := write(t, `
+countries = ["ro", "dach"]
+[min_confidence_per_detector]
+email = "high"
+`)
+	cfg, err := Load(p, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.Enabled("ro-cnp", []string{"RO"}, true) || !cfg.Enabled("de-tax-id", []string{"DE"}, true) || cfg.Enabled("bg-egn", []string{"BG"}, true) {
+		t.Error("country selection not applied")
+	}
+	if !cfg.Enabled("iban", []string{"EU"}, true) || cfg.Enabled("ip-address", []string{"EU"}, false) {
+		t.Error("cross-border detectors follow their default")
+	}
+	if !cfg.Enabled("ch-ahv", []string{"CH"}, false) {
+		t.Error("a selected country turns on its opt-in detectors")
+	}
+	if cfg.MinConfidenceFor("email") != domain.High || cfg.MinConfidenceFor("iban") != domain.Medium {
+		t.Error("per-detector confidence not applied")
+	}
+	for _, bad := range []string{`countries = ["XX"]`, "[min_confidence_per_detector]\nemail = \"loud\""} {
+		if _, err := Load(write(t, bad), true); err == nil {
+			t.Errorf("accepted %q", bad)
 		}
 	}
 }

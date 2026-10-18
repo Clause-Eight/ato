@@ -83,6 +83,8 @@ Scan flags:
   --include GLOB           only scan matching paths (repeatable)
   --exclude GLOB           skip matching paths (repeatable)
   --min-confidence LEVEL   report low, medium or high and above (default: medium)
+  --countries LIST         only run detectors for these countries, e.g. ro,bg or a preset: cee, dach,
+                           benelux, nordics, baltics, eu, eea (default: every EU country)
   --format FORMAT          text, json or sarif (default: text)
   --output FILE            write the report to a file instead of stdout
   --no-git                 walk the folder instead of asking git for the file list
@@ -103,6 +105,7 @@ type scanFlags struct {
 	include       multi
 	exclude       multi
 	minConfidence string
+	countries     multi
 	format        string
 	output        string
 	noGit         bool
@@ -119,6 +122,7 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	fs.Var(&f.include, "include", "")
 	fs.Var(&f.exclude, "exclude", "")
 	fs.StringVar(&f.minConfidence, "min-confidence", "", "")
+	fs.Var(&f.countries, "countries", "")
 	fs.StringVar(&f.format, "format", "text", "")
 	fs.StringVar(&f.output, "output", "", "")
 	fs.BoolVar(&f.noGit, "no-git", false, "")
@@ -187,13 +191,24 @@ func loadConfig(f scanFlags, root string) (config.Config, error) {
 		}
 		cfg.MinConfidence = c
 	}
+	if len(f.countries) > 0 {
+		var items []string
+		for _, v := range f.countries {
+			items = append(items, strings.Split(v, ",")...)
+		}
+		countries, err := domain.ParseCountries(items)
+		if err != nil {
+			return cfg, usageError{err.Error()}
+		}
+		cfg.Countries = countries
+	}
 	return cfg, nil
 }
 
 func enabledDetectors(cfg config.Config) []detectors.Detector {
 	var out []detectors.Detector
 	for _, d := range detectors.All() {
-		if cfg.Enabled(d.Name, d.OnByDefault) {
+		if cfg.Enabled(d.Name, d.Countries(), d.OnByDefault) {
 			out = append(out, d)
 		}
 	}
@@ -218,7 +233,7 @@ func runScan(args []string, stdout, stderr io.Writer) (int, error) {
 		}
 		findings, res.Summary.Baselined = b.Filter(findings)
 	}
-	findings = atLeast(findings, cfg.MinConfidence)
+	findings = atLeast(findings, cfg)
 	if err := writeReport(f, report.Report{Tool: "pii-eu", Version: Version, Root: root, Findings: findings, Summary: res.Summary}, stdout); err != nil {
 		return 0, err
 	}
@@ -240,9 +255,11 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 	if err != nil {
 		return engine.Result{}, cfg, err
 	}
-	for name := range cfg.Detectors {
-		if _, ok := detectors.Get(name); !ok {
-			return engine.Result{}, cfg, usageError{fmt.Sprintf("unknown detector %q in settings: run `pii-eu detectors`", name)}
+	for _, names := range []map[string]bool{cfg.Detectors, keys(cfg.DetectorMinConfidence)} {
+		for name := range names {
+			if _, ok := detectors.Get(name); !ok {
+				return engine.Result{}, cfg, usageError{fmt.Sprintf("unknown detector %q in settings: run `pii-eu detectors`", name)}
+			}
 		}
 	}
 	dets := enabledDetectors(cfg)
@@ -316,10 +333,18 @@ func plural(n int, one, many string) string {
 	return many
 }
 
-func atLeast(fs []domain.Finding, min domain.Confidence) []domain.Finding {
+func keys[V any](m map[string]V) map[string]bool {
+	out := make(map[string]bool, len(m))
+	for k := range m {
+		out[k] = true
+	}
+	return out
+}
+
+func atLeast(fs []domain.Finding, cfg config.Config) []domain.Finding {
 	var out []domain.Finding
 	for _, f := range fs {
-		if f.Confidence >= min {
+		if f.Confidence >= cfg.MinConfidenceFor(f.Detector) {
 			out = append(out, f)
 		}
 	}
@@ -366,18 +391,94 @@ func runDetectors(args []string, stdout io.Writer) (int, error) {
 	return ExitClean, err
 }
 
+// coverageColumns are the kinds of national identifier shown in the README's coverage matrix.
+var coverageColumns = []struct {
+	title   string
+	concept detectors.Concept
+}{
+	{"Personal number", detectors.NationalID},
+	{"Tax ID", detectors.TaxID},
+	{"Social security or health", detectors.SocialSecurity},
+	{"ID card or passport", detectors.IDCard},
+}
+
+// CoverageMatrix is the table of national identifiers per country in the README, generated from the registry.
+// A detector appears under the first of its concepts that has a column, or under the last column otherwise.
+func CoverageMatrix() string {
+	cells := map[string]map[int][]string{}
+	for _, d := range detectors.All() {
+		if d.Country == domain.CrossBorder {
+			continue
+		}
+		col := len(coverageColumns) - 1
+		for _, c := range d.Concepts {
+			if i := columnOf(c); i >= 0 {
+				col = i
+				break
+			}
+		}
+		name := "`" + d.Name + "`"
+		if !d.OnByDefault {
+			name += "*"
+		}
+		for _, cc := range d.Countries() {
+			if cells[cc] == nil {
+				cells[cc] = map[int][]string{}
+			}
+			cells[cc][col] = append(cells[cc][col], name)
+		}
+	}
+	var b strings.Builder
+	b.WriteString("| Country |")
+	for _, c := range coverageColumns {
+		b.WriteString(" " + c.title + " |")
+	}
+	b.WriteString("\n|---|" + strings.Repeat("---|", len(coverageColumns)) + "\n")
+	for _, cc := range append(append([]string{}, domain.MemberStates...), domain.OtherCountries...) {
+		fmt.Fprintf(&b, "| %s |", cc)
+		for i := range coverageColumns {
+			v := strings.Join(cells[cc][i], ", ")
+			if v == "" {
+				v = "–"
+			}
+			b.WriteString(" " + v + " |")
+		}
+		b.WriteString("\n")
+	}
+	b.WriteString("\n* off by default; on when the country is selected with `--countries`. IBANs, cards, VAT numbers, contact data and the other cross-border detectors cover every country.\n")
+	return b.String()
+}
+
+func columnOf(c detectors.Concept) int {
+	for i, col := range coverageColumns {
+		if col.concept == c || col.concept == detectors.SocialSecurity && c == detectors.HealthInsurance || col.concept == detectors.IDCard && c == detectors.Passport {
+			return i
+		}
+	}
+	return -1
+}
+
 // DetectorTable is the Markdown reference in docs/DETECTORS.md, generated from the registry.
 func DetectorTable() string {
 	var b strings.Builder
 	b.WriteString("# Detectors\n\nGenerated by `pii-eu detectors --markdown`; a test fails when this file is out of date.\n\n")
 	b.WriteString("Base confidence is what a valid match gets on its own. A keyword on the same line or the line before raises it one step; a test or fixture path lowers it one step; a published sample value is always low. The default `--min-confidence` is medium.\n\n")
-	b.WriteString("| Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords |\n|---|---|---|---|---|---|\n")
+	b.WriteString("Keywords are the identifier's own names. Concepts add the shared words for that kind of data in all 24 EU languages, from `internal/detectors/keywords/`. Detectors marked off by default run when switched on in `[detectors]` or when their country is selected with `--countries`.\n\n")
+	b.WriteString("| Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |\n|---|---|---|---|---|---|---|\n")
 	for _, d := range detectors.All() {
 		kws := make([]string, 0, len(d.Keywords))
 		for _, k := range d.Keywords {
 			kws = append(kws, "`"+k+"`")
 		}
-		fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s |\n", d.Name, d.Country, d.Label, d.Validation, d.Base, strings.Join(kws, ", "))
+		concepts := make([]string, 0, len(d.Concepts))
+		for _, c := range d.Concepts {
+			concepts = append(concepts, string(c))
+		}
+		label := d.Label
+		if !d.OnByDefault {
+			label += " (off by default)"
+		}
+		fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s | %s |\n", d.Name, d.Country, label, d.Validation, d.Base, strings.Join(kws, ", "), strings.Join(concepts, ", "))
 	}
 	return b.String()
 }
