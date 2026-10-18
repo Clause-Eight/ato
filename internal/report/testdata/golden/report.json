@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "tool": {
+    "name": "pii-eu",
+    "version": "test"
+  },
+  "summary": {
+    "findings": 2,
+    "files_scanned": 42,
+    "files_skipped": [
+      {
+        "path": "logo.png",
+        "reason": "binary"
+      }
+    ],
+    "unreadable": []
+  },
+  "findings": [
+    {
+      "detector": "card",
+      "label": "Payment card number",
+      "country": "EU",
+      "path": "app/config.yml",
+      "line": 3,
+      "column": 9,
+      "confidence": "high",
+      "masked": "••••••••••••0006",
+      "reasons": [
+        "brand prefix, length and Luhn check are valid",
+        "the word \"card\" is nearby"
+      ],
+      "sample": false,
+      "test_path": false,
+      "fingerprint": "0123456789abcdef0123456789abcdef"
+    },
+    {
+      "detector": "ro-cnp",
+      "label": "Romanian personal number (CNP)",
+      "country": "RO",
+      "path": "tests/fixtures/users.json",
+      "line": 14,
+      "column": 12,
+      "confidence": "low",
+      "masked": "•••••••••••••",
+      "reasons": [
+        "date, county code and check digit are valid",
+        "in a test, fixture or example path"
+      ],
+      "sample": false,
+      "test_path": true,
+      "fingerprint": "fedcba9876543210fedcba9876543210"
+    }
+  ]
+}
