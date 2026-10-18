@@ -56,6 +56,12 @@ func summaryLine(r Report, files int) string {
 	if k := len(r.Summary.FilesSkipped); k > 0 {
 		parts = append(parts, fmt.Sprintf("%d skipped", k))
 	}
+	if k := r.Summary.Ignored; k > 0 {
+		parts = append(parts, fmt.Sprintf("%d ignored by comment", k))
+	}
+	if k := r.Summary.Baselined; k > 0 {
+		parts = append(parts, fmt.Sprintf("%d in the baseline", k))
+	}
 	if k := len(r.Summary.Unreadable); k > 0 {
 		parts = append(parts, fmt.Sprintf("%d unreadable", k))
 	}
