@@ -51,9 +51,63 @@ func init() {
 	Register("email", func(r *rand.Rand) string {
 		return fmt.Sprintf("%s.%s%d@%s.eu", Letters(r, 5, "abcdefghij"), Letters(r, 4, "klmnoprst"), r.Intn(100), Letters(r, 6, "abcdefgh"))
 	})
-	Register("eu-phone", func(r *rand.Rand) string {
-		return "+40 7" + Digits(r, 2) + " " + Digits(r, 3) + " " + Digits(r, 3)
-	})
+	Register("eu-phone", phone)
+}
+
+// phoneRanges are number ranges from the member states' numbering plans: country code, leading digits of the
+// national significant number and its length.
+var phoneRanges = []struct {
+	cc, lead string
+	length   int
+}{
+	{"40", "7", 9}, {"40", "21", 9}, {"359", "88", 9}, {"359", "2", 8}, {"36", "30", 9}, {"36", "1", 8},
+	{"48", "50", 9}, {"48", "22", 9}, {"49", "151", 11}, {"49", "171", 10}, {"49", "30", 10}, {"43", "664", 10},
+	{"43", "1", 8}, {"32", "47", 9}, {"32", "2", 8}, {"385", "91", 9}, {"385", "1", 8}, {"357", "99", 8},
+	{"357", "22", 8}, {"420", "60", 9}, {"420", "2", 9}, {"45", "2", 8}, {"372", "5", 8}, {"372", "6", 7},
+	{"358", "40", 9}, {"358", "9", 8}, {"33", "6", 9}, {"33", "1", 9}, {"30", "69", 10}, {"30", "21", 10},
+	{"353", "87", 9}, {"353", "1", 8}, {"39", "3", 10}, {"39", "06", 10}, {"371", "2", 8}, {"370", "6", 8},
+	{"352", "621", 9}, {"356", "79", 8}, {"356", "21", 8}, {"31", "62", 9}, {"31", "20", 9}, {"351", "91", 9},
+	{"351", "21", 9}, {"421", "90", 9}, {"421", "2", 9}, {"386", "41", 8}, {"386", "1", 8}, {"34", "6", 9},
+	{"34", "91", 9}, {"46", "70", 9}, {"46", "8", 9},
+}
+
+// phone writes a number in international form, grouped the way it is usually printed, or now and then as a
+// Romanian or Bulgarian mobile in national form.
+func phone(r *rand.Rand) string {
+	if r.Intn(8) == 0 {
+		lead := []string{"07", "087", "088", "089"}[r.Intn(4)]
+		n := lead + Digits(r, 10-len(lead))
+		return n[:4] + " " + n[4:7] + " " + n[7:]
+	}
+	p := phoneRanges[r.Intn(len(phoneRanges))]
+	nsn := p.lead + Digits(r, p.length-len(p.lead))
+	prefix := "+"
+	if r.Intn(5) == 0 {
+		prefix = "00"
+	}
+	switch r.Intn(4) {
+	case 0:
+		return prefix + p.cc + nsn
+	case 1:
+		return prefix + p.cc + " " + strings.Join(groups(nsn, 3), " ")
+	case 2:
+		return prefix + p.cc + "-" + strings.Join(groups(nsn, 3), "-")
+	default:
+		trunk := ""
+		if p.cc != "39" && r.Intn(2) == 0 {
+			trunk = " (0)"
+		}
+		return prefix + p.cc + trunk + " " + nsn[:len(p.lead)] + " " + strings.Join(groups(nsn[len(p.lead):], 2), " ")
+	}
+}
+
+// groups splits s into groups of n characters, the last one shorter.
+func groups(s string, n int) []string {
+	var out []string
+	for i := 0; i < len(s); i += n {
+		out = append(out, s[i:min(i+n, len(s))])
+	}
+	return out
 }
 
 func pick(r *rand.Rand, m map[string]int) (string, int) {
