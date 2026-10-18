@@ -1,0 +1,167 @@
+// Package engine runs detectors over files and turns matches into findings.
+package engine
+
+import (
+	"bufio"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"runtime"
+	"sort"
+	"sync"
+
+	"github.com/Clause-Eight/pii-eu/internal/detectors"
+	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/pii-eu/internal/walk"
+)
+
+// maxLine caps how much of one line is read; the rest of a very long line is skipped.
+const maxLine = 1 << 20
+
+// Request describes one scan of a folder or file.
+type Request struct {
+	Root      string
+	Walk      walk.Options
+	Detectors []detectors.Detector
+	Workers   int
+}
+
+// Result is what a scan found, sorted by path, line and column.
+type Result struct {
+	Findings []domain.Finding
+	Summary  domain.Summary
+}
+
+// Scan lists files, scans them in parallel and returns sorted findings.
+func Scan(req Request) (Result, error) {
+	files, skipped, err := walk.Files(req.Root, req.Walk)
+	if err != nil {
+		return Result{}, err
+	}
+	workers := req.Workers
+	if workers <= 0 {
+		workers = runtime.NumCPU()
+	}
+	type out struct {
+		findings []domain.Finding
+		skip     *domain.Skipped
+		bad      *domain.Skipped
+	}
+	jobs := make(chan walk.File)
+	results := make(chan out)
+	var wg sync.WaitGroup
+	for range workers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for f := range jobs {
+				fs, skip, err := scanFile(f, req.Detectors)
+				o := out{findings: fs, skip: skip}
+				if err != nil {
+					o.bad = &domain.Skipped{Path: f.Rel, Reason: err.Error()}
+				}
+				results <- o
+			}
+		}()
+	}
+	go func() {
+		for _, f := range files {
+			jobs <- f
+		}
+		close(jobs)
+		wg.Wait()
+		close(results)
+	}()
+	res := Result{Summary: domain.Summary{FilesSkipped: skipped}}
+	for o := range results {
+		switch {
+		case o.bad != nil:
+			res.Summary.Unreadable = append(res.Summary.Unreadable, *o.bad)
+		case o.skip != nil:
+			res.Summary.FilesSkipped = append(res.Summary.FilesSkipped, *o.skip)
+		default:
+			res.Summary.FilesScanned++
+			res.Findings = append(res.Findings, o.findings...)
+		}
+	}
+	sortFindings(res.Findings)
+	sortSkipped(res.Summary.FilesSkipped)
+	sortSkipped(res.Summary.Unreadable)
+	return res, nil
+}
+
+func scanFile(f walk.File, dets []detectors.Detector) ([]domain.Finding, *domain.Skipped, error) {
+	fh, err := os.Open(f.Abs)
+	if err != nil {
+		return nil, nil, errors.Unwrap(err)
+	}
+	defer fh.Close()
+	r := bufio.NewReaderSize(fh, 64<<10)
+	head, _ := r.Peek(8000)
+	if walk.IsBinary(head) {
+		return nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
+	}
+	fs, err := ScanReader(f.Rel, r, dets)
+	return fs, nil, err
+}
+
+// ScanReader scans text line by line. path is used for locations and for recognising test folders.
+func ScanReader(path string, r io.Reader, dets []detectors.Detector) ([]domain.Finding, error) {
+	br, ok := r.(*bufio.Reader)
+	if !ok {
+		br = bufio.NewReaderSize(r, 64<<10)
+	}
+	var findings []domain.Finding
+	ctx := lineContext{path: path, testPath: IsTestPath(path)}
+	for lineNo := 1; ; lineNo++ {
+		line, err := readLine(br)
+		if len(line) > 0 || err == nil {
+			ctx.line, ctx.number = line, lineNo
+			findings = append(findings, scanLine(ctx, dets)...)
+			ctx.previous = line
+		}
+		if errors.Is(err, io.EOF) {
+			return findings, nil
+		}
+		if err != nil {
+			return findings, fmt.Errorf("read error at line %d: %w", lineNo, err)
+		}
+	}
+}
+
+func readLine(r *bufio.Reader) (string, error) {
+	var buf []byte
+	for {
+		chunk, isPrefix, err := r.ReadLine()
+		if len(buf) < maxLine {
+			buf = append(buf, chunk...)
+		}
+		if err != nil {
+			return string(buf), err
+		}
+		if !isPrefix {
+			return string(buf), nil
+		}
+	}
+}
+
+func sortFindings(fs []domain.Finding) {
+	sort.SliceStable(fs, func(i, j int) bool {
+		a, b := fs[i].Location, fs[j].Location
+		if a.Path != b.Path {
+			return a.Path < b.Path
+		}
+		if a.Line != b.Line {
+			return a.Line < b.Line
+		}
+		if a.Column != b.Column {
+			return a.Column < b.Column
+		}
+		return fs[i].Detector < fs[j].Detector
+	})
+}
+
+func sortSkipped(s []domain.Skipped) {
+	sort.Slice(s, func(i, j int) bool { return s[i].Path < s[j].Path })
+}
