@@ -90,18 +90,11 @@ func writeSARIF(w io.Writer, r Report, _ Options) error {
 	rules := map[string]sarifRule{}
 	results := make([]sarifResult, 0, len(r.Findings))
 	for _, f := range r.Findings {
-		if _, ok := rules[f.Detector]; !ok {
-			rules[f.Detector] = sarifRule{
-				ID:               f.Detector,
-				Name:             ruleName(f.Label),
-				ShortDescription: sarifText{f.Label},
-				FullDescription:  sarifText{f.Label + " found in the repository. Personal data in code, fixtures and logs is easy to copy and hard to delete."},
-				Help:             sarifText{"Replace the value with synthetic test data or a reference, and remove it from history if it is real."},
-				Properties:       map[string]any{"tags": []string{"privacy", "gdpr", strings.ToLower(f.Country)}},
-			}
+		if _, ok := rules[ruleID(f)]; !ok {
+			rules[ruleID(f)] = ruleFor(f)
 		}
 		results = append(results, sarifResult{
-			RuleID:  f.Detector,
+			RuleID:  ruleID(f),
 			Level:   level(f.Confidence),
 			Message: sarifText{message(f)},
 			Locations: []sarifLocation{{PhysicalLocation: sarifPhysical{
@@ -112,6 +105,39 @@ func writeSARIF(w io.Writer, r Report, _ Options) error {
 			Properties:          map[string]any{"confidence": f.Confidence.String(), "sample": f.Sample, "testPath": f.TestPath},
 		})
 	}
+	return writeLog(w, r, rules, results)
+}
+
+// ruleID is the detector name, with the Art. 9 category for special-category fields.
+func ruleID(f domain.Finding) string {
+	if f.Kind == domain.KindField {
+		return f.Detector + "/" + string(f.Special)
+	}
+	return f.Detector
+}
+
+func ruleFor(f domain.Finding) sarifRule {
+	if f.Kind == domain.KindField {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". Processing special categories of personal data is prohibited unless an Art. 9(2) condition applies."},
+			Help:             sarifText{"Record the Art. 9(2) condition and the safeguards for this field, or remove it if the data is not needed."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
+		}
+	}
+	return sarifRule{
+		ID:               f.Detector,
+		Name:             ruleName(f.Label),
+		ShortDescription: sarifText{f.Label},
+		FullDescription:  sarifText{f.Label + " found in the repository. Personal data in code, fixtures and logs is easy to copy and hard to delete."},
+		Help:             sarifText{"Replace the value with synthetic test data or a reference, and remove it from history if it is real."},
+		Properties:       map[string]any{"tags": []string{"privacy", "gdpr", strings.ToLower(f.Country)}},
+	}
+}
+
+func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarifResult) error {
 	ids := make([]string, 0, len(rules))
 	for id := range rules {
 		ids = append(ids, id)

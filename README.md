@@ -129,6 +129,20 @@ eu-phone = "high"    # report phone numbers only when the evidence is strong
 
 Presets: `eu` (the 27 member states, the default), `eea` (adds Iceland, Liechtenstein and Norway), `cee`, `dach`, `benelux`, `nordics` and `baltics`. Naming a country outside the EU, such as `ch` or `gb`, switches on its detectors, which are off by default. An unknown code is an error.
 
+### Schemas, special categories and a data inventory
+
+pii-eu also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Django, SQLAlchemy, ActiveRecord, GORM, JPA and Prisma models, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
+
+- `pii-eu scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
+- `pii-eu inventory` writes every personal-data field it finds as CSV (default) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
+
+```console
+$ pii-eu inventory --format csv db/
+Field,Table or model,Category of personal data,Special category (Art. 9),Source format,Source file,Line
+first_name,patients,name,,sql,db/migrations/001_patients.sql,3
+diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
+```
+
 ### Keeping a deliberate value
 
 Put `pii-eu:ignore` and a reason on the same line or the line before. Without a reason the comment does not apply.

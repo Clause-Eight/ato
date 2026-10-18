@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "1.0"
+const SchemaVersion = "1.1"
 
 func init() { register("json", writeJSON) }
 
@@ -39,18 +39,20 @@ type jsonSkipped struct {
 }
 
 type jsonFinding struct {
-	Detector    string   `json:"detector"`
-	Label       string   `json:"label"`
-	Country     string   `json:"country"`
-	Path        string   `json:"path"`
-	Line        int      `json:"line"`
-	Column      int      `json:"column"`
-	Confidence  string   `json:"confidence"`
-	Masked      string   `json:"masked"`
-	Reasons     []string `json:"reasons"`
-	Sample      bool     `json:"sample"`
-	TestPath    bool     `json:"test_path"`
-	Fingerprint string   `json:"fingerprint"`
+	Kind            string   `json:"kind"`
+	SpecialCategory string   `json:"special_category,omitempty"`
+	Detector        string   `json:"detector"`
+	Label           string   `json:"label"`
+	Country         string   `json:"country"`
+	Path            string   `json:"path"`
+	Line            int      `json:"line"`
+	Column          int      `json:"column"`
+	Confidence      string   `json:"confidence"`
+	Masked          string   `json:"masked"`
+	Reasons         []string `json:"reasons"`
+	Sample          bool     `json:"sample"`
+	TestPath        bool     `json:"test_path"`
+	Fingerprint     string   `json:"fingerprint"`
 }
 
 func writeJSON(w io.Writer, r Report, _ Options) error {
@@ -68,7 +70,12 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 		Findings: make([]jsonFinding, 0, len(r.Findings)),
 	}
 	for _, f := range r.Findings {
+		kind := f.Kind
+		if kind == "" {
+			kind = domain.KindValue
+		}
 		out.Findings = append(out.Findings, jsonFinding{
+			Kind: string(kind), SpecialCategory: string(f.Special),
 			Detector: f.Detector, Label: f.Label, Country: f.Country,
 			Path: f.Location.Path, Line: f.Location.Line, Column: f.Location.Column,
 			Confidence: f.Confidence.String(), Masked: f.Masked, Reasons: nonNilStrings(f.Reasons),
