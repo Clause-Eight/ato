@@ -40,3 +40,28 @@ func TestSpanishNIE(t *testing.T) {
 		t.Error("a line without X, Y or Z cannot hold a NIE")
 	}
 }
+
+func TestSpanishNSS(t *testing.T) {
+	wantValidity(t, "es-nss", map[string]bool{
+		"298765432101":     true,
+		"29 87654321 01":   true,
+		"15/20406080/47":   true,
+		"085123456709":     true,
+		"661000000087":     true,  // abroad (66)
+		"410123456760":     true,  // sequence below 10,000,000
+		"280000000091":     true,  // sequence 0
+		"410123456771":     false, // below 10,000,000 the plain concatenation is not the rule
+		"298765432102":     false, // wrong check digits
+		"541234567812":     false, // province 54
+		"001234567803":     false, // province 00
+		"29876543210":      false, // 11 digits
+		"2987654321011":    false, // 13 digits
+		"29 87654321 0":    false,
+		"29-87654321-0122": false,
+	})
+	wantPatternFinds(t, "es-nss", "naf: 29/87654321/01", "29/87654321/01")
+	d, _ := Get("es-nss")
+	if !d.Formatted.MatchString("29/87654321/01") || d.Formatted.MatchString("298765432101") {
+		t.Error("only the separated form is the usual format")
+	}
+}
