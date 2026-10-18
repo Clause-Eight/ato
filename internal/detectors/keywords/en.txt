@@ -1,0 +1,19 @@
+# English
+national-id: national id, nationalid, national identity number, personal number, personal code, personal id, citizen id, identity number, id number, personal identification number
+tax-id: tax id, taxid, tax number, taxnumber, tax identification number, tin, tax code
+social-security: social security, socialsecurity, social insurance, ssn, insurance number
+health-insurance: health insurance, health card, ehic, insurance card
+phone: phone, telephone, tel, mobile, msisdn, phone number, gsm
+email: email, e-mail, mail
+bank-account: iban, bank account, account number, accountnumber
+card: card, pan, credit, debit, card number, cardnumber, cc number
+vat: vat, vat number, vat id
+passport: passport, passport number, travel document, mrz
+id-card: id card, identity card, idcard
+birth-date: date of birth, birth date, birthdate, dob, birthday
+address: address, home address, postal address
+postcode: postcode, post code, postal code, zip, zip code, zipcode
+driving-licence: driving licence, driving license, driver license, drivers license, licence number
+licence-plate: licence plate, license plate, number plate, registration plate, vehicle registration, plate number
+location: latitude, longitude, gps, coordinates, location
+name: first name, firstname, last name, lastname, surname, full name, fullname, given name, family name

@@ -1,0 +1,19 @@
+# Hungarian
+national-id: személyi azonosító, személyi szám, személyazonosító
+tax-id: adóazonosító jel, adóazonosító, adószám
+social-security: társadalombiztosítási azonosító, taj szám, taj
+health-insurance: egészségbiztosítás, európai egészségbiztosítási kártya
+phone: telefon, telefonszám, mobil, mobilszám
+email: e-mail, email cím, emailcím
+bank-account: bankszámla, bankszámlaszám, számlaszám, iban
+card: kártya, bankkártya, kártyaszám, hitelkártya
+vat: közösségi adószám, áfa, áfaszám
+passport: útlevél, útlevélszám
+id-card: személyi igazolvány, személyazonosító igazolvány
+birth-date: születési dátum, születési idő, született
+address: cím, lakcím, lakóhely
+postcode: irányítószám
+driving-licence: jogosítvány, vezetői engedély
+licence-plate: rendszám, forgalmi rendszám
+location: szélesség, hosszúság, koordináták, helyszín
+name: vezetéknév, keresztnév, utónév, teljes név
