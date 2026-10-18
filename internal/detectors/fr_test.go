@@ -55,3 +55,25 @@ func TestFrenchNIR(t *testing.T) {
 		t.Errorf("mask: %q", m)
 	}
 }
+
+func TestFrenchSPI(t *testing.T) {
+	wantValidity(t, "fr-spi", map[string]bool{
+		"1234567890066":     true,
+		"12 34 567 890 066": true,
+		"0012345678429":     true, // key below 100 is padded
+		"2999999999248":     true,
+		"3000000001250":     true,
+		"1234567890067":     false, // wrong key
+		"4234567890315":     false, // first digit 4
+		"123456789066":      false, // 12 digits
+		"12345678900660":    false, // 14 digits
+	})
+	wantPatternFinds(t, "fr-spi", "numéro fiscal: 12 34 567 890 066", "12 34 567 890 066")
+	d, _ := Get("fr-spi")
+	if !d.Samples["3023217600053"] || !d.Validate("3023217600053") {
+		t.Error("the DGFiP specimen must validate and be marked as a sample")
+	}
+	if !d.Formatted.MatchString("12 34 567 890 066") || d.Formatted.MatchString("1234567890066") {
+		t.Error("only the grouped form is the usual format")
+	}
+}
