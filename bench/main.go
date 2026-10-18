@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ type line struct {
 func main() {
 	n := flag.Int("lines", 20000, "lines in the corpus")
 	seed := flag.Int64("seed", 1, "random seed")
+	export := flag.String("export", "", "also write the corpus and its labels to this folder (for bench/presidio_compare.py)")
 	flag.Parse()
 	r := rand.New(rand.NewSource(*seed))
 	corpus := build(r, *n)
@@ -34,6 +36,12 @@ func main() {
 		text[i] = l.text
 	}
 	body := strings.Join(text, "\n") + "\n"
+	if *export != "" {
+		if err := writeCorpus(*export, body, corpus); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	}
 
 	start := time.Now()
 	found, err := engine.ScanReader("corpus/data.txt", strings.NewReader(body), detectors.All())
@@ -58,6 +66,23 @@ func main() {
 	allLow := score(corpus, found, "", domain.Low)
 	base := score(corpus, baseline, "", domain.Low)
 	fmt.Printf("| **All** | %d | %s | %s | %s | %s | %s |\n", all.expected, pct(all.recall()), pct(all.precision()), pct(allLow.recall()), pct(allLow.precision()), pct(base.precision()))
+}
+
+// writeCorpus writes corpus.txt and labels.tsv (line number, expected detector) for other tools to score.
+func writeCorpus(dir, body string, corpus []line) error {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(dir, "corpus.txt"), []byte(body), 0o644); err != nil {
+		return err
+	}
+	var b strings.Builder
+	for i, l := range corpus {
+		if l.detector != "" {
+			fmt.Fprintf(&b, "%d\t%s\n", i+1, l.detector)
+		}
+	}
+	return os.WriteFile(filepath.Join(dir, "labels.tsv"), []byte(b.String()), 0o644)
 }
 
 func positives(c []line) int {
@@ -222,8 +247,11 @@ func completeDigit(d detectors.Detector, b string) string {
 
 func ibanBody(r *rand.Rand, country string) string {
 	n := detectors.IBANLengths[country] - 4
-	if country == "RO" {
+	switch country {
+	case "RO":
 		return "BTRL" + digits(r, n-4)
+	case "BG":
+		return "BNBG" + digits(r, n-4)
 	}
 	return digits(r, n)
 }
