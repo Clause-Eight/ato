@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/Clause-Eight/pii-eu/internal/detectors"
 )
 
 func run(args ...string) (int, string, string) {
@@ -59,5 +61,37 @@ func TestFlagsAfterPath(t *testing.T) {
 	want := "--format json --no-git --include=x ."
 	if strings.Join(got, " ") != want {
 		t.Fatalf("got %v", got)
+	}
+}
+
+func syntheticCard() string {
+	body := "453201511283036"
+	for c := '0'; c <= '9'; c++ {
+		if v := body + string(c); detectors.Luhn(v) {
+			return v
+		}
+	}
+	return ""
+}
+
+func TestScanWritesEachFormatWithoutValues(t *testing.T) {
+	dir := t.TempDir()
+	card := syntheticCard()
+	if err := os.WriteFile(filepath.Join(dir, "pay.txt"), []byte("card: "+card+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, format := range []string{"text", "json", "sarif"} {
+		out := filepath.Join(t.TempDir(), "report."+format)
+		code, _, errOut := run("scan", "--no-git", "--format", format, "--output", out, "--show-values", dir)
+		if code != ExitFindings {
+			t.Fatalf("%s: exit %d (%s)", format, code, errOut)
+		}
+		data, err := os.ReadFile(out)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(string(data), card) {
+			t.Errorf("%s report file contains the raw value", format)
+		}
 	}
 }
