@@ -1,6 +1,6 @@
 # Benchmarks
 
-Measured on 18 October 2026 on an Apple M-series laptop (12 cores). Re-run with `go run ./bench -lines 30000`.
+Measured on 19 October 2026 on an Apple M-series laptop (12 cores). Re-run with `go run ./bench -lines 30000`.
 
 ## Synthetic corpus: precision and recall
 
@@ -8,31 +8,47 @@ Measured on 18 October 2026 on an Apple M-series laptop (12 cores). Re-run with 
 
 "Pattern-only" runs the same candidate patterns without validation, which is roughly what a regex-based scanner does.
 
-    Corpus: 30000 lines (10173 with a value, 19827 without), 0.8 MB, seed 1
-    Scan time: 272ms (110447 lines/s, one core)
+    Corpus: 30000 lines (10036 with a value, 19964 without), 0.8 MB, seed 1
+    Scan time: 212ms (141462 lines/s, one core)
 
-| Detector | Values | Recall (medium) | Precision (medium) | Recall (low) | Precision (low) | Pattern-only precision |
-|---|---|---|---|---|---|---|
-| `bg-egn` | 803 | 50.1% | 99.8% | 100.0% | 92.8% | 18.1% |
-| `bg-lnch` | 783 | 48.4% | 98.4% | 99.4% | 72.2% | 87.0% |
-| `card` | 844 | 100.0% | 88.6% | 100.0% | 88.6% | 18.8% |
-| `cz-birth-number` | 757 | 50.5% | 99.7% | 92.9% | 89.2% | 34.8% |
-| `email` | 785 | 51.6% | 100.0% | 100.0% | 100.0% | 100.0% |
-| `eu-phone` | 800 | 51.7% | 99.8% | 100.0% | 95.2% | 95.7% |
-| `eu-vat` | 780 | 50.1% | 100.0% | 100.0% | 100.0% | n/a |
-| `hr-oib` | 763 | 47.7% | 99.7% | 99.9% | 92.7% | 52.8% |
-| `hu-taj` | 772 | 50.8% | 99.7% | 96.1% | 95.5% | 99.0% |
-| `hu-tax-id` | 786 | 54.1% | 100.0% | 94.0% | 99.5% | 99.3% |
-| `iban` | 776 | 100.0% | 100.0% | 100.0% | 100.0% | 45.5% |
-| `pl-pesel` | 780 | 49.5% | 99.7% | 95.5% | 99.6% | 95.9% |
-| `ro-cnp` | 744 | 99.2% | 100.0% | 99.2% | 100.0% | 99.5% |
-| **All** | 10173 | 61.9% | 98.1% | 98.3% | 93.5% | 42.2% |
+| Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |
+|---|---|---|---|---|---|---|---|
+| `advertising-id` | 382 | 50.8% | 100.0% | 0 | 50.8% | 100.0% | 100.0% |
+| `bg-egn` | 399 | 46.6% | 100.0% | 0 | 100.0% | 91.9% | 12.6% |
+| `bg-lnch` | 323 | 55.7% | 97.3% | 5 | 99.4% | 56.2% | 91.4% |
+| `card` | 373 | 91.4% | 95.0% | 18 | 100.0% | 77.1% | 9.6% |
+| `cz-birth-number` | 336 | 100.0% | 99.7% | 1 | 100.0% | 81.0% | 35.5% |
+| `de-id-card` | 354 | 48.9% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `de-pension` | 381 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 99.7% |
+| `de-tax-id` | 373 | 67.8% | 100.0% | 0 | 100.0% | 98.4% | 39.6% |
+| `email` | 349 | 53.6% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `es-dni` | 377 | 54.9% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `es-nie` | 337 | 52.8% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `es-nss` | 346 | 86.7% | 100.0% | 0 | 100.0% | 99.7% | 54.1% |
+| `eu-phone` | 350 | 84.9% | 100.0% | 0 | 100.0% | 90.9% | 90.3% |
+| `eu-vat` | 356 | 52.5% | 100.0% | 0 | 100.0% | 100.0% | 98.3% |
+| `fr-nir` | 366 | 78.1% | 99.7% | 1 | 100.0% | 99.7% | 99.3% |
+| `fr-spi` | 384 | 75.3% | 100.0% | 0 | 100.0% | 100.0% | 98.3% |
+| `hr-oib` | 381 | 50.1% | 99.5% | 1 | 98.4% | 90.1% | 83.7% |
+| `hu-taj` | 335 | 51.6% | 100.0% | 0 | 97.6% | 89.3% | 96.6% |
+| `hu-tax-id` | 323 | 55.1% | 100.0% | 0 | 95.0% | 99.4% | 100.0% |
+| `iban` | 327 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 43.7% |
+| `imei` | 360 | 85.0% | 100.0% | 0 | 100.0% | 98.1% | 98.4% |
+| `ip-address` | 395 | 51.6% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `it-fiscal-code` | 365 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `mac-address` | 361 | 52.9% | 100.0% | 0 | 52.9% | 100.0% | 100.0% |
+| `mrz` | 358 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `nl-bsn` | 321 | 64.8% | 100.0% | 0 | 93.1% | 93.7% | 99.5% |
+| `pl-pesel` | 378 | 56.3% | 99.5% | 1 | 95.5% | 99.2% | 98.6% |
+| `ro-cnp` | 346 | 98.6% | 99.7% | 1 | 98.6% | 99.7% | 59.1% |
+| **All** | 10036 | 70.0% | 99.6% | 28 | 95.7% | 93.8% | 48.9% |
 
 What the numbers say:
 
-- **Validation is what keeps the output usable.** Across all detectors, precision is 98.1% at the default level against 42.2% for pattern-only matching.
-- **Low-base detectors trade recall for quiet output.** Ten-digit IDs (EGN, LNCh, HU tax ID), PESEL, OIB, VAT numbers and contact data start at low confidence, so at the default `--min-confidence medium` they are reported only with a nearby keyword (about half the corpus). At `--min-confidence low` recall is 92–100% with precision still 72–100%.
-- **Cards are the noisiest identifier.** A random 16-digit number with a Visa or Mastercard prefix passes the Luhn check one time in ten, so long trace and order numbers produce false positives (88% precision here, where the corpus is deliberately full of them). IBANs and CNPs carry enough structure to stay near 100%.
+- **Validation is what keeps the output usable.** Across all detectors, precision is 99.6% at the default level against 48.9% for pattern-only matching.
+- **Low-base detectors trade recall for quiet output.** Bare numbers with one check digit (EGN, LNCh, PESEL, OIB, BSN, the Nordic and Baltic codes), VAT numbers and contact data start at low confidence, so at the default `--min-confidence medium` they are reported only with a nearby keyword or in their usual printed format. Detectors marked "only with a keyword" are never reported without one.
+- **Many national numbers share a shape.** An eleven-digit number can be a valid PESEL, OIB, German tax ID and Estonian code at once. Each value is reported once, preferring the detector whose own name is nearby, so at `--min-confidence low` some values are counted under another country and precision there is lower.
+- **Cards are the noisiest identifier.** A random 16-digit number with a Visa or Mastercard prefix passes the Luhn check one time in ten, so long trace and order numbers look like cards. A nearby word that usually labels other numbers (trace, order, invoice, transaction) lowers a card one step unless a card keyword is also there, which keeps card precision at the default level near 95%.
 
 ## Real repository: speed and false positives
 
