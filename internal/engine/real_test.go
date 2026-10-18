@@ -55,3 +55,14 @@ func TestRealDetectorsOnTypicalLines(t *testing.T) {
 		t.Fatal("a timestamp was reported as an EGN")
 	}
 }
+
+func TestVATAfterAnUppercaseWord(t *testing.T) {
+	vat := withCheck(t, "eu-vat", "PL101000123", 1)
+	fs, err := ScanReader("a.txt", strings.NewReader("VAT "+vat+"\n"), detectors.All())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(fs) != 1 || fs[0].Detector != "eu-vat" {
+		t.Fatalf("got %+v", fs)
+	}
+}
