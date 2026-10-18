@@ -154,3 +154,19 @@ func TestStagedScansTheStagedVersion(t *testing.T) {
 		t.Fatalf("--staged outside git should be a usage error, got %d", code)
 	}
 }
+
+func TestDetectorReferenceIsUpToDate(t *testing.T) {
+	path := filepath.Join("..", "..", "docs", "DETECTORS.md")
+	if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+		if err := os.WriteFile(path, []byte(DetectorTable()), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	want, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.ReplaceAll(string(want), "\r\n", "\n") != DetectorTable() {
+		t.Fatal("docs/DETECTORS.md is out of date: run PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli")
+	}
+}

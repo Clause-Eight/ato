@@ -23,3 +23,13 @@ CI also runs staticcheck and the tests on Linux, macOS and Windows.
 ## Commits and pull requests
 
 Conventional commits (`feat(detectors): add Polish PESEL`), one feature per pull request, and the docs updated in the same pull request.
+
+## Adding a detector
+
+1. Copy [docs/detector-template.go.txt](docs/detector-template.go.txt) to `internal/detectors/<country>.go` (or add to the country's file).
+2. Fill in the name (`<country>-<identifier>`, lower case), the label, the candidate pattern, the validator and the keywords (lower case, whole words).
+3. Cite the public source for the algorithm in the comment above `init`, in your own words.
+4. Add a synthetic generator and tests in `internal/detectors/*_test.go`: generated values must validate, and a changed check digit must not.
+5. Regenerate the reference: `PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli`, and commit `docs/DETECTORS.md`.
+
+Choose the base confidence by how often a random number of that shape would pass: a long structured identifier (IBAN) can start high; a ten-digit number with one check digit starts low and relies on keywords.
