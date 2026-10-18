@@ -104,3 +104,14 @@ func TestKeywordsIgnoreDiacriticsAndCase(t *testing.T) {
 		t.Fatalf("got %+v", fs)
 	}
 }
+
+func TestKeywordGatedDetectorNeedsAKeyword(t *testing.T) {
+	d := sixDigits
+	d.NeedsKeyword, d.MatchWords = true, []string{"serial"}
+	if fs, _ := ScanReader("a.txt", strings.NewReader("123456\n"), []detectors.Detector{d}); len(fs) != 0 {
+		t.Fatalf("reported without a keyword: %+v", fs)
+	}
+	if fs, _ := ScanReader("a.txt", strings.NewReader("serial:\n123456\n"), []detectors.Detector{d}); len(fs) != 1 {
+		t.Fatalf("a keyword on the line before must allow it: %+v", fs)
+	}
+}

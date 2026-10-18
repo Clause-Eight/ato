@@ -478,6 +478,9 @@ func DetectorTable() string {
 		if !d.OnByDefault {
 			label += " (off by default)"
 		}
+		if d.NeedsKeyword {
+			label += " (only with a keyword)"
+		}
 		fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s | %s |\n", d.Name, d.Country, label, d.Validation, d.Base, strings.Join(kws, ", "), strings.Join(concepts, ", "))
 	}
 	return b.String()
