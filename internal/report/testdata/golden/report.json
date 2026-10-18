@@ -13,7 +13,9 @@
         "reason": "binary"
       }
     ],
-    "unreadable": []
+    "unreadable": [],
+    "ignored": 0,
+    "baselined": 0
   },
   "findings": [
     {
