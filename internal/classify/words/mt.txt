@@ -1,0 +1,11 @@
+# Maltese
+health: saħħa, mediku, dijanjosi, marda, mard, allerġija, grupp tad-demm, mediċina, mediċini, riċetta, sintomu, sintomi, diżabilità, tqala, pazjent, tilqim, saħħa mentali, rekord mediku, storja medika, leave tal-mard
+genetic: ġenetiku, ġenoma, dna, ġene, ġenotip
+biometric: bijometriku, marka tas-swaba, marki tas-swaba, mudell tal-wiċċ, marka tal-vuċi
+racial-or-ethnic-origin: razza, oriġini razzjali, oriġini etnika, etniċità
+political-opinions: opinjoni politika, opinjonijiet politiċi, partit politiku, affiljazzjoni politika
+religious-or-philosophical-beliefs: reliġjon, twemmin, twemmin reliġjuż, twemmin filosofiku, denominazzjoni
+trade-union-membership: trejdjunjin, unjin, sħubija fit-trejdjunjin
+sex-life-or-sexual-orientation: orjentazzjoni sesswali, ħajja sesswali, sesswalità
+demographic: ġeneru, sess, nazzjonalità, ċittadinanza, stat ċivili, età, post tat-twelid
+online-identifier: indirizz ip, identifikatur tal-apparat, indirizz mac

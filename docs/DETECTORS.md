@@ -6,6 +6,8 @@ Base confidence is what a valid match gets on its own. A keyword on the same lin
 
 Keywords are the identifier's own names. Concepts add the shared words for that kind of data in all 24 EU languages, from `internal/detectors/keywords/`. Detectors marked off by default run when switched on in `[detectors]` or when their country is selected with `--countries`.
 
+Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.
+
 | Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |
 |---|---|---|---|---|---|---|
 | `bg-egn` | BG | Bulgarian personal number (EGN) | date and check digit are valid | low | `egn`, `егн`, `personal_number`, `personalnumber`, `national_id`, `nationalid` | national-id |

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Clause-Eight/pii-eu/schemas/inventory.schema.json",
+  "title": "pii-eu data inventory",
+  "description": "Output of `pii-eu inventory --format json`: fields declared in schemas and models that hold personal data. Field names and locations only, never values.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "files_scanned",
+    "entries"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "files_scanned": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "container",
+          "data_category",
+          "matched",
+          "source_format",
+          "path",
+          "line",
+          "column"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "container": {
+            "type": "string",
+            "description": "Table, model, message or schema name; empty when unknown."
+          },
+          "data_category": {
+            "enum": [
+              "name",
+              "contact",
+              "address",
+              "government-identifier",
+              "financial",
+              "birth-date",
+              "location",
+              "online-identifier",
+              "demographic",
+              "special-category"
+            ]
+          },
+          "special_category": {
+            "enum": [
+              "racial-or-ethnic-origin",
+              "political-opinions",
+              "religious-or-philosophical-beliefs",
+              "trade-union-membership",
+              "genetic",
+              "biometric",
+              "health",
+              "sex-life-or-sexual-orientation"
+            ]
+          },
+          "matched": {
+            "type": "string",
+            "description": "The dictionary word that decided the category."
+          },
+          "source_format": {
+            "enum": [
+              "sql",
+              "django",
+              "sqlalchemy",
+              "activerecord",
+              "gorm",
+              "jpa",
+              "prisma",
+              "protobuf",
+              "openapi",
+              "dbt"
+            ]
+          },
+          "path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "column": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

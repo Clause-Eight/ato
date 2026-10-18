@@ -1,0 +1,11 @@
+# Czech
+health: zdraví, zdravotní, lékařský, diagnóza, nemoc, onemocnění, alergie, krevní skupina, lék, léky, recept, příznak, příznaky, postižení, invalidita, těhotenství, pacient, očkování, duševní zdraví, zdravotní záznam, zdravotní dokumentace, pracovní neschopnost
+genetic: genetický, genom, dna, gen, genotyp
+biometric: biometrický, otisk prstu, otisky prstů, šablona obličeje, duhovka, sítnice, hlasový otisk
+racial-or-ethnic-origin: rasa, rasový, etnický původ, etnická příslušnost, etnicita
+political-opinions: politický názor, politické názory, politická strana, stranická příslušnost
+religious-or-philosophical-beliefs: náboženství, vyznání, náboženské přesvědčení, víra, světonázor
+trade-union-membership: odbory, odborová organizace, členství v odborech
+sex-life-or-sexual-orientation: sexuální orientace, sexuální život, sexualita
+demographic: pohlaví, národnost, státní občanství, rodinný stav, věk, místo narození
+online-identifier: ip adresa, identifikátor zařízení, mac adresa

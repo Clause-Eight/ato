@@ -1,0 +1,11 @@
+# Latvian
+health: veselība, veselības dati, medicīnisks, diagnoze, slimība, alerģija, asinsgrupa, zāles, medikamenti, recepte, simptoms, simptomi, invaliditāte, grūtniecība, pacients, vakcinācija, garīgā veselība, slimības vēsture, darbnespēja
+genetic: ģenētisks, genoms, dns, gēns, genotips
+biometric: biometrisks, pirkstu nospiedums, pirkstu nospiedumi, sejas veidne, varavīksnene, tīklene, balss nospiedums
+racial-or-ethnic-origin: rase, rasu izcelsme, etniskā izcelsme, tautība
+political-opinions: politiskie uzskati, politiskā partija, partijas piederība
+religious-or-philosophical-beliefs: reliģija, ticība, konfesija, reliģiskā pārliecība, filozofiskā pārliecība
+trade-union-membership: arodbiedrība, dalība arodbiedrībā, arodbiedrības biedrs
+sex-life-or-sexual-orientation: seksuālā orientācija, dzimumdzīve, seksualitāte
+demographic: dzimums, pilsonība, ģimenes stāvoklis, vecums, dzimšanas vieta
+online-identifier: ip adrese, ierīces id, mac adrese, reklāmas id

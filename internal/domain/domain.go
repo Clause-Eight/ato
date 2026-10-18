@@ -44,8 +44,12 @@ type Location struct {
 	Column int
 }
 
-// Finding is one detected value. Value is the raw text and must never reach a report; reporters use Masked.
+// Finding is one detected value, or a schema field holding special-category data (Kind says which). Value is
+// the raw text and must never reach a report; reporters use Masked. For a field, Masked is the field's name.
 type Finding struct {
+	Kind        Kind
+	Category    DataCategory
+	Special     SpecialCategory
 	Detector    string
 	Label       string
 	Country     string
