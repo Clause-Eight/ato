@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
@@ -58,13 +59,13 @@ func evaluate(ctx lineContext, d detectors.Detector, start, end int, lower strin
 	if !bounded(ctx.line, start, end) {
 		return match{}, false
 	}
-	raw := ctx.line[start:end]
-	value := d.Normalize(raw)
+	end, ok := validEnd(ctx.line, d, start, end)
+	if !ok {
+		return match{}, false
+	}
+	value := d.Normalize(ctx.line[start:end])
 	m := match{det: d, start: start, end: end, value: value, confidence: d.Base}
 	if d.Validate != nil {
-		if !d.Validate(value) {
-			return match{}, false
-		}
 		m.reasons = append(m.reasons, d.Validation)
 	}
 	if kw := keyword(lower, d.Keywords); kw != "" {
@@ -81,6 +82,23 @@ func evaluate(ctx lineContext, d detectors.Detector, start, end int, lower strin
 		m.reasons = append(m.reasons, "in a test, fixture or example path")
 	}
 	return m, true
+}
+
+// validEnd returns where a valid value ends, trimming trailing groups when the detector allows it.
+func validEnd(line string, d detectors.Detector, start, end int) (int, bool) {
+	for {
+		if d.Validate == nil || d.Validate(d.Normalize(line[start:end])) {
+			return end, true
+		}
+		if !d.TrimGroups {
+			return 0, false
+		}
+		cut := strings.LastIndexAny(line[start:end], " -")
+		if cut <= 0 {
+			return 0, false
+		}
+		end = start + cut
+	}
 }
 
 func bounded(line string, start, end int) bool {
@@ -103,13 +121,38 @@ func isAlnum(r rune) bool {
 	return r >= '0' && r <= '9' || r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z'
 }
 
+// keyword returns the first word found as a whole word; underscores and punctuation count as word breaks.
 func keyword(lower string, words []string) string {
 	for _, w := range words {
-		if strings.Contains(lower, w) {
-			return w
+		for from := 0; ; {
+			i := strings.Index(lower[from:], w)
+			if i < 0 {
+				break
+			}
+			i += from
+			if wordBreak(lower, i, i+len(w)) {
+				return w
+			}
+			from = i + 1
 		}
 	}
 	return ""
+}
+
+func wordBreak(s string, start, end int) bool {
+	if start > 0 {
+		r, _ := utf8.DecodeLastRuneInString(s[:start])
+		if unicode.IsLetter(r) {
+			return false
+		}
+	}
+	if end < len(s) {
+		r, _ := utf8.DecodeRuneInString(s[end:])
+		if unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func raise(c domain.Confidence) domain.Confidence {
