@@ -39,7 +39,7 @@ type cardRange struct {
 }
 
 var cardRanges = []cardRange{
-	{"Visa", 4, 4, 1, []int{13, 16, 19}},
+	{"Visa", 4, 4, 1, []int{13, 16}},
 	{"Mastercard", 51, 55, 2, []int{16}},
 	{"Mastercard", 2221, 2720, 4, []int{16}},
 	{"American Express", 34, 34, 2, []int{15}},
