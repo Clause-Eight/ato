@@ -1,3 +1,5 @@
+// internal/detectors/xx.go
+
 package detectors
 
 import (
@@ -16,7 +18,8 @@ func init() {
 		OnByDefault: true,
 		Pattern:     regexp.MustCompile(`\d{10}`),
 		Validate:    validIdentifier,
-		Keywords:    []string{"local name", "english_name"},
+		Keywords:    []string{"local name", "abbreviation"},
+		Concepts:    []Concept{NationalID},
 		Base:        domain.Low,
 		Validation:  "date and check digit are valid",
 	})
@@ -29,4 +32,22 @@ func validIdentifier(s string) bool {
 	}
 	// Check the date part with ValidDate and compute the check digit here.
 	return false
+}
+
+// internal/synth/xx.go
+
+package synth
+
+import (
+	"fmt"
+	"math/rand"
+)
+
+func init() {
+	// Build a valid value without calling the detector: random parts, then the check digit computed here.
+	Register("xx-identifier", func(r *rand.Rand) string {
+		year, month, day := Date(r)
+		body := Pad(year%100, 2) + Pad(month, 2) + Pad(day, 2) + Digits(r, 3)
+		return body + fmt.Sprint(WeightedSum(body, []int{2, 4, 8, 5, 10, 9, 7, 3, 6})%11%10)
+	})
 }
