@@ -17,6 +17,7 @@ import (
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
 	"github.com/Clause-Eight/pii-eu/internal/engine"
+	"github.com/Clause-Eight/pii-eu/internal/synth"
 )
 
 type line struct {
@@ -54,18 +55,18 @@ func main() {
 
 	fmt.Printf("Corpus: %d lines (%d with a value, %d without), %.1f MB, seed %d\n", len(corpus), positives(corpus), len(corpus)-positives(corpus), float64(len(body))/1e6, *seed)
 	fmt.Printf("Scan time: %s (%.0f lines/s, one core)\n\n", elapsed.Round(time.Millisecond), float64(len(corpus))/elapsed.Seconds())
-	fmt.Println("| Detector | Values | Recall (medium) | Precision (medium) | Recall (low) | Precision (low) | Pattern-only precision |")
-	fmt.Println("|---|---|---|---|---|---|---|")
+	fmt.Println("| Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |")
+	fmt.Println("|---|---|---|---|---|---|---|---|")
 	for _, d := range detectors.All() {
 		m := score(corpus, found, d.Name, domain.Medium)
 		l := score(corpus, found, d.Name, domain.Low)
 		b := score(corpus, baseline, d.Name, domain.Low)
-		fmt.Printf("| `%s` | %d | %s | %s | %s | %s | %s |\n", d.Name, m.expected, pct(m.recall()), pct(m.precision()), pct(l.recall()), pct(l.precision()), pct(b.precision()))
+		fmt.Printf("| `%s` | %d | %s | %s | %d | %s | %s | %s |\n", d.Name, m.expected, pct(m.recall()), pct(m.precision()), m.fp, pct(l.recall()), pct(l.precision()), pct(b.precision()))
 	}
 	all := score(corpus, found, "", domain.Medium)
 	allLow := score(corpus, found, "", domain.Low)
 	base := score(corpus, baseline, "", domain.Low)
-	fmt.Printf("| **All** | %d | %s | %s | %s | %s | %s |\n", all.expected, pct(all.recall()), pct(all.precision()), pct(allLow.recall()), pct(allLow.precision()), pct(base.precision()))
+	fmt.Printf("| **All** | %d | %s | %s | %d | %s | %s | %s |\n", all.expected, pct(all.recall()), pct(all.precision()), all.fp, pct(allLow.recall()), pct(allLow.precision()), pct(base.precision()))
 }
 
 // writeCorpus writes corpus.txt and labels.tsv (line number, expected detector) for other tools to score.
@@ -181,89 +182,16 @@ func withContext(r *rand.Rand, name, value string) string {
 	return fmt.Sprintf("  value_%d = %q", r.Intn(1000), value)
 }
 
-func digits(r *rand.Rand, n int) string {
-	var b strings.Builder
-	for i := 0; i < n; i++ {
-		b.WriteByte(byte('0' + r.Intn(10)))
-	}
-	return b.String()
-}
+func digits(r *rand.Rand, n int) string { return synth.Digits(r, n) }
 
-func two(n int) string { return fmt.Sprintf("%02d", n) }
-
-// body returns a value without its check digit(s); complete() then finds a check that validates.
-func body(r *rand.Rand, name string) string {
-	switch name {
-	case "ro-cnp":
-		return fmt.Sprint(1+r.Intn(8)) + two(r.Intn(100)) + two(1+r.Intn(12)) + two(1+r.Intn(28)) + two(1+r.Intn(46)) + digits(r, 3)
-	case "bg-egn":
-		return two(r.Intn(100)) + two(1+r.Intn(12)+40*r.Intn(2)) + two(1+r.Intn(28)) + digits(r, 3)
-	case "hu-tax-id":
-		return "8" + fmt.Sprintf("%05d", 1000+r.Intn(50000)) + digits(r, 3)
-	case "pl-pesel":
-		return two(r.Intn(100)) + two(1+r.Intn(12)) + two(1+r.Intn(28)) + digits(r, 4)
-	case "cz-birth-number":
-		return two(54+r.Intn(46)) + two(1+r.Intn(12)+50*r.Intn(2)) + two(1+r.Intn(28)) + digits(r, 3)
-	case "card":
-		return "4" + digits(r, 14)
-	case "bg-lnch", "hr-oib", "hu-taj":
-		return digits(r, map[string]int{"bg-lnch": 9, "hr-oib": 10, "hu-taj": 8}[name])
-	}
-	return ""
-}
-
+// valid returns a generated value for a detector; internal/synth has a generator for every detector.
 func valid(r *rand.Rand, name string) string {
-	d, _ := detectors.Get(name)
-	for {
-		var v string
-		switch name {
-		case "iban":
-			c := []string{"RO", "DE", "HU", "PL", "BG"}[r.Intn(5)]
-			v = completeIBAN(d, c, ibanBody(r, c))
-		case "eu-vat":
-			v = completeDigit(d, "PL"+digits(r, 9))
-		case "email":
-			v = fmt.Sprintf("user%d.name@firma-%d.eu", r.Intn(10000), r.Intn(500))
-		case "eu-phone":
-			v = "+407" + digits(r, 8)
-		default:
-			v = completeDigit(d, body(r, name))
-		}
-		if v != "" && d.Validate(d.Normalize(v)) {
-			return v
-		}
+	gen, ok := synth.For(name)
+	if !ok {
+		fmt.Fprintf(os.Stderr, "no generator for %s\n", name)
+		os.Exit(1)
 	}
-}
-
-func completeDigit(d detectors.Detector, b string) string {
-	for c := 0; c <= 9; c++ {
-		v := b + fmt.Sprint(c)
-		if d.Validate(d.Normalize(v)) {
-			return v
-		}
-	}
-	return ""
-}
-
-func ibanBody(r *rand.Rand, country string) string {
-	n := detectors.IBANLengths[country] - 4
-	switch country {
-	case "RO":
-		return "BTRL" + digits(r, n-4)
-	case "BG":
-		return "BNBG" + digits(r, n-4)
-	}
-	return digits(r, n)
-}
-
-func completeIBAN(d detectors.Detector, country, b string) string {
-	for c := 2; c <= 98; c++ {
-		v := country + two(c) + b
-		if d.Validate(v) {
-			return v
-		}
-	}
-	return ""
+	return gen(r)
 }
 
 var words = []string{"order", "invoice", "build", "user", "session", "retry", "timeout", "version", "count", "id", "ref", "port"}
