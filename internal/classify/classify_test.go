@@ -49,7 +49,7 @@ func TestField(t *testing.T) {
 }
 
 func TestFieldsThatAreNotPersonalData(t *testing.T) {
-	for _, name := range []string{"id", "created_at", "health_check", "healthCheck", "trace_id", "status", "order_total", "race_condition", "union_type", "card_title", "unionAll", "price", "description", "condition"} {
+	for _, name := range []string{"id", "created_at", "health_check", "healthCheck", "trace_id", "status", "order_total", "race_condition", "union_type", "card_title", "unionAll", "price", "description", "condition", "Health", "dns", "dns_search", "diagnosticInfo", "medical", "symptoms", "gen", "hit"} {
 		if got, ok := Field(name); ok {
 			t.Errorf("%s classified as %+v", name, got)
 		}

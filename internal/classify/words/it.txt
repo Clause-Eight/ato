@@ -1,6 +1,6 @@
 # Italian
-health: salute, sanitario, medico, diagnosi, malattia, patologia, allergia, allergie, gruppo sanguigno, farmaco, farmaci, ricetta, sintomo, sintomi, disabilità, invalidità, gravidanza, paziente, vaccinazione, salute mentale, cartella clinica, anamnesi, malattia professionale
-genetic: genetico, genoma, dna, gene, genotipo
+health: salute, diagnosi, malattia, patologia, allergia, allergie, gruppo sanguigno, farmaco, farmaci, ricetta, sintomo, sintomi, disabilità, invalidità, gravidanza, paziente, vaccinazione, salute mentale, cartella clinica, anamnesi, malattia professionale
+genetic: genetico, genoma, dna, genotipo
 biometric: biometrico, impronta digitale, impronte digitali, modello facciale, iride, impronta vocale
 racial-or-ethnic-origin: razza, origine razziale, origine etnica, etnia
 political-opinions: opinione politica, opinioni politiche, partito politico, appartenenza politica

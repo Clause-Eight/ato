@@ -1,6 +1,6 @@
 # Dutch
 health: gezondheid, medisch, diagnose, ziekte, aandoening, allergie, allergieën, bloedgroep, medicijn, medicatie, recept, symptoom, symptomen, handicap, beperking, zwangerschap, patiënt, vaccinatie, geestelijke gezondheid, medisch dossier, ziektegeschiedenis, ziekmelding, ziekteverzuim
-genetic: genetisch, genoom, dna, gen, genotype
+genetic: genetisch, genoom, dna, genotype
 biometric: biometrisch, vingerafdruk, vingerafdrukken, gezichtssjabloon, netvlies, stemafdruk
 racial-or-ethnic-origin: ras, raciale afkomst, etnische afkomst, etniciteit, etnische achtergrond
 political-opinions: politieke mening, politieke voorkeur, politieke partij, partijlidmaatschap

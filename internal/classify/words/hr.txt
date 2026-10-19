@@ -1,6 +1,6 @@
 # Croatian
 health: zdravlje, zdravstveni, medicinski, dijagnoza, bolest, alergija, krvna grupa, lijek, lijekovi, recept, simptom, simptomi, invaliditet, trudnoća, pacijent, cijepljenje, mentalno zdravlje, medicinska dokumentacija, bolovanje
-genetic: genetski, genom, dnk, gen, genotip
+genetic: genetski, genom, dnk, genotip
 biometric: biometrijski, otisak prsta, otisci prstiju, predložak lica, šarenica, mrežnica, otisak glasa
 racial-or-ethnic-origin: rasa, rasno podrijetlo, etničko podrijetlo, etnička pripadnost
 political-opinions: političko mišljenje, politička stranka, stranačka pripadnost, politička uvjerenja

@@ -1,6 +1,6 @@
 # Danish
-health: helbred, sundhed, sundhedsdata, medicinsk, diagnose, sygdom, allergi, blodtype, medicin, recept, symptom, symptomer, handicap, graviditet, patient, vaccination, mental sundhed, journal, patientjournal, sygemelding
-genetic: genetisk, genom, dna, gen, genotype
+health: helbred, sundhed, sundhedsdata, medicinsk, diagnose, sygdom, allergi, blodtype, medicin, recept, symptomer, handicap, graviditet, patient, vaccination, mental sundhed, journal, patientjournal, sygemelding
+genetic: genetisk, genom, dna, genotype
 biometric: biometrisk, fingeraftryk, ansigtsskabelon, nethinde, stemmeaftryk
 racial-or-ethnic-origin: race, racemæssig oprindelse, etnisk oprindelse, etnicitet
 political-opinions: politisk holdning, politisk overbevisning, politisk parti, partimedlemskab

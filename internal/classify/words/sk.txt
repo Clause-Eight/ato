@@ -1,6 +1,6 @@
 # Slovak
 health: zdravie, zdravotný, lekársky, diagnóza, choroba, ochorenie, alergia, krvná skupina, liek, lieky, recept, príznak, príznaky, postihnutie, invalidita, tehotenstvo, pacient, očkovanie, duševné zdravie, zdravotný záznam, zdravotná dokumentácia, práceneschopnosť
-genetic: genetický, genóm, dna, gén, genotyp
+genetic: genetický, genóm, dna, genotyp
 biometric: biometrický, odtlačok prsta, odtlačky prstov, šablóna tváre, dúhovka, sietnica, hlasový odtlačok
 racial-or-ethnic-origin: rasa, rasový, etnický pôvod, etnická príslušnosť
 political-opinions: politický názor, politické názory, politická strana, stranícka príslušnosť
