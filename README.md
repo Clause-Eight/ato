@@ -186,7 +186,7 @@ repos:
 5. Overlapping matches keep the most confident one. A value that is valid for two detectors is reported once, preferring the detector whose own name is nearby, and the finding says what else it could be.
 6. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.
 
-The JSON report follows [schemas/findings.schema.json](schemas/findings.schema.json).
+The JSON report follows [schemas/findings.schema.json](schemas/findings.schema.json). What stays stable across 1.x releases, and how deprecations work, is in [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
 
 ## Contributing
 
