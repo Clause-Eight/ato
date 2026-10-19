@@ -1,0 +1,11 @@
+# Estonian
+health: tervis, terviseandmed, meditsiiniline, diagnoos, haigus, allergia, veregrupp, ravim, ravimid, retsept, sümptom, sümptomid, puue, rasedus, patsient, vaktsineerimine, vaimne tervis, terviselugu, haiguslugu, haigusleht
+genetic: geneetiline, genoom, dna, geen, genotüüp
+biometric: biomeetriline, sõrmejälg, sõrmejäljed, näomall, vikerkest, võrkkest, häälejälg
+racial-or-ethnic-origin: rass, rassiline päritolu, etniline päritolu, rahvus
+political-opinions: poliitiline arvamus, poliitilised vaated, erakond, erakondlik kuuluvus
+religious-or-philosophical-beliefs: usk, religioon, usutunnistus, usuline veendumus, maailmavaade
+trade-union-membership: ametiühing, ametiühingusse kuulumine, ametiühingu liige
+sex-life-or-sexual-orientation: seksuaalne sättumus, seksuaalelu, seksuaalsus
+demographic: sugu, kodakondsus, perekonnaseis, vanus, sünnikoht
+online-identifier: ip aadress, seadme id, mac aadress, reklaami id

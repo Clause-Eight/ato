@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "tool": {
     "name": "pii-eu",
     "version": "test"
@@ -19,6 +19,7 @@
   },
   "findings": [
     {
+      "kind": "value",
       "detector": "card",
       "label": "Payment card number",
       "country": "EU",
@@ -36,6 +37,7 @@
       "fingerprint": "0123456789abcdef0123456789abcdef"
     },
     {
+      "kind": "value",
       "detector": "ro-cnp",
       "label": "Romanian personal number (CNP)",
       "country": "RO",

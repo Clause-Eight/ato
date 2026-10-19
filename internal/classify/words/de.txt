@@ -1,0 +1,11 @@
+# German
+health: gesundheit, gesundheitsdaten, medizinisch, diagnose, krankheit, erkrankung, allergie, allergien, blutgruppe, medikament, medikamente, rezept, symptom, symptome, behinderung, schwangerschaft, patient, impfung, impfstatus, psychische gesundheit, krankenakte, patientenakte, krankengeschichte, krankmeldung, befund
+genetic: genetisch, genom, dna, gen, genotyp, gentest
+biometric: biometrisch, fingerabdruck, gesichtsvorlage, gesichtsmerkmale, netzhaut, stimmprofil
+racial-or-ethnic-origin: rasse, ethnie, ethnische herkunft, ethnische zugehörigkeit
+political-opinions: politische meinung, politische einstellung, partei, parteizugehörigkeit, parteimitgliedschaft
+religious-or-philosophical-beliefs: religion, religionszugehörigkeit, konfession, glaube, weltanschauung, kirchensteuermerkmal, kirchenzugehörigkeit
+trade-union-membership: gewerkschaft, gewerkschaftszugehörigkeit, gewerkschaftsmitglied
+sex-life-or-sexual-orientation: sexuelle orientierung, sexualleben, sexualität
+demographic: geschlecht, staatsangehörigkeit, nationalität, familienstand, alter, geburtsort
+online-identifier: ip adresse, geräte id, mac adresse, werbe id

@@ -214,3 +214,35 @@ func TestCountriesFlag(t *testing.T) {
 		t.Errorf("unknown country: exit %d, %q", code, errOut)
 	}
 }
+
+func TestSpecialCategoryFieldsAndInventory(t *testing.T) {
+	dir := t.TempDir()
+	migration := "CREATE TABLE patients (\n  id bigint,\n  first_name text,\n  diagnosis text,\n  created_at timestamp\n);\n"
+	if err := os.WriteFile(filepath.Join(dir, "001_patients.sql"), []byte(migration), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	code, out, _ := run("scan", "--no-git", "--format", "json", dir)
+	if code != ExitFindings || !strings.Contains(out, `"special_category": "health"`) || !strings.Contains(out, `"kind": "field"`) {
+		t.Fatalf("scan: exit %d\n%s", code, out)
+	}
+	if strings.Contains(out, "first_name") {
+		t.Error("only special-category fields are scan findings")
+	}
+	cfg := filepath.Join(dir, ".pii-eu.toml")
+	if err := os.WriteFile(cfg, []byte("[detectors]\nspecial-category = false\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, _ := run("scan", "--no-git", dir); code != ExitClean {
+		t.Errorf("special-category = false must switch the findings off: exit %d", code)
+	}
+	code, out, _ = run("inventory", "--no-git", dir)
+	if code != ExitClean || !strings.Contains(out, "first_name,patients,name,,sql,001_patients.sql,3") || !strings.Contains(out, "diagnosis,patients,special-category,health,sql") {
+		t.Fatalf("inventory: exit %d\n%s", code, out)
+	}
+	if strings.Contains(out, "created_at") {
+		t.Error("fields without personal data belong out of the inventory")
+	}
+	if code, _, _ := run("inventory", "--format", "sarif", dir); code != ExitUsage {
+		t.Errorf("inventory accepts only json and csv: exit %d", code)
+	}
+}

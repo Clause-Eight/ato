@@ -1,0 +1,11 @@
+# French
+health: santé, médical, diagnostic, maladie, pathologie, allergie, allergies, groupe sanguin, médicament, médicaments, ordonnance, symptôme, symptômes, handicap, grossesse, patient, vaccination, santé mentale, dossier médical, antécédents médicaux, arrêt maladie, thérapie
+genetic: génétique, génome, adn, gène, génotype
+biometric: biométrique, empreinte digitale, empreintes digitales, gabarit facial, rétine, empreinte vocale
+racial-or-ethnic-origin: race, origine raciale, origine ethnique, ethnie, appartenance ethnique
+political-opinions: opinion politique, opinions politiques, parti politique, appartenance politique
+religious-or-philosophical-beliefs: religion, confession, croyance, conviction religieuse, conviction philosophique
+trade-union-membership: syndicat, appartenance syndicale, adhésion syndicale, syndiqué
+sex-life-or-sexual-orientation: orientation sexuelle, vie sexuelle, sexualité
+demographic: genre, sexe, nationalité, citoyenneté, situation familiale, état civil, âge, lieu de naissance
+online-identifier: adresse ip, identifiant appareil, adresse mac, identifiant publicitaire

@@ -1,0 +1,11 @@
+# Irish
+health: sláinte, leighis, diagnóis, galar, tinneas, ailléirge, grúpa fola, cógas, cógais, oideas, siomptóm, míchumas, toircheas, othar, vacsaíniú, meabhairshláinte, taifead leighis, saoire bhreoite
+genetic: géiniteach, géanóm, dna, géin, géinitíopa
+biometric: bithmhéadrach, méarlorg, méarloirg, teimpléad aghaidhe, inteachán, reitine, guthlorg
+racial-or-ethnic-origin: cine, bunús ciníoch, bunús eitneach, eitneacht
+political-opinions: tuairim pholaitiúil, páirtí polaitíochta, ballraíocht páirtí
+religious-or-philosophical-beliefs: reiligiún, creideamh, sainchreideamh, creideamh reiligiúnach
+trade-union-membership: ceardchumann, ballraíocht ceardchumainn
+sex-life-or-sexual-orientation: claonadh gnéasach, saol gnéis, gnéasacht
+demographic: inscne, gnéas, náisiúntacht, saoránacht, stádas pósta, aois, áit bhreithe
+online-identifier: seoladh ip, aitheantóir gléis, seoladh mac
