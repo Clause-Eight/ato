@@ -8,16 +8,31 @@ Keywords are the identifier's own names. Concepts add the shared words for that 
 
 | Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |
 |---|---|---|---|---|---|---|
+| `advertising-id` | EU | Mobile advertising ID (IDFA, GAID) (off by default) (only with a keyword) | a UUID that is not the all-zero opt-out value | low | `idfa`, `gaid`, `advertising id`, `advertisingid`, `advertising identifier`, `advertisingidentifier`, `adid`, `aaid`, `ifa` |  |
 | `bg-egn` | BG | Bulgarian personal number (EGN) | date and check digit are valid | low | `egn`, `егн`, `personal_number`, `personalnumber`, `national_id`, `nationalid` | national-id |
 | `bg-lnch` | BG | Bulgarian foreigner number (LNCh) | check digit is valid | low | `lnch`, `лнч` | national-id |
 | `card` | EU | Payment card number | brand prefix, length and Luhn check are valid | medium | `card`, `pan`, `cc_number`, `ccnumber`, `credit`, `debit`, `visa`, `mastercard`, `maestro`, `amex`, `card_number`, `cardnumber` | card |
 | `cz-birth-number` | CZ | Czech or Slovak birth number (rodné číslo) | date and mod-11 check are valid | low | `rodné číslo`, `rodne cislo`, `rodne_cislo`, `rodnecislo`, `birth_number`, `birthnumber`, `rč` | national-id |
+| `de-id-card` | DE | German ID card number (Personalausweis) | alphabet and ICAO 9303 check digit are valid | low | `personalausweisnummer`, `ausweisnr`, `ausweis-nr`, `perso-nr` | id-card |
+| `de-pension` | DE | German pension insurance number (Rentenversicherungsnummer) | area number, birth date and check digit are valid | medium | `rentenversicherungsnummer`, `rentenversicherungs-nr`, `rv-nummer`, `rvnr`, `rv-nr` | social-security |
+| `de-tax-id` | DE | German tax ID (steuerliche Identifikationsnummer) | digit rule and ISO 7064 check digit are valid | low | `steuerliche identifikationsnummer`, `steuer-identifikationsnummer`, `steueridentifikationsnummer`, `steuer-idnr`, `steueridnr`, `steuer-id`, `steuerid`, `idnr` | tax-id |
 | `email` | EU | Email address | an address outside documentation and test domains | low | `email`, `e-mail`, `mail`, `contact` | email |
-| `eu-phone` | EU | Phone number (RO, BG, HU, PL) | matches a national numbering plan | low | `phone`, `tel`, `telefon`, `telephone`, `mobile`, `mobil`, `gsm`, `телефон` | phone |
+| `es-dni` | ES | Spanish national ID (DNI) | mod-23 check letter is valid | low | `dni`, `d.n.i.`, `nif`, `documento nacional de identidad` | national-id, id-card, tax-id |
+| `es-nie` | ES | Spanish foreigner ID (NIE) | mod-23 check letter is valid | low | `nie`, `n.i.e.`, `número de identidad de extranjero`, `número de identificación de extranjero` | national-id |
+| `es-nss` | ES | Spanish social security number (NSS) | province code and mod-97 check digits are valid | low | `nss`, `naf`, `nuss`, `número de la seguridad social`, `número de afiliación`, `seguridad social` | social-security |
+| `eu-phone` | EU | Phone number | matches the country's national numbering plan | low | `phone`, `tel`, `telefon`, `telephone`, `mobile`, `mobil`, `gsm`, `телефон` | phone |
 | `eu-vat` | EU | EU VAT number | matches the member state's VAT format, with its check digit where one is defined | low | `vat`, `tva`, `cui`, `cif`, `nip`, `ust-id`, `ustid`, `iva`, `btw`, `moms`, `dic`, `dič`, `ddv`, `pdv`, `ддс` | vat |
+| `fr-nir` | FR | French social security number (NIR) | sex, month, place of birth and mod-97 check key are valid | low | `nir`, `numéro de sécurité sociale`, `n° de sécurité sociale`, `numéro sécu`, `num secu`, `numéro insee`, `carte vitale` | social-security, health-insurance |
+| `fr-spi` | FR | French tax number (numéro fiscal, SPI) | first digit and mod-511 check key are valid | low | `spi`, `numéro fiscal`, `numero fiscal de reference`, `n° fiscal`, `nif`, `numéro d'identification fiscale` | tax-id |
 | `hr-oib` | HR | Croatian personal ID (OIB) | ISO 7064 check digit is valid | low | `oib` | national-id, tax-id |
 | `hu-taj` | HU | Hungarian social security number (TAJ) | check digit is valid | low | `taj`, `társadalombiztosítási`, `tarsadalombiztositasi`, `social_security`, `socialsecurity`, `health_insurance` | social-security, health-insurance |
 | `hu-tax-id` | HU | Hungarian tax ID (adóazonosító jel) | birth-date part and check digit are valid | low | `adóazonosító`, `adoazonosito`, `tax_id`, `taxid`, `tax_number`, `taxnumber` | tax-id |
 | `iban` | EU | Bank account number (IBAN) | country length and mod-97 check are valid | high | `iban`, `account`, `cont bancar`, `bankszámla`, `bankszamla`, `сметка` | bank-account |
+| `imei` | EU | Mobile device identity (IMEI) | reporting body and Luhn check digit are valid | low | `imei`, `imeisv` |  |
+| `ip-address` | EU | IP address (off by default) | a public address outside the IANA special-purpose blocks | low | `ip`, `ipv4`, `ipv6`, `ip address`, `ip addr`, `ipaddr`, `ipaddress`, `remote addr`, `client ip`, `x forwarded for`, `x real ip`, `src ip`, `source ip` |  |
+| `it-fiscal-code` | IT | Italian tax code (codice fiscale) | date, municipality code and check letter are valid | medium | `codice fiscale`, `codicefiscale`, `cod fisc`, `cod. fisc.`, `c.f.`, `cf` | tax-id, national-id |
+| `mac-address` | EU | MAC address (off by default) (only with a keyword) | a device (unicast) address, not all-zero or broadcast | low | `mac`, `mac address`, `macaddr`, `macaddress`, `hwaddr`, `hw addr`, `hardware address`, `bssid`, `ether` |  |
+| `mrz` | EU | Machine readable zone of a passport or ID card (MRZ) | dates and check digits are valid | medium | `mrz`, `machine readable zone` | passport, id-card |
+| `nl-bsn` | NL | Dutch citizen service number (BSN) | elfproef check is valid | low | `bsn`, `burgerservicenummer`, `sofinummer`, `sofi-nummer` | national-id, tax-id |
 | `pl-pesel` | PL | Polish personal number (PESEL) | date and check digit are valid | low | `pesel` | national-id |
 | `ro-cnp` | RO | Romanian personal number (CNP) | date, county code and check digit are valid | medium | `cnp`, `cod numeric`, `codnumeric`, `personal_code`, `personalcode`, `national_id`, `nationalid` | national-id |
