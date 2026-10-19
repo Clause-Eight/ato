@@ -101,6 +101,19 @@ Inventory flags: --config, --include, --exclude, --no-git, --output as for scan,
 Exit codes: 0 nothing found, 1 findings, 2 usage or settings error, 3 some files could not be read.
 `
 
+// deprecatedFlags maps a deprecated flag to what replaces it. A deprecated flag keeps working and prints a
+// warning; it is removed no earlier than the next major release (docs/COMPATIBILITY.md).
+var deprecatedFlags = map[string]string{}
+
+func warnDeprecated(args []string, stderr io.Writer) {
+	for _, a := range args {
+		name := strings.TrimLeft(strings.SplitN(a, "=", 2)[0], "-")
+		if repl, ok := deprecatedFlags[name]; ok && strings.HasPrefix(a, "-") {
+			fmt.Fprintf(stderr, "pii-eu: --%s is deprecated and will be removed in the next major version; use %s\n", name, repl)
+		}
+	}
+}
+
 type multi []string
 
 func (m *multi) String() string     { return strings.Join(*m, ",") }
@@ -137,6 +150,7 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	fs.BoolVar(&f.staged, "staged", false, "")
 	fs.StringVar(&f.baselinePath, "baseline", "", "")
 	fs.Usage = func() { fmt.Fprint(stderr, usage) }
+	warnDeprecated(args, stderr)
 	if err := fs.Parse(reorder(args)); err != nil {
 		return f, "", err
 	}
