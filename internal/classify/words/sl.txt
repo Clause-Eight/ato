@@ -1,0 +1,11 @@
+# Slovenian
+health: zdravje, zdravstveni, medicinski, diagnoza, bolezen, alergija, krvna skupina, zdravilo, zdravila, recept, simptom, simptomi, invalidnost, nosečnost, pacient, bolnik, cepljenje, duševno zdravje, zdravstvena dokumentacija, bolniška odsotnost
+genetic: genetski, genom, dnk, genotip
+biometric: biometrični, prstni odtis, prstni odtisi, predloga obraza, šarenica, mrežnica, glasovni odtis
+racial-or-ethnic-origin: rasa, rasno poreklo, etnično poreklo, etnična pripadnost
+political-opinions: politično mnenje, politična stranka, strankarska pripadnost, politično prepričanje
+religious-or-philosophical-beliefs: vera, veroizpoved, religija, versko prepričanje, svetovni nazor
+trade-union-membership: sindikat, članstvo v sindikatu, sindikalna pripadnost
+sex-life-or-sexual-orientation: spolna usmerjenost, spolno življenje, spolnost
+demographic: spol, narodnost, državljanstvo, zakonski stan, starost, kraj rojstva
+online-identifier: ip naslov, identifikator naprave, mac naslov
