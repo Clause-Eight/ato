@@ -1,0 +1,19 @@
+# Polish
+national-id: pesel, numer pesel, numer identyfikacyjny
+tax-id: nip, numer identyfikacji podatkowej, regon
+social-security: ubezpieczenie społeczne, numer ubezpieczenia
+health-insurance: ubezpieczenie zdrowotne, karta ekuz, ekuz
+phone: telefon, numer telefonu, komórka, tel
+email: e-mail, adres e-mail, poczta elektroniczna
+bank-account: konto bankowe, numer konta, rachunek bankowy, iban
+card: karta, numer karty, karta kredytowa, karta płatnicza
+vat: numer vat, vat
+passport: paszport, numer paszportu
+id-card: dowód osobisty, numer dowodu
+birth-date: data urodzenia, urodzony, urodzona
+address: adres, miejsce zamieszkania
+postcode: kod pocztowy
+driving-licence: prawo jazdy
+licence-plate: numer rejestracyjny, tablica rejestracyjna
+location: szerokość geograficzna, długość geograficzna, współrzędne, lokalizacja
+name: imię, nazwisko, imię i nazwisko

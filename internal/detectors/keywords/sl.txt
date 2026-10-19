@@ -1,0 +1,19 @@
+# Slovenian
+national-id: enotna matična številka občana, emšo, matična številka
+tax-id: davčna številka
+social-security: socialno zavarovanje, številka zavarovanca, zzzs
+health-insurance: zdravstveno zavarovanje, kartica zdravstvenega zavarovanja, evropska kartica zdravstvenega zavarovanja
+phone: telefon, telefonska številka, mobilni telefon, gsm
+email: e-pošta, e-poštni naslov, elektronska pošta
+bank-account: bančni račun, številka računa, trr, iban
+card: kartica, številka kartice, kreditna kartica
+vat: ddv, identifikacijska številka za ddv
+passport: potni list, številka potnega lista
+id-card: osebna izkaznica
+birth-date: datum rojstva, rojen, rojena
+address: naslov, prebivališče
+postcode: poštna številka
+driving-licence: vozniško dovoljenje
+licence-plate: registrska tablica, registrska številka
+location: zemljepisna širina, zemljepisna dolžina, koordinate, lokacija
+name: priimek, polno ime

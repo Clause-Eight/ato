@@ -1,0 +1,19 @@
+# Finnish
+national-id: henkilötunnus, hetu, henkilötunnuksen
+tax-id: verotunniste, veronumero, y-tunnus
+social-security: sosiaaliturva, sosiaaliturvatunnus
+health-insurance: sairausvakuutus, kela-kortti, eurooppalainen sairaanhoitokortti
+phone: puhelin, puhelinnumero, matkapuhelin, kännykkä, puh
+email: sähköposti, sähköpostiosoite
+bank-account: pankkitili, tilinumero, iban
+card: kortti, kortin numero, luottokortti, pankkikortti
+vat: alv-numero, alv, arvonlisävero
+passport: passi, passin numero
+id-card: henkilökortti
+birth-date: syntymäaika, syntynyt
+address: osoite, katuosoite, kotiosoite
+postcode: postinumero
+driving-licence: ajokortti
+licence-plate: rekisterinumero, rekisterikilpi
+location: leveysaste, pituusaste, koordinaatit, sijainti
+name: etunimi, sukunimi, koko nimi

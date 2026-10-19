@@ -1,0 +1,19 @@
+# Portuguese
+national-id: cartão de cidadão, número de identificação civil, bilhete de identidade, número de identificação
+tax-id: número de identificação fiscal, nif, contribuinte, número de contribuinte
+social-security: segurança social, número de segurança social, niss
+health-insurance: cartão de saúde, número de utente, sns, cartão europeu de seguro de doença
+phone: telefone, telemóvel, número de telefone, telem
+email: correio eletrónico, endereço de email, e-mail, email
+bank-account: conta bancária, número de conta, nib, iban
+card: cartão, número do cartão, cartão de crédito, cartão de débito
+vat: número de iva, iva
+passport: passaporte, número do passaporte
+id-card: cartão de cidadão, bilhete de identidade, documento de identificação
+birth-date: data de nascimento, nascido, nascida
+address: morada, endereço, residência
+postcode: código postal
+driving-licence: carta de condução
+licence-plate: matrícula, placa de matrícula
+location: latitude, longitude, coordenadas, localização
+name: apelido, sobrenome, nome completo

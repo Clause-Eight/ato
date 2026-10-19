@@ -17,6 +17,7 @@ func init() {
 		Pattern:     regexp.MustCompile(`[1-9]\d{12}`),
 		Validate:    validCNP,
 		Keywords:    []string{"cnp", "cod numeric", "codnumeric", "personal_code", "personalcode", "national_id", "nationalid"},
+		Concepts:    []Concept{NationalID},
 		Base:        domain.Medium,
 		Validation:  "date, county code and check digit are valid",
 	})

@@ -18,6 +18,7 @@ func init() {
 		Pattern:     regexp.MustCompile(`\d{10}`),
 		Validate:    validEGN,
 		Keywords:    []string{"egn", "егн", "personal_number", "personalnumber", "national_id", "nationalid"},
+		Concepts:    []Concept{NationalID},
 		Base:        domain.Low,
 		Validation:  "date and check digit are valid",
 	})
@@ -29,6 +30,7 @@ func init() {
 		Pattern:     regexp.MustCompile(`\d{10}`),
 		Validate:    validLNCh,
 		Keywords:    []string{"lnch", "лнч"},
+		Concepts:    []Concept{NationalID},
 		Base:        domain.Low,
 		Validation:  "check digit is valid",
 	})

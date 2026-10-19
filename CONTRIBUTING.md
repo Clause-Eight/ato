@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping. The most useful contribution is a new identifier: one detector file plus its tests.
+This is the internal guide for working on pii-eu, which is proprietary (see LICENSE). The most common change is a new identifier: one detector file, a generator and its tests.
 
 ## Clean-room rule
 
@@ -8,7 +8,7 @@ Thank you for helping. The most useful contribution is a new identifier: one det
 - **Nothing from an employer or client.** No code, logs, data, formats or examples taken from your job or anyone else's systems.
 - **Your own description of each algorithm.** Cite the public source (the law, the standard, the national registry's documentation) in the detector's comment, and write the code yourself.
 
-Pull requests that break this rule are closed, and their history is rewritten if needed.
+Changes that break this rule are reverted, and their history is rewritten if needed.
 
 ## Checks
 
@@ -18,7 +18,7 @@ go vet ./...
 go test ./...
 ```
 
-CI also runs staticcheck and the tests on Linux, macOS and Windows.
+CI runs staticcheck and the tests on Linux for every pull request; macOS and Windows builds run for releases. CI minutes are limited: run the checks above locally and push a branch only when it is ready for review.
 
 ## Commits and pull requests
 
@@ -26,10 +26,34 @@ Conventional commits (`feat(detectors): add Polish PESEL`), one feature per pull
 
 ## Adding a detector
 
-1. Copy [docs/detector-template.go.txt](docs/detector-template.go.txt) to `internal/detectors/<country>.go` (or add to the country's file).
-2. Fill in the name (`<country>-<identifier>`, lower case), the label, the candidate pattern, the validator and the keywords (lower case, whole words).
+1. Copy [docs/detector-template.go.txt](docs/detector-template.go.txt). The detector goes in `internal/detectors/<country>.go` and its generator in `internal/synth/<country>.go`.
+2. Fill in the name (`<country>-<identifier>`, lower case), the label, the candidate pattern, the validator, the identifier's own names as keywords and its concepts.
 3. Cite the public source for the algorithm in the comment above `init`, in your own words.
-4. Add a synthetic generator and tests in `internal/detectors/*_test.go`: generated values must validate, and a changed check digit must not.
-5. Regenerate the reference: `PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli`, and commit `docs/DETECTORS.md`.
+4. Write the generator in `internal/synth` without calling the detector: compute the check digits a second time, so the test compares two implementations.
+5. Regenerate the references: `PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli`, and commit `docs/DETECTORS.md` and `README.md`.
 
 Choose the base confidence by how often a random number of that shape would pass: a long structured identifier (IBAN) can start high; a ten-digit number with one check digit starts low and relies on keywords.
+
+## Definition of done for a detector
+
+`TestDefinitionOfDone` checks most of this list for every registered detector; the rest is for the reviewer.
+
+- [ ] A public source for the format and the check rule is cited above `init`, and the code is your own.
+- [ ] A generator in `internal/synth` produces values the way they appear in text (with the usual separators).
+- [ ] The pattern finds each generated value whole, and the validator accepts it.
+- [ ] Where there is a check digit, changing one digit is rejected at least 85% of the time. Dates, region codes and lengths are validated where the format has them.
+- [ ] The mask hides the value and keeps its length; it keeps at most the last few characters when that helps a reviewer.
+- [ ] Keywords hold the identifier's own names (`pesel`, `bsn`), lower case; shared words come from a concept, not from the keywords.
+- [ ] The base confidence follows the rule above, and `go run ./bench` shows precision at the default level of 95% or more for the new detector.
+- [ ] The prefilter is right: the minimum digit count is derived from the pattern, and a pattern that starts with letters gets `Needs.AnyOf` or `Needs.Check`. `TestPrefilterKeepsWorkFlat` must still pass.
+- [ ] The detector is on by default only for EU member states, and is quiet enough to stay on.
+- [ ] `docs/DETECTORS.md` and the README coverage matrix are regenerated.
+
+## Keywords in your language
+
+Keywords live in `internal/detectors/keywords/<language>.txt`, one line per concept. If you are a native speaker, a review is one of the most useful contributions:
+
+- [ ] Each word is how people actually name the thing in forms, code and spreadsheets, including common abbreviations.
+- [ ] No word is so common in code or prose that it would raise unrelated numbers (`id`, `nr`, `code` on their own).
+- [ ] Words are written with their diacritics; matching ignores case, diacritics, underscores and dashes.
+- [ ] Words for one country's identifier that are also that detector's own name (`pesel`, `егн`) are fine here: a detector never gets a boost from another detector's own name.

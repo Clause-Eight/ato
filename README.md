@@ -5,7 +5,7 @@
 
 # pii-eu
 
-A free, open-source tool from Clause Eight.
+A Clause Eight tool. Proprietary: see [Licence](#licence).
 
 Find EU personal data in code, test fixtures and logs before it spreads. Every match is confirmed with the identifier's own rules (check digits, dates, lengths), so findings are few and real, and found values are never printed in reports.
 
@@ -26,11 +26,53 @@ tests/fixtures/users.json
 
 Romanian CNP, Bulgarian EGN and LNCh, Hungarian TAJ and tax ID, Polish PESEL, Czech and Slovak birth numbers, Croatian OIB, IBANs for every SEPA country, payment cards, EU VAT numbers (with check digits for RO, BG, HU, DE and PL), email addresses and RO, BG, HU and PL phone numbers. The full list, with how each match is confirmed, is in [docs/DETECTORS.md](docs/DETECTORS.md).
 
+National identifiers by country:
+
+<!-- coverage:start -->
+| Country | Personal number | Tax ID | Social security or health | ID card or passport |
+|---|---|---|---|---|
+| AT | – | – | – | – |
+| BE | – | – | – | – |
+| BG | `bg-egn`, `bg-lnch` | – | – | – |
+| CY | – | – | – | – |
+| CZ | `cz-birth-number` | – | – | – |
+| DE | – | `de-tax-id` | `de-pension` | `de-id-card` |
+| DK | – | – | – | – |
+| EE | – | – | – | – |
+| ES | `es-dni`, `es-nie` | – | `es-nss` | – |
+| FI | – | – | – | – |
+| FR | – | `fr-spi` | `fr-nir` | – |
+| GR | – | – | – | – |
+| HR | `hr-oib` | – | – | – |
+| HU | – | `hu-tax-id` | `hu-taj` | – |
+| IE | – | – | – | – |
+| IT | – | `it-fiscal-code` | – | – |
+| LT | – | – | – | – |
+| LU | – | – | – | – |
+| LV | – | – | – | – |
+| MT | – | – | – | – |
+| NL | `nl-bsn` | – | – | – |
+| PL | `pl-pesel` | – | – | – |
+| PT | – | – | – | – |
+| RO | `ro-cnp` | – | – | – |
+| SE | – | – | – | – |
+| SI | – | – | – | – |
+| SK | `cz-birth-number` | – | – | – |
+| CH | – | – | – | – |
+| GB | – | – | – | – |
+| IS | – | – | – | – |
+| LI | – | – | – | – |
+| NO | – | – | – | – |
+
+* off by default; on when the country is selected with `--countries`. IBANs, cards, VAT numbers, contact data and the other cross-border detectors cover every country.
+<!-- coverage:end -->
+
 ## Install
 
+pii-eu is distributed to Clause Eight customers. With access to the repository:
+
 ```bash
-brew install clause-eight/tap/pii-eu
-# or
+export GOPRIVATE=github.com/Clause-Eight/*
 go install github.com/Clause-Eight/pii-eu/cmd/pii-eu@latest
 ```
 
@@ -58,6 +100,7 @@ pii-eu baseline                   # accept what is there today; report only new 
 | `--format` | `text` (default), `json`, `sarif`, `github` (workflow annotations), `codequality` (GitLab) |
 | `--output FILE` | write the report to a file |
 | `--min-confidence` | `low`, `medium` (default) or `high` |
+| `--countries` | only these countries' national detectors, as ISO codes or presets: `--countries ro,bg` or `--countries cee`. Cross-border detectors (IBAN, cards, VAT, contact data) always run |
 | `--include`, `--exclude` | glob patterns; `**` crosses folders; repeatable |
 | `--staged` | scan the staged version of staged files |
 | `--baseline FILE` | baseline file (default `.pii-eu-baseline.json` in the scanned folder) |
@@ -76,9 +119,16 @@ exclude = ["vendor", "**/*.min.js"]
 min_confidence = "medium"
 max_file_size = 5242880
 
+countries = ["ro", "bg", "hu"]   # or presets: eu, eea, cee, dach, benelux, nordics, baltics
+
 [detectors]
 email = false        # switch a detector off
+
+[min_confidence_per_detector]
+eu-phone = "high"    # report phone numbers only when the evidence is strong
 ```
+
+Presets: `eu` (the 27 member states, the default), `eea` (adds Iceland, Liechtenstein and Norway), `cee`, `dach`, `benelux`, `nordics` and `baltics`. Naming a country outside the EU, such as `ch` or `gb`, switches on its detectors, which are off by default. An unknown code is an error.
 
 ### Keeping a deliberate value
 
@@ -116,18 +166,19 @@ repos:
 
 ## How it decides
 
-1. A pattern finds candidates; the characters around a candidate must not be letters or digits.
-2. The validator checks the identifier's rules. Only valid values become findings.
-3. Confidence starts at the detector's base, rises one step when a keyword is on the line or the line before, drops one step in test, fixture and example paths, and is always low for published sample values (documentation IBANs, well-known test cards).
-4. Overlapping matches keep the most confident one.
-5. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.
+1. A cheap prefilter skips detectors that cannot match a line (too few digits, a missing literal), so scan time stays flat as detectors are added.
+2. A pattern finds candidates; the characters around a candidate must not be letters or digits.
+3. The validator checks the identifier's rules. Only valid values become findings.
+4. Confidence starts at the detector's base. It rises one step when the value is written in the identifier's usual format (an IBAN in groups of four, a birth number with its slash) and one step when a keyword is on the line or the line before. Keywords come in all 24 EU languages and match without regard to case or diacritics. It drops one step in test, fixture and example paths, and is always low for published sample values (documentation IBANs, well-known test cards).
+5. Overlapping matches keep the most confident one. A value that is valid for two detectors is reported once, preferring the detector whose own name is nearby, and the finding says what else it could be.
+6. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.
 
 The JSON report follows [schemas/findings.schema.json](schemas/findings.schema.json).
 
-## Contributing
+## Adding detectors
 
-New countries are welcome: one detector file and its tests. See [CONTRIBUTING.md](CONTRIBUTING.md). Test data must be synthetic.
+A new identifier is one detector file, a generator and its tests. See [CONTRIBUTING.md](CONTRIBUTING.md). Test data must be synthetic.
 
 ## Licence
 
-Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The Clause Eight name and the `cl.` mark are not covered by the licence.
+Copyright 2026 Clause Eight. All rights reserved. pii-eu is proprietary from version 0.3.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Versions 0.2.0 and earlier were published under the Apache License 2.0, and copies of those versions keep that licence.

@@ -1,0 +1,19 @@
+# Maltese
+national-id: numru tal-karta tal-identità, numru tal-identità
+tax-id: numru tat-taxxa, numru ta' identifikazzjoni tat-taxxa
+social-security: sigurtà soċjali, numru tas-sigurtà soċjali
+health-insurance: assigurazzjoni tas-saħħa, karta ewropea tal-assigurazzjoni tas-saħħa
+phone: telefon, numru tat-telefon, mowbajl
+email: posta elettronika, indirizz tal-email, email
+bank-account: kont bankarju, numru tal-kont, iban
+card: karta, numru tal-karta, karta tal-kreditu
+vat: numru tal-vat, vat
+passport: passaport, numru tal-passaport
+id-card: karta tal-identità
+birth-date: data tat-twelid, imwieled, imwielda
+address: indirizz
+postcode: kodiċi postali
+driving-licence: liċenzja tas-sewqan
+licence-plate: numru tar-reġistrazzjoni, pjanċa
+location: latitudni, lonġitudni, koordinati
+name: kunjom, isem sħiħ

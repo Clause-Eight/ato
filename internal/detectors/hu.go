@@ -20,6 +20,7 @@ func init() {
 		Normalize:   DigitsOnly,
 		Validate:    validTAJ,
 		Keywords:    []string{"taj", "társadalombiztosítási", "tarsadalombiztositasi", "social_security", "socialsecurity", "health_insurance"},
+		Concepts:    []Concept{SocialSecurity, HealthInsurance},
 		Base:        domain.Low,
 		Validation:  "check digit is valid",
 	})
@@ -31,6 +32,7 @@ func init() {
 		Pattern:     regexp.MustCompile(`8\d{9}`),
 		Validate:    validHUTaxID,
 		Keywords:    []string{"adóazonosító", "adoazonosito", "tax_id", "taxid", "tax_number", "taxnumber"},
+		Concepts:    []Concept{TaxID},
 		Base:        domain.Low,
 		Validation:  "birth-date part and check digit are valid",
 	})

@@ -1,0 +1,19 @@
+# Swedish
+national-id: personnummer, samordningsnummer, personnr
+tax-id: skatteregistreringsnummer, organisationsnummer
+social-security: socialförsäkring, försäkringskassan
+health-insurance: sjukförsäkring, europeiskt sjukförsäkringskort
+phone: telefon, telefonnummer, mobil, mobilnummer, tel
+email: e-post, e-postadress, mejl
+bank-account: bankkonto, kontonummer, clearingnummer, iban
+card: kort, kortnummer, kreditkort, betalkort
+vat: momsregistreringsnummer, momsnummer, moms
+passport: passnummer
+id-card: id-kort, identitetskort, nationellt id-kort
+birth-date: födelsedatum, född
+address: adress, bostadsadress, gatuadress
+postcode: postnummer
+driving-licence: körkort
+licence-plate: registreringsnummer, regnummer, registreringsskylt
+location: latitud, longitud, koordinater, plats
+name: förnamn, efternamn, fullständigt namn
