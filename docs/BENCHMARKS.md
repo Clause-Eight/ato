@@ -8,72 +8,83 @@ Measured on 19 October 2026 on an Apple M-series laptop (12 cores). Re-run with 
 
 "Pattern-only" runs the same candidate patterns without validation, which is roughly what a regex-based scanner does.
 
-    Corpus: 30000 lines (10054 with a value, 19946 without), 0.8 MB, seed 1
-    Scan time: 398ms (75339 lines/s, one core)
+    Corpus: 30000 lines (9851 with a value, 20149 without), 0.8 MB, seed 1
+    Scan time: 474ms (63336 lines/s, one core)
 
 | Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |
 |---|---|---|---|---|---|---|---|
-| `advertising-id` | 201 | 45.3% | 100.0% | 0 | 45.3% | 100.0% | 100.0% |
-| `at-social-insurance` | 188 | 76.6% | 100.0% | 0 | 100.0% | 95.4% | 6.1% |
-| `be-national-register` | 200 | 75.0% | 100.0% | 0 | 100.0% | 98.5% | 17.9% |
-| `bg-egn` | 185 | 48.6% | 100.0% | 0 | 99.5% | 81.8% | 78.3% |
-| `bg-lnch` | 194 | 52.6% | 98.1% | 2 | 100.0% | 42.4% | 89.5% |
-| `card` | 200 | 87.5% | 97.8% | 4 | 100.0% | 61.2% | 5.5% |
-| `ch-ahv` | 197 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `cy-id-card` | 194 | 46.9% | 100.0% | 0 | 46.9% | 100.0% | 100.0% |
-| `cz-birth-number` | 190 | 100.0% | 100.0% | 0 | 100.0% | 63.1% | 21.9% |
-| `de-id-card` | 179 | 44.7% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `de-pension` | 167 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `de-tax-id` | 173 | 65.3% | 100.0% | 0 | 100.0% | 95.1% | 93.4% |
-| `dk-cpr` | 202 | 53.0% | 97.3% | 3 | 53.0% | 97.3% | 90.5% |
-| `ee-isikukood` | 198 | 56.1% | 97.4% | 3 | 99.0% | 67.4% | 95.5% |
-| `email` | 184 | 55.4% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `es-dni` | 196 | 46.4% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `es-nie` | 204 | 49.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `es-nss` | 192 | 85.9% | 100.0% | 0 | 100.0% | 100.0% | 36.9% |
-| `eu-phone` | 202 | 81.2% | 100.0% | 0 | 100.0% | 84.5% | 82.7% |
-| `eu-vat` | 181 | 43.6% | 100.0% | 0 | 100.0% | 100.0% | 92.9% |
-| `fi-hetu` | 158 | 100.0% | 97.5% | 4 | 100.0% | 97.5% | 49.4% |
-| `fr-nir` | 171 | 73.1% | 100.0% | 0 | 100.0% | 99.4% | 99.3% |
-| `fr-spi` | 190 | 74.7% | 100.0% | 0 | 100.0% | 99.5% | 100.0% |
-| `gb-nhs` | 179 | 75.4% | 100.0% | 0 | 96.6% | 75.5% | 92.4% |
-| `gb-nino` | 183 | 71.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `gr-afm` | 193 | 40.4% | 97.5% | 2 | 90.2% | 77.0% | 96.3% |
-| `gr-amka` | 170 | 52.4% | 100.0% | 0 | 99.4% | 94.4% | 95.7% |
-| `hr-oib` | 192 | 49.0% | 100.0% | 0 | 96.4% | 79.4% | 96.8% |
-| `hu-taj` | 193 | 54.4% | 100.0% | 0 | 92.2% | 79.1% | 82.7% |
-| `hu-tax-id` | 194 | 51.5% | 100.0% | 0 | 91.2% | 98.9% | 100.0% |
-| `iban` | 195 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 45.7% |
-| `ie-ppsn` | 192 | 55.2% | 100.0% | 0 | 100.0% | 98.0% | 69.1% |
-| `imei` | 179 | 84.4% | 99.3% | 1 | 100.0% | 96.8% | 98.7% |
-| `ip-address` | 174 | 44.8% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `is-kennitala` | 165 | 73.3% | 99.2% | 1 | 89.7% | 98.0% | 93.7% |
-| `it-fiscal-code` | 202 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `lt-asmens-kodas` | 192 | 51.0% | 99.0% | 1 | 51.0% | 99.0% | 95.1% |
-| `lu-national-id` | 187 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 93.0% |
-| `lv-personal-code` | 199 | 86.4% | 100.0% | 0 | 97.5% | 100.0% | 55.3% |
-| `lv-personal-code-new` | 174 | 54.6% | 100.0% | 0 | 54.6% | 100.0% | n/a |
-| `mac-address` | 176 | 48.9% | 100.0% | 0 | 48.9% | 100.0% | 100.0% |
-| `mrz` | 156 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `mt-id-card` | 174 | 51.1% | 100.0% | 0 | 51.1% | 100.0% | 100.0% |
-| `nl-bsn` | 186 | 55.4% | 100.0% | 0 | 89.2% | 92.2% | 100.0% |
-| `no-fnr` | 203 | 63.1% | 100.0% | 0 | 96.1% | 100.0% | 96.9% |
-| `pl-id-card` | 197 | 52.8% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `pl-pesel` | 178 | 48.3% | 100.0% | 0 | 92.7% | 94.3% | 97.6% |
-| `pl-regon` | 198 | 52.5% | 100.0% | 0 | 52.5% | 100.0% | 96.3% |
-| `pt-citizen-card` | 177 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `pt-nif` | 166 | 54.2% | 100.0% | 0 | 83.7% | 95.9% | 100.0% |
-| `ro-cnp` | 177 | 99.4% | 99.4% | 1 | 99.4% | 99.4% | 27.5% |
-| `ro-id-card` | 171 | 46.2% | 100.0% | 0 | 46.2% | 100.0% | 100.0% |
-| `se-personnummer` | 187 | 75.4% | 98.6% | 2 | 93.6% | 90.2% | 88.7% |
-| `si-emso` | 199 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 73.6% |
-| **All** | 10054 | 67.5% | 99.6% | 24 | 89.9% | 90.2% | 43.5% |
+| `advertising-id` | 162 | 54.3% | 100.0% | 0 | 54.3% | 100.0% | 100.0% |
+| `at-social-insurance` | 156 | 76.9% | 100.0% | 0 | 100.0% | 93.4% | 5.1% |
+| `be-national-register` | 165 | 77.0% | 100.0% | 0 | 100.0% | 98.8% | 16.8% |
+| `bg-egn` | 166 | 53.6% | 100.0% | 0 | 100.0% | 86.5% | 67.9% |
+| `bg-lnch` | 151 | 51.0% | 100.0% | 0 | 99.3% | 34.7% | 87.2% |
+| `birth-date` | 133 | 46.6% | 100.0% | 0 | 46.6% | 100.0% | 100.0% |
+| `card` | 163 | 81.6% | 99.3% | 1 | 100.0% | 59.9% | 4.5% |
+| `ch-ahv` | 162 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `crypto-wallet` | 151 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `cy-id-card` | 168 | 50.0% | 100.0% | 0 | 50.0% | 100.0% | 100.0% |
+| `cz-birth-number` | 169 | 100.0% | 100.0% | 0 | 100.0% | 68.7% | 21.8% |
+| `de-id-card` | 163 | 50.9% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `de-pension` | 143 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `de-tax-id` | 162 | 71.6% | 100.0% | 0 | 100.0% | 95.9% | 96.7% |
+| `dk-cpr` | 162 | 53.7% | 97.8% | 2 | 53.7% | 97.8% | 93.4% |
+| `driving-licence` | 164 | 46.3% | 98.7% | 1 | 46.3% | 98.7% | 61.3% |
+| `ee-isikukood` | 164 | 50.0% | 100.0% | 0 | 100.0% | 70.1% | 98.8% |
+| `ehic` | 182 | 48.9% | 100.0% | 0 | 48.9% | 100.0% | 100.0% |
+| `email` | 167 | 52.7% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `es-dni` | 158 | 49.4% | 100.0% | 0 | 100.0% | 96.9% | 96.9% |
+| `es-nie` | 150 | 50.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `es-nss` | 167 | 82.6% | 100.0% | 0 | 100.0% | 98.8% | 33.3% |
+| `eu-phone` | 141 | 90.8% | 100.0% | 0 | 100.0% | 82.0% | 81.9% |
+| `eu-vat` | 131 | 57.3% | 100.0% | 0 | 100.0% | 100.0% | 91.0% |
+| `fi-hetu` | 172 | 100.0% | 96.1% | 7 | 100.0% | 96.1% | 56.6% |
+| `fr-nir` | 152 | 76.3% | 100.0% | 0 | 100.0% | 100.0% | 99.2% |
+| `fr-spi` | 147 | 71.4% | 100.0% | 0 | 100.0% | 100.0% | 99.1% |
+| `gb-nhs` | 143 | 76.2% | 100.0% | 0 | 97.2% | 73.9% | 98.2% |
+| `gb-nino` | 151 | 76.8% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `gps-coordinates` | 164 | 66.5% | 100.0% | 0 | 66.5% | 100.0% | 100.0% |
+| `gr-afm` | 144 | 49.3% | 100.0% | 0 | 94.4% | 70.8% | 97.2% |
+| `gr-amka` | 174 | 55.2% | 100.0% | 0 | 100.0% | 96.1% | 97.0% |
+| `hr-oib` | 145 | 51.7% | 100.0% | 0 | 96.6% | 73.7% | 97.3% |
+| `hu-taj` | 163 | 55.8% | 100.0% | 0 | 90.2% | 78.6% | 85.0% |
+| `hu-tax-id` | 140 | 44.3% | 100.0% | 0 | 96.4% | 99.3% | 100.0% |
+| `iban` | 143 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 40.1% |
+| `ie-ppsn` | 171 | 41.5% | 100.0% | 0 | 100.0% | 98.3% | 68.8% |
+| `imei` | 139 | 82.7% | 100.0% | 0 | 100.0% | 97.9% | 99.1% |
+| `ip-address` | 150 | 49.3% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `is-kennitala` | 145 | 69.0% | 97.1% | 3 | 90.3% | 94.9% | 90.4% |
+| `it-fiscal-code` | 162 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `licence-plate` | 182 | 51.1% | 100.0% | 0 | 51.1% | 100.0% | 98.9% |
+| `lt-asmens-kodas` | 141 | 50.4% | 100.0% | 0 | 50.4% | 100.0% | 100.0% |
+| `lu-national-id` | 168 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 94.0% |
+| `lv-personal-code` | 154 | 81.2% | 100.0% | 0 | 96.1% | 98.7% | 48.2% |
+| `lv-personal-code-new` | 167 | 55.1% | 100.0% | 0 | 55.1% | 100.0% | n/a |
+| `mac-address` | 154 | 47.4% | 100.0% | 0 | 47.4% | 100.0% | 100.0% |
+| `mrz` | 169 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `mt-id-card` | 157 | 51.6% | 100.0% | 0 | 51.6% | 100.0% | 100.0% |
+| `nl-bsn` | 134 | 61.2% | 100.0% | 0 | 92.5% | 81.6% | 98.8% |
+| `no-fnr` | 178 | 64.0% | 100.0% | 0 | 93.3% | 99.4% | 99.1% |
+| `person-name` | 149 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `pl-id-card` | 163 | 51.5% | 100.0% | 0 | 99.4% | 100.0% | 95.8% |
+| `pl-pesel` | 155 | 51.6% | 100.0% | 0 | 92.3% | 97.3% | 96.2% |
+| `pl-regon` | 158 | 51.3% | 97.6% | 2 | 51.3% | 97.6% | 96.4% |
+| `postcode` | 149 | 47.7% | 98.6% | 1 | 47.7% | 98.6% | 81.6% |
+| `pt-citizen-card` | 154 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| `pt-nif` | 139 | 46.8% | 100.0% | 0 | 85.6% | 98.3% | 98.5% |
+| `ro-cnp` | 158 | 99.4% | 99.4% | 1 | 99.4% | 99.4% | 27.2% |
+| `ro-id-card` | 153 | 58.8% | 100.0% | 0 | 58.8% | 100.0% | 98.9% |
+| `se-personnummer` | 137 | 75.2% | 91.2% | 10 | 93.4% | 84.2% | 88.5% |
+| `si-emso` | 148 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 72.9% |
+| `street-address` | 179 | 59.8% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
+| **All** | 9851 | 67.6% | 99.6% | 28 | 87.1% | 90.4% | 43.4% |
 
 What the numbers say:
 
-- **Validation is what keeps the output usable.** Across all detectors, precision is 99.6% at the default level against 43.5% for pattern-only matching.
+- **Validation is what keeps the output usable.** Across all detectors, precision is 99.6% at the default level against 43.4% for pattern-only matching.
 - **Low-base detectors trade recall for quiet output.** Bare numbers with one check digit (EGN, LNCh, PESEL, OIB, BSN, the Nordic and Baltic codes), VAT numbers and contact data start at low confidence, so at the default `--min-confidence medium` they are reported only with a nearby keyword or in their usual printed format. Detectors marked "only with a keyword" are never reported without one.
 - **Many national numbers share a shape.** An eleven-digit number can be a valid PESEL, OIB, German tax ID and Estonian code at once. Each value is reported once, preferring the detector whose own name is nearby, so at `--min-confidence low` some values are counted under another country and precision there is lower.
+- **Personal data without a check digit stays quiet.** Dates of birth, postcodes, licence and plate numbers, health-card numbers and names in name fields are off by default and reported only next to a keyword; each has 100% precision at the default level here. Names were also checked on about 157,000 public files in Go's module cache: every reported name was in a name field.
+- **Danish and Swedish personal numbers look alike.** A Danish CPR number (DDMMYY-SSSS) is often a valid Swedish personnummer too. The Danish detector is off by default, so those values are counted under Sweden, which is why `se-personnummer` is at about 91% here.
 - **Cards are the noisiest identifier.** A random 16-digit number with a Visa or Mastercard prefix passes the Luhn check one time in ten, so long trace and order numbers look like cards. A nearby word that usually labels other numbers (trace, order, invoice, transaction) lowers a card one step unless a card keyword is also there, which keeps card precision at the default level near 95%.
 
 ## Real repository: speed and false positives
