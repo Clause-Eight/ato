@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping. The most useful contribution is a new identifier: one detector file plus its tests.
+This is the internal guide for working on pii-eu, which is proprietary (see LICENSE). The most common change is a new identifier: one detector file, a generator and its tests.
 
 ## Clean-room rule
 
@@ -8,7 +8,7 @@ Thank you for helping. The most useful contribution is a new identifier: one det
 - **Nothing from an employer or client.** No code, logs, data, formats or examples taken from your job or anyone else's systems.
 - **Your own description of each algorithm.** Cite the public source (the law, the standard, the national registry's documentation) in the detector's comment, and write the code yourself.
 
-Pull requests that break this rule are closed, and their history is rewritten if needed.
+Changes that break this rule are reverted, and their history is rewritten if needed.
 
 ## Checks
 
@@ -18,7 +18,7 @@ go vet ./...
 go test ./...
 ```
 
-CI also runs staticcheck and the tests on Linux, macOS and Windows.
+CI runs staticcheck and the tests on Linux for every pull request; macOS and Windows builds run for releases. CI minutes are limited: run the checks above locally and push a branch only when it is ready for review.
 
 ## Commits and pull requests
 

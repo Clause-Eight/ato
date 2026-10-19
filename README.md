@@ -5,7 +5,7 @@
 
 # pii-eu
 
-A free, open-source tool from Clause Eight.
+A Clause Eight tool. Proprietary: see [Licence](#licence).
 
 Find EU personal data in code, test fixtures and logs before it spreads. Every match is confirmed with the identifier's own rules (check digits, dates, lengths), so findings are few and real, and found values are never printed in reports.
 
@@ -36,22 +36,22 @@ National identifiers by country:
 | BG | `bg-egn`, `bg-lnch` | – | – | – |
 | CY | – | – | – | – |
 | CZ | `cz-birth-number` | – | – | – |
-| DE | – | – | – | – |
+| DE | – | `de-tax-id` | `de-pension` | `de-id-card` |
 | DK | – | – | – | – |
 | EE | – | – | – | – |
-| ES | – | – | – | – |
+| ES | `es-dni`, `es-nie` | – | `es-nss` | – |
 | FI | – | – | – | – |
-| FR | – | – | – | – |
+| FR | – | `fr-spi` | `fr-nir` | – |
 | GR | – | – | – | – |
 | HR | `hr-oib` | – | – | – |
 | HU | – | `hu-tax-id` | `hu-taj` | – |
 | IE | – | – | – | – |
-| IT | – | – | – | – |
+| IT | – | `it-fiscal-code` | – | – |
 | LT | – | – | – | – |
 | LU | – | – | – | – |
 | LV | – | – | – | – |
 | MT | – | – | – | – |
-| NL | – | – | – | – |
+| NL | `nl-bsn` | – | – | – |
 | PL | `pl-pesel` | – | – | – |
 | PT | – | – | – | – |
 | RO | `ro-cnp` | – | – | – |
@@ -69,9 +69,10 @@ National identifiers by country:
 
 ## Install
 
+pii-eu is distributed to Clause Eight customers. With access to the repository:
+
 ```bash
-brew install clause-eight/tap/pii-eu
-# or
+export GOPRIVATE=github.com/Clause-Eight/*
 go install github.com/Clause-Eight/pii-eu/cmd/pii-eu@latest
 ```
 
@@ -174,10 +175,10 @@ repos:
 
 The JSON report follows [schemas/findings.schema.json](schemas/findings.schema.json).
 
-## Contributing
+## Adding detectors
 
-New countries are welcome: one detector file and its tests. See [CONTRIBUTING.md](CONTRIBUTING.md). Test data must be synthetic.
+A new identifier is one detector file, a generator and its tests. See [CONTRIBUTING.md](CONTRIBUTING.md). Test data must be synthetic.
 
 ## Licence
 
-Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The Clause Eight name and the `cl.` mark are not covered by the licence.
+Copyright 2026 Clause Eight. All rights reserved. pii-eu is proprietary from version 0.3.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Versions 0.2.0 and earlier were published under the Apache License 2.0, and copies of those versions keep that licence.
