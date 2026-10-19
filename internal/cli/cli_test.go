@@ -246,3 +246,12 @@ func TestSpecialCategoryFieldsAndInventory(t *testing.T) {
 		t.Errorf("inventory accepts only json and csv: exit %d", code)
 	}
 }
+
+func TestDeprecatedFlagWarns(t *testing.T) {
+	deprecatedFlags["no-git"] = "--walk"
+	defer delete(deprecatedFlags, "no-git")
+	_, _, errOut := run("scan", "--no-git", t.TempDir())
+	if !strings.Contains(errOut, "--no-git is deprecated") || !strings.Contains(errOut, "--walk") {
+		t.Fatalf("no warning: %q", errOut)
+	}
+}
