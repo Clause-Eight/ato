@@ -33,7 +33,7 @@ func init() {
 			"BE68539007547034":            true,
 		},
 		TrimGroups: true,
-		Validation: "country length and mod-97 check are valid",
+		Validation: "country length, national account layout and mod-97 check are valid",
 	})
 }
 
@@ -50,12 +50,56 @@ func normalizeIBAN(s string) string {
 	return strings.ToUpper(strings.NewReplacer(" ", "", "-", "").Replace(s))
 }
 
+// bbanFormats is each country's national account number layout from the SWIFT IBAN registry: a count and
+// n (digits), a (capital letters) or c (either). Every country in IBANLengths has one.
+var bbanFormats = map[string]string{
+	"AD": "4n4n12c", "AT": "5n11n", "BE": "3n7n2n", "BG": "4a4n2n8c", "CH": "5n12c", "CY": "3n5n16c",
+	"CZ": "4n6n10n", "DE": "8n10n", "DK": "4n9n1n", "EE": "2n2n11n1n", "ES": "4n4n1n1n10n", "FI": "3n11n",
+	"FO": "4n9n1n", "FR": "5n5n11c2n", "GB": "4a6n8n", "GI": "4a15c", "GL": "4n9n1n", "GR": "3n4n16c",
+	"HR": "7n10n", "HU": "3n4n1n15n1n", "IE": "4a6n8n", "IS": "4n2n6n10n", "IT": "1a5n5n12c", "LI": "5n12c",
+	"LT": "5n11n", "LU": "3n13c", "LV": "4a13c", "MC": "5n5n11c2n", "MD": "2c18c", "ME": "3n13n2n",
+	"MK": "3n10c2n", "MT": "4a5n18c", "NL": "4a10n", "NO": "4n6n1n", "PL": "8n16n", "PT": "4n4n11n2n",
+	"RO": "4a16c", "RS": "3n13n2n", "SE": "3n16n1n", "SI": "5n8n2n", "SK": "4n6n10n", "SM": "1a5n5n12c",
+	"UA": "6n19c", "VA": "3n15n", "AL": "8n16c", "BA": "3n3n8n2n", "TR": "5n1n16c",
+}
+
+// validBBAN checks the national account number against its country's layout, so that a value of the right
+// length that passes mod 97 by chance (an all-digit Bulgarian bank code) is not reported.
+func validBBAN(country, bban string) bool {
+	format, ok := bbanFormats[country]
+	if !ok {
+		return false
+	}
+	pos := 0
+	for i := 0; i < len(format); {
+		n := 0
+		for i < len(format) && format[i] >= '0' && format[i] <= '9' {
+			n = n*10 + int(format[i]-'0')
+			i++
+		}
+		class := format[i]
+		i++
+		for j := 0; j < n; j++ {
+			if pos >= len(bban) {
+				return false
+			}
+			c := bban[pos]
+			digit, letter := c >= '0' && c <= '9', c >= 'A' && c <= 'Z'
+			if class == 'n' && !digit || class == 'a' && !letter || class == 'c' && !digit && !letter {
+				return false
+			}
+			pos++
+		}
+	}
+	return pos == len(bban)
+}
+
 func validIBAN(s string) bool {
 	if len(s) < 5 {
 		return false
 	}
 	want, ok := IBANLengths[s[:2]]
-	if !ok || len(s) != want {
+	if !ok || len(s) != want || !validBBAN(s[:2], s[4:]) {
 		return false
 	}
 	rearranged := s[4:] + s[:4]
