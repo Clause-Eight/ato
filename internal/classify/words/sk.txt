@@ -1,0 +1,11 @@
+# Slovak
+health: zdravie, zdravotný, lekársky, diagnóza, choroba, ochorenie, alergia, krvná skupina, liek, lieky, recept, príznak, príznaky, postihnutie, invalidita, tehotenstvo, pacient, očkovanie, duševné zdravie, zdravotný záznam, zdravotná dokumentácia, práceneschopnosť
+genetic: genetický, genóm, dna, genotyp
+biometric: biometrický, odtlačok prsta, odtlačky prstov, šablóna tváre, dúhovka, sietnica, hlasový odtlačok
+racial-or-ethnic-origin: rasa, rasový, etnický pôvod, etnická príslušnosť
+political-opinions: politický názor, politické názory, politická strana, stranícka príslušnosť
+religious-or-philosophical-beliefs: náboženstvo, vierovyznanie, náboženské presvedčenie, viera, svetonázor
+trade-union-membership: odbory, odborová organizácia, členstvo v odboroch
+sex-life-or-sexual-orientation: sexuálna orientácia, sexuálny život, sexualita
+demographic: pohlavie, národnosť, štátne občianstvo, rodinný stav, vek, miesto narodenia
+online-identifier: ip adresa, identifikátor zariadenia, mac adresa

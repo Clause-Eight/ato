@@ -324,6 +324,7 @@ func toFindings(ctx lineContext, ms []match) []domain.Finding {
 	out := make([]domain.Finding, 0, len(ms))
 	for i, m := range ms {
 		out = append(out, domain.Finding{
+			Kind:        domain.KindValue,
 			Detector:    m.det.Name,
 			Label:       m.det.Label,
 			Country:     m.det.Country,
