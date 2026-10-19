@@ -21,17 +21,6 @@ func detector(t *testing.T, name string) Detector {
 	return d
 }
 
-func checkCases(t *testing.T, name string, cases map[string]bool) {
-	t.Helper()
-	d := detector(t, name)
-	for i, v := range sortedKeys(cases) {
-		want := cases[v]
-		if got := d.Validate(d.Normalize(v)); got != want {
-			t.Errorf("%s case %d: valid = %v, want %v", name, i, got, want)
-		}
-	}
-}
-
 func sortedKeys(m map[string]bool) []string {
 	out := make([]string, 0, len(m))
 	for k := range m {

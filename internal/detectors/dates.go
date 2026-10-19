@@ -114,5 +114,3 @@ func hasBirthYear(line string) bool {
 	}
 	return false
 }
-
-func isASCIIDigit(c byte) bool { return c >= '0' && c <= '9' }
