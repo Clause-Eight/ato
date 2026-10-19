@@ -31,38 +31,38 @@ National identifiers by country:
 <!-- coverage:start -->
 | Country | Personal number | Tax ID | Social security or health | ID card or passport |
 |---|---|---|---|---|
-| AT | – | – | – | – |
-| BE | – | – | – | – |
+| AT | – | – | `at-social-insurance` | – |
+| BE | `be-national-register` | – | – | – |
 | BG | `bg-egn`, `bg-lnch` | – | – | – |
-| CY | – | – | – | – |
+| CY | – | – | – | `cy-id-card` |
 | CZ | `cz-birth-number` | – | – | – |
 | DE | – | `de-tax-id` | `de-pension` | `de-id-card` |
-| DK | – | – | – | – |
-| EE | – | – | – | – |
+| DK | `dk-cpr`* | – | – | – |
+| EE | `ee-isikukood` | – | – | – |
 | ES | `es-dni`, `es-nie` | – | `es-nss` | – |
-| FI | – | – | – | – |
+| FI | `fi-hetu` | – | – | – |
 | FR | – | `fr-spi` | `fr-nir` | – |
-| GR | – | – | – | – |
+| GR | – | `gr-afm` | `gr-amka` | – |
 | HR | `hr-oib` | – | – | – |
 | HU | – | `hu-tax-id` | `hu-taj` | – |
-| IE | – | – | – | – |
+| IE | `ie-ppsn` | – | – | – |
 | IT | – | `it-fiscal-code` | – | – |
-| LT | – | – | – | – |
-| LU | – | – | – | – |
-| LV | – | – | – | – |
-| MT | – | – | – | – |
+| LT | `lt-asmens-kodas` | – | – | – |
+| LU | `lu-national-id` | – | – | – |
+| LV | `lv-personal-code`, `lv-personal-code-new` | – | – | – |
+| MT | – | – | – | `mt-id-card` |
 | NL | `nl-bsn` | – | – | – |
-| PL | `pl-pesel` | – | – | – |
-| PT | – | – | – | – |
-| RO | `ro-cnp` | – | – | – |
-| SE | – | – | – | – |
-| SI | – | – | – | – |
+| PL | `pl-pesel` | – | – | `pl-id-card`, `pl-regon` |
+| PT | – | `pt-nif` | – | `pt-citizen-card` |
+| RO | `ro-cnp` | – | – | `ro-id-card` |
+| SE | `se-personnummer` | – | – | – |
+| SI | `si-emso` | – | – | – |
 | SK | `cz-birth-number` | – | – | – |
-| CH | – | – | – | – |
-| GB | – | – | – | – |
-| IS | – | – | – | – |
+| CH | – | – | `ch-ahv`* | – |
+| GB | – | – | `gb-nhs`*, `gb-nino`* | – |
+| IS | `is-kennitala`* | – | – | – |
 | LI | – | – | – | – |
-| NO | – | – | – | – |
+| NO | `no-fnr`* | – | – | – |
 
 * off by default; on when the country is selected with `--countries`. IBANs, cards, VAT numbers, contact data and the other cross-border detectors cover every country.
 <!-- coverage:end -->
