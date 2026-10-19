@@ -1,0 +1,11 @@
+# Swedish
+health: hälsa, hälsodata, medicinsk, diagnos, sjukdom, allergi, blodgrupp, läkemedel, recept, symtom, funktionsnedsättning, handikapp, graviditet, patient, vaccination, psykisk hälsa, journal, patientjournal, sjukskrivning
+genetic: genetisk, genom, dna, gen, genotyp
+biometric: biometrisk, fingeravtryck, ansiktsmall, näthinna, röstavtryck
+racial-or-ethnic-origin: ras, etniskt ursprung, etnicitet, etnisk tillhörighet
+political-opinions: politisk åsikt, politiska åsikter, politiskt parti, partitillhörighet
+religious-or-philosophical-beliefs: religion, trosuppfattning, religiös övertygelse, filosofisk övertygelse, samfund
+trade-union-membership: fackförening, fackligt medlemskap, fackmedlem
+sex-life-or-sexual-orientation: sexuell läggning, sexuell orientering, sexualliv, sexualitet
+demographic: kön, nationalitet, medborgarskap, civilstånd, ålder, födelseort
+online-identifier: ip adress, enhets id, mac adress, annons id

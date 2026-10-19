@@ -136,3 +136,27 @@ func TestUnknownFormat(t *testing.T) {
 		t.Fatal("expected an error")
 	}
 }
+
+func TestInventoryFormats(t *testing.T) {
+	inv := Inventory{Tool: "pii-eu", Version: "test", Files: 1, Entries: []domain.InventoryEntry{{
+		Field:          domain.Field{Name: "diagnosis", Container: "patients", Format: "sql", Location: domain.Location{Path: "db/001.sql", Line: 3, Column: 3}},
+		Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth, Matched: "diagnosis"},
+	}}}
+	var csvOut, jsonOut bytes.Buffer
+	if err := WriteInventory("csv", &csvOut, inv); err != nil {
+		t.Fatal(err)
+	}
+	if want := "Field,Table or model,Category of personal data,Special category (Art. 9),Source format,Source file,Line\ndiagnosis,patients,special-category,health,sql,db/001.sql,3\n"; csvOut.String() != want {
+		t.Fatalf("csv:\n%s", csvOut.String())
+	}
+	if err := WriteInventory("json", &jsonOut, inv); err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(jsonOut.Bytes(), &doc); err != nil || doc["schema_version"] != InventorySchemaVersion {
+		t.Fatalf("json: %v %s", err, jsonOut.String())
+	}
+	if WriteInventory("xml", &bytes.Buffer{}, inv) == nil {
+		t.Fatal("unknown format accepted")
+	}
+}

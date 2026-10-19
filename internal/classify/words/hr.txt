@@ -1,0 +1,11 @@
+# Croatian
+health: zdravlje, zdravstveni, medicinski, dijagnoza, bolest, alergija, krvna grupa, lijek, lijekovi, recept, simptom, simptomi, invaliditet, trudnoća, pacijent, cijepljenje, mentalno zdravlje, medicinska dokumentacija, bolovanje
+genetic: genetski, genom, dnk, gen, genotip
+biometric: biometrijski, otisak prsta, otisci prstiju, predložak lica, šarenica, mrežnica, otisak glasa
+racial-or-ethnic-origin: rasa, rasno podrijetlo, etničko podrijetlo, etnička pripadnost
+political-opinions: političko mišljenje, politička stranka, stranačka pripadnost, politička uvjerenja
+religious-or-philosophical-beliefs: vjera, vjeroispovijest, religija, vjersko uvjerenje, svjetonazor
+trade-union-membership: sindikat, članstvo u sindikatu, sindikalna pripadnost
+sex-life-or-sexual-orientation: spolna orijentacija, seksualna orijentacija, spolni život, seksualnost
+demographic: spol, nacionalnost, državljanstvo, bračno stanje, dob, mjesto rođenja
+online-identifier: ip adresa, identifikator uređaja, mac adresa

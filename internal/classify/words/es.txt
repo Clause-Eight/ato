@@ -1,0 +1,11 @@
+# Spanish
+health: salud, médico, sanitario, diagnóstico, enfermedad, patología, alergia, alergias, grupo sanguíneo, medicamento, medicamentos, receta, síntoma, síntomas, discapacidad, embarazo, paciente, vacunación, salud mental, historia clínica, historial médico, baja médica
+genetic: genético, genoma, adn, gen, genotipo
+biometric: biométrico, huella dactilar, huellas dactilares, plantilla facial, huella de voz
+racial-or-ethnic-origin: raza, origen racial, origen étnico, etnia
+political-opinions: opinión política, opiniones políticas, partido político, afiliación política
+religious-or-philosophical-beliefs: religión, confesión religiosa, creencia, creencias religiosas, convicciones filosóficas
+trade-union-membership: sindicato, afiliación sindical, afiliado sindical
+sex-life-or-sexual-orientation: orientación sexual, vida sexual, sexualidad
+demographic: género, sexo, nacionalidad, ciudadanía, estado civil, edad, lugar de nacimiento
+online-identifier: dirección ip, id de dispositivo, dirección mac, id publicitario

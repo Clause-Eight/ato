@@ -3,6 +3,7 @@ package engine
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -12,24 +13,29 @@ import (
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/pii-eu/internal/schema"
 	"github.com/Clause-Eight/pii-eu/internal/walk"
 )
 
 // maxLine caps how much of one line is read; the rest of a very long line is skipped.
 const maxLine = 1 << 20
 
-// Request describes one scan of a folder or file.
+// Request describes one scan of a folder or file. SpecialCategories reports schema fields holding GDPR Art. 9
+// data as findings; Inventory collects every personal-data field from schemas and models.
 type Request struct {
-	Root      string
-	Walk      walk.Options
-	Detectors []detectors.Detector
-	Workers   int
+	Root              string
+	Walk              walk.Options
+	Detectors         []detectors.Detector
+	Workers           int
+	SpecialCategories bool
+	Inventory         bool
 }
 
 // Result is what a scan found, sorted by path, line and column.
 type Result struct {
-	Findings []domain.Finding
-	Summary  domain.Summary
+	Findings  []domain.Finding
+	Inventory []domain.InventoryEntry
+	Summary   domain.Summary
 }
 
 // Scan lists files, scans them in parallel and returns sorted findings.
@@ -44,6 +50,7 @@ func Scan(req Request) (Result, error) {
 	}
 	type out struct {
 		findings []domain.Finding
+		entries  []domain.InventoryEntry
 		skip     *domain.Skipped
 		bad      *domain.Skipped
 	}
@@ -55,8 +62,8 @@ func Scan(req Request) (Result, error) {
 		go func() {
 			defer wg.Done()
 			for f := range jobs {
-				fs, skip, err := scanFile(f, req.Detectors)
-				o := out{findings: fs, skip: skip}
+				fs, entries, skip, err := scanFile(f, req)
+				o := out{findings: fs, entries: entries, skip: skip}
 				if err != nil {
 					o.bad = &domain.Skipped{Path: f.Rel, Reason: err.Error()}
 				}
@@ -82,27 +89,43 @@ func Scan(req Request) (Result, error) {
 		default:
 			res.Summary.FilesScanned++
 			res.Findings = append(res.Findings, o.findings...)
+			if req.Inventory {
+				res.Inventory = append(res.Inventory, o.entries...)
+			}
 		}
 	}
 	sortFindings(res.Findings)
+	sortInventory(res.Inventory)
 	sortSkipped(res.Summary.FilesSkipped)
 	sortSkipped(res.Summary.Unreadable)
 	return res, nil
 }
 
-func scanFile(f walk.File, dets []detectors.Detector) ([]domain.Finding, *domain.Skipped, error) {
+func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEntry, *domain.Skipped, error) {
 	fh, err := walk.Open(f)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	defer fh.Close()
 	r := bufio.NewReaderSize(fh, 64<<10)
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
-		return nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
+		return nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
 	}
-	fs, err := ScanReader(f.Rel, r, dets)
-	return fs, nil, err
+	if !(req.SpecialCategories || req.Inventory) || !schema.Candidate(f.Rel) {
+		fs, err := ScanReader(f.Rel, r, req.Detectors)
+		return fs, nil, nil, err
+	}
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("read error: %w", err)
+	}
+	fs, err := ScanReader(f.Rel, bytes.NewReader(data), req.Detectors)
+	entries := inventory(f.Rel, data)
+	if req.SpecialCategories {
+		fs = append(fs, specialFindings(entries, splitLines(data))...)
+	}
+	return fs, entries, nil, err
 }
 
 // ScanReader scans text line by line. path is used for locations and for recognising test folders.
