@@ -1,6 +1,6 @@
 # Latvian
 health: veselība, veselības dati, medicīnisks, diagnoze, slimība, alerģija, asinsgrupa, zāles, medikamenti, recepte, simptoms, simptomi, invaliditāte, grūtniecība, pacients, vakcinācija, garīgā veselība, slimības vēsture, darbnespēja
-genetic: ģenētisks, genoms, dns, gēns, genotips
+genetic: ģenētisks, genoms, gēns, genotips
 biometric: biometrisks, pirkstu nospiedums, pirkstu nospiedumi, sejas veidne, varavīksnene, tīklene, balss nospiedums
 racial-or-ethnic-origin: rase, rasu izcelsme, etniskā izcelsme, tautība
 political-opinions: politiskie uzskati, politiskā partija, partijas piederība

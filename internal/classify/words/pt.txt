@@ -1,6 +1,6 @@
 # Portuguese
-health: saúde, médico, clínico, diagnóstico, doença, patologia, alergia, alergias, grupo sanguíneo, medicamento, medicamentos, receita, sintoma, sintomas, deficiência, incapacidade, gravidez, paciente, utente, vacinação, saúde mental, processo clínico, historial clínico, baixa médica
-genetic: genético, genoma, adn, dna, gene, genótipo
+health: saúde, doença, patologia, alergia, alergias, grupo sanguíneo, medicamento, medicamentos, receita, sintoma, sintomas, deficiência, incapacidade, gravidez, paciente, utente, vacinação, saúde mental, processo clínico, historial clínico, baixa médica
+genetic: genético, genoma, adn, dna, genótipo
 biometric: biométrico, impressão digital, impressões digitais, modelo facial, impressão vocal
 racial-or-ethnic-origin: raça, origem racial, origem étnica, etnia
 political-opinions: opinião política, opiniões políticas, partido político, filiação partidária

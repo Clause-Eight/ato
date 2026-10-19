@@ -1,6 +1,6 @@
 # German
-health: gesundheit, gesundheitsdaten, medizinisch, diagnose, krankheit, erkrankung, allergie, allergien, blutgruppe, medikament, medikamente, rezept, symptom, symptome, behinderung, schwangerschaft, patient, impfung, impfstatus, psychische gesundheit, krankenakte, patientenakte, krankengeschichte, krankmeldung, befund
-genetic: genetisch, genom, dna, gen, genotyp, gentest
+health: gesundheit, gesundheitsdaten, medizinisch, diagnose, krankheit, erkrankung, allergie, allergien, blutgruppe, medikament, medikamente, rezept, symptome, behinderung, schwangerschaft, patient, impfung, impfstatus, psychische gesundheit, krankenakte, patientenakte, krankengeschichte, krankmeldung, befund
+genetic: genetisch, genom, dna, genotyp, gentest
 biometric: biometrisch, fingerabdruck, gesichtsvorlage, gesichtsmerkmale, netzhaut, stimmprofil
 racial-or-ethnic-origin: rasse, ethnie, ethnische herkunft, ethnische zugehörigkeit
 political-opinions: politische meinung, politische einstellung, partei, parteizugehörigkeit, parteimitgliedschaft

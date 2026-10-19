@@ -1,10 +1,10 @@
 # Hungarian
 health: egészség, egészségügyi, orvosi, diagnózis, betegség, allergia, vércsoport, gyógyszer, gyógyszerek, recept, tünet, tünetek, fogyatékosság, rokkantság, terhesség, beteg, páciens, oltás, mentális egészség, kórlap, kórtörténet, betegszabadság, terápia
-genetic: genetikai, genom, dns, gén, genotípus
+genetic: genetikai, genom, genotípus
 biometric: biometrikus, ujjlenyomat, arcsablon, írisz, hangminta
 racial-or-ethnic-origin: faj, faji, etnikum, etnikai hovatartozás, etnikai származás, nemzetiség
 political-opinions: politikai vélemény, politikai nézet, párttagság, politikai párt, pártállás
-religious-or-philosophical-beliefs: vallás, vallási, felekezet, hit, világnézet
+religious-or-philosophical-beliefs: vallás, vallási, felekezet, világnézet
 trade-union-membership: szakszervezet, szakszervezeti tagság, szakszervezeti tag
 sex-life-or-sexual-orientation: szexuális irányultság, szexuális élet, szexualitás
 demographic: nem, neme, állampolgárság, családi állapot, életkor, születési hely

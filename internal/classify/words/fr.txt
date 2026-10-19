@@ -1,5 +1,5 @@
 # French
-health: santé, médical, diagnostic, maladie, pathologie, allergie, allergies, groupe sanguin, médicament, médicaments, ordonnance, symptôme, symptômes, handicap, grossesse, patient, vaccination, santé mentale, dossier médical, antécédents médicaux, arrêt maladie, thérapie
+health: santé, maladie, pathologie, allergie, allergies, groupe sanguin, médicament, médicaments, ordonnance, symptôme, symptômes, handicap, grossesse, patient, vaccination, santé mentale, dossier médical, antécédents médicaux, arrêt maladie, thérapie
 genetic: génétique, génome, adn, gène, génotype
 biometric: biométrique, empreinte digitale, empreintes digitales, gabarit facial, rétine, empreinte vocale
 racial-or-ethnic-origin: race, origine raciale, origine ethnique, ethnie, appartenance ethnique

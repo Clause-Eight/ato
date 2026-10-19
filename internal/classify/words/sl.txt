@@ -1,6 +1,6 @@
 # Slovenian
 health: zdravje, zdravstveni, medicinski, diagnoza, bolezen, alergija, krvna skupina, zdravilo, zdravila, recept, simptom, simptomi, invalidnost, nosečnost, pacient, bolnik, cepljenje, duševno zdravje, zdravstvena dokumentacija, bolniška odsotnost
-genetic: genetski, genom, dnk, gen, genotip
+genetic: genetski, genom, dnk, genotip
 biometric: biometrični, prstni odtis, prstni odtisi, predloga obraza, šarenica, mrežnica, glasovni odtis
 racial-or-ethnic-origin: rasa, rasno poreklo, etnično poreklo, etnična pripadnost
 political-opinions: politično mnenje, politična stranka, strankarska pripadnost, politično prepričanje
