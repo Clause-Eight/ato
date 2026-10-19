@@ -1,0 +1,67 @@
+package detectors
+
+import (
+	"regexp"
+	"time"
+
+	"github.com/Clause-Eight/pii-eu/internal/domain"
+)
+
+// Slovenian personal number (EMŠO, enotna matična številka občana): thirteen digits DDMMYYY RR SSS K. The
+// birth date has a three-digit year (9xx is 19xx, 0xx is 20xx); RR is the register, 50 for Slovenia, widened
+// to 50-59 by the 2024 amendment of the Central Population Register Act (ZCRP); SSS is 000-499 for men and
+// 500-999 for women. Digits 1-12 are weighted 7,6,5,4,3,2,7,6,5,4,3,2; a remainder of 0 gives check 0, a
+// remainder of 1 is never issued, otherwise the check is 11 minus the remainder. Sources: Uredba o načinu
+// določanja osebne identifikacijske številke, Uradni list RS 8/1999,
+// https://www.uradni-list.si/glasilo-uradni-list-rs/vsebina/1999-01-0345 and article 8 of ZCRP as amended by
+// ZCRP-B, Uradni list RS 32/2024 (registers 50-59).
+// EMŠOs from the other former Yugoslav registers are not accepted: they belong to other countries' numbering.
+func init() {
+	Register(Detector{
+		Name:        "si-emso",
+		Label:       "Slovenian personal number (EMŠO)",
+		Country:     "SI",
+		OnByDefault: true,
+		Pattern:     regexp.MustCompile(`\d{13}`),
+		Validate:    validSIEMSO,
+		Keywords:    []string{"emšo", "emso", "enotna matična številka", "enotna maticna stevilka"},
+		Concepts:    []Concept{NationalID},
+		Base:        domain.Medium,
+		Samples:     map[string]bool{"2902932505526": true},
+		Validation:  "birth date, register and mod-11 check digit are valid",
+	})
+}
+
+var siEMSOWeights = [12]int{7, 6, 5, 4, 3, 2, 7, 6, 5, 4, 3, 2}
+
+func validSIEMSO(s string) bool {
+	d, ok := Digits(s)
+	if !ok || len(d) != 13 {
+		return false
+	}
+	day, month, yyy := d[0]*10+d[1], d[2]*10+d[3], d[4]*100+d[5]*10+d[6]
+	var year int
+	switch d[4] {
+	case 9:
+		year = 1000 + yyy
+	case 0:
+		year = 2000 + yyy
+	default:
+		return false
+	}
+	if year > time.Now().Year() || !ValidDate(year, month, day) {
+		return false
+	}
+	if d[7] != 5 {
+		return false
+	}
+	sum := 0
+	for i, w := range siEMSOWeights {
+		sum += d[i] * w
+	}
+	rem := sum % 11
+	if rem == 1 {
+		return false
+	}
+	return (11-rem)%11 == d[12]
+}
