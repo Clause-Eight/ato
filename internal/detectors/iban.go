@@ -19,7 +19,9 @@ func init() {
 		Normalize:   normalizeIBAN,
 		Validate:    validIBAN,
 		Mask:        maskIBAN,
+		Needs:       Needs{Digits: 10},
 		Keywords:    []string{"iban", "account", "cont bancar", "bankszámla", "bankszamla", "сметка"},
+		Concepts:    []Concept{BankAccount},
 		Base:        domain.High,
 		Samples: map[string]bool{
 			"DE89370400440532013000":      true,

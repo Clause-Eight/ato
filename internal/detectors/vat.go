@@ -16,13 +16,37 @@ func init() {
 		Label:       "EU VAT number",
 		Country:     "EU",
 		OnByDefault: true,
-		Pattern:     regexp.MustCompile(`(?:AT|BE|BG|CY|CZ|DE|DK|EE|EL|ES|FI|FR|HR|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|RO|SE|SI|SK|XI) ?[0-9A-Z+*]{2,13}`),
+		Pattern:     regexp.MustCompile(`\b(?:AT|BE|BG|CY|CZ|DE|DK|EE|EL|ES|FI|FR|HR|HU|IE|IT|LT|LU|LV|MT|NL|PL|PT|RO|SE|SI|SK|XI) ?[0-9A-Z+*]{2,13}`),
 		Normalize:   func(s string) string { return strings.ReplaceAll(s, " ", "") },
 		Validate:    validVAT,
+		Needs:       Needs{Digits: 2, Check: hasVATPrefix},
 		Keywords:    []string{"vat", "tva", "cui", "cif", "nip", "ust-id", "ustid", "iva", "btw", "moms", "dic", "dič", "ddv", "pdv", "ддс"},
+		Concepts:    []Concept{VAT},
 		Base:        domain.Low,
 		Validation:  "matches the member state's VAT format, with its check digit where one is defined",
 	})
+}
+
+// hasVATPrefix looks for a member-state prefix at the start of a word with a digit within the next three characters.
+func hasVATPrefix(line string) bool {
+	for i := 0; i+2 < len(line); i++ {
+		if i > 0 && isWordByte(line[i-1]) || line[i] < 'A' || line[i] > 'Z' {
+			continue
+		}
+		if _, ok := vatFormats[line[i:i+2]]; !ok {
+			continue
+		}
+		for j := i + 2; j < len(line) && j < i+5; j++ {
+			if line[j] >= '0' && line[j] <= '9' {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func isWordByte(b byte) bool {
+	return b >= '0' && b <= '9' || b >= 'a' && b <= 'z' || b >= 'A' && b <= 'Z' || b == '_'
 }
 
 var vatFormats = map[string]*regexp.Regexp{

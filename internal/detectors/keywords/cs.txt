@@ -1,0 +1,19 @@
+# Czech
+national-id: rodné číslo, rč, osobní číslo
+tax-id: daňové identifikační číslo, dič, ičo
+social-security: sociální pojištění, číslo pojištěnce
+health-insurance: zdravotní pojištění, kartička pojištěnce, evropský průkaz zdravotního pojištění
+phone: telefon, telefonní číslo, mobil
+email: e-mail, emailová adresa
+bank-account: bankovní účet, číslo účtu, iban
+card: karta, číslo karty, platební karta, kreditní karta
+vat: dič, dph
+passport: cestovní pas, číslo pasu
+id-card: občanský průkaz, číslo op
+birth-date: datum narození, narozen, narozena
+address: adresa, bydliště
+postcode: psč, poštovní směrovací číslo
+driving-licence: řidičský průkaz
+licence-plate: registrační značka, spz, rz
+location: zeměpisná šířka, zeměpisná délka, souřadnice, poloha
+name: příjmení, celé jméno

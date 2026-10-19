@@ -1,0 +1,19 @@
+# Slovak
+national-id: rodné číslo, rč
+tax-id: daňové identifikačné číslo, dič, ičo
+social-security: sociálne poistenie, číslo poistenca
+health-insurance: zdravotné poistenie, preukaz poistenca, európsky preukaz zdravotného poistenia
+phone: telefón, telefónne číslo, mobil
+email: e-mail, emailová adresa
+bank-account: bankový účet, číslo účtu, iban
+card: karta, číslo karty, platobná karta, kreditná karta
+vat: ič dph, dph
+passport: cestovný pas, číslo pasu
+id-card: občiansky preukaz, číslo op
+birth-date: dátum narodenia, narodený, narodená
+address: adresa, bydlisko
+postcode: psč, poštové smerovacie číslo
+driving-licence: vodičský preukaz
+licence-plate: evidenčné číslo, ečv, poznávacia značka
+location: zemepisná šírka, zemepisná dĺžka, súradnice, poloha
+name: priezvisko, celé meno

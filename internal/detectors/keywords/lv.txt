@@ -1,0 +1,19 @@
+# Latvian
+national-id: personas kods, personas kodu
+tax-id: nodokļu maksātāja numurs, reģistrācijas numurs
+social-security: sociālā apdrošināšana
+health-insurance: veselības apdrošināšana, eiropas veselības apdrošināšanas karte
+phone: tālrunis, telefons, tālruņa numurs, mobilais
+email: e-pasts, e-pasta adrese
+bank-account: bankas konts, konta numurs, iban
+card: karte, kartes numurs, kredītkarte, maksājumu karte
+vat: pvn numurs, pvn reģistrācijas numurs, pvn
+passport: pase, pases numurs
+id-card: personas apliecība, eid karte
+birth-date: dzimšanas datums, dzimis, dzimusi
+address: adrese, dzīvesvieta
+postcode: pasta indekss
+driving-licence: vadītāja apliecība, autovadītāja apliecība
+licence-plate: valsts reģistrācijas numurs, numurzīme
+location: platums, garums, koordinātas, atrašanās vieta
+name: uzvārds, pilns vārds

@@ -20,6 +20,17 @@ type lineContext struct {
 	number   int
 	line     string
 	previous string
+	digits   int
+	folded   *string
+}
+
+// keywordText is the previous and current line folded for keyword matching, computed once per line on first use.
+func (c *lineContext) keywordText() string {
+	if c.folded == nil {
+		f := detectors.Fold(c.previous + "\n" + c.line)
+		c.folded = &f
+	}
+	return *c.folded
 }
 
 type match struct {
@@ -29,6 +40,7 @@ type match struct {
 	confidence domain.Confidence
 	reasons    []string
 	sample     bool
+	ownWord    bool
 }
 
 var longNumber = regexp.MustCompile(`\d{10,}`)
@@ -49,11 +61,11 @@ func scanLine(ctx lineContext, dets []detectors.Detector) []domain.Finding {
 	if ctx.line == "" {
 		return nil
 	}
-	lower := strings.ToLower(ctx.previous + "\n" + ctx.line)
+	ctx.digits = countDigits(ctx.line)
 	var matches []match
-	for _, d := range dets {
+	for _, d := range candidates(ctx.line, ctx.digits, dets) {
 		for _, loc := range d.Pattern.FindAllStringIndex(ctx.line, -1) {
-			if m, ok := evaluate(ctx, d, loc[0], loc[1], lower); ok {
+			if m, ok := evaluate(&ctx, d, loc[0], loc[1]); ok {
 				matches = append(matches, m)
 			}
 		}
@@ -62,6 +74,27 @@ func scanLine(ctx lineContext, dets []detectors.Detector) []domain.Finding {
 	findings := toFindings(ctx, matches)
 	applyIgnore(findings, ctx)
 	return findings
+}
+
+// candidates are the detectors whose prefilter the line passes; only their patterns run.
+func candidates(line string, digits int, dets []detectors.Detector) []detectors.Detector {
+	out := make([]detectors.Detector, 0, len(dets))
+	for _, d := range dets {
+		if d.Needs.Admits(line, digits) {
+			out = append(out, d)
+		}
+	}
+	return out
+}
+
+func countDigits(s string) int {
+	n := 0
+	for i := 0; i < len(s); i++ {
+		if isDigit(s[i]) {
+			n++
+		}
+	}
+	return n
 }
 
 const ignoreMarker = "pii-eu:ignore"
@@ -101,7 +134,7 @@ func ignoreReason(line string) (bool, string) {
 	return true, strings.TrimSpace(strings.TrimLeft(rest, " :\t-"))
 }
 
-func evaluate(ctx lineContext, d detectors.Detector, start, end int, lower string) (match, bool) {
+func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bool) {
 	if !bounded(ctx.line, start, end) {
 		return match{}, false
 	}
@@ -114,9 +147,25 @@ func evaluate(ctx lineContext, d detectors.Detector, start, end int, lower strin
 	if d.Validate != nil {
 		m.reasons = append(m.reasons, d.Validation)
 	}
-	if kw := keyword(lower, d.Keywords); kw != "" {
+	if d.Formatted != nil && d.Formatted.MatchString(ctx.line[start:end]) {
+		m.confidence = raise(m.confidence)
+		m.reasons = append(m.reasons, "written in the identifier's usual format")
+	}
+	words := d.MatchWords
+	if words == nil {
+		words = d.Keywords
+	}
+	kw := keyword(ctx.keywordText(), words)
+	if kw == "" && d.NeedsKeyword {
+		return match{}, false
+	}
+	if kw != "" {
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby", kw))
+		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
+	} else if w := keyword(ctx.keywordText(), d.Unlikely); w != "" {
+		m.confidence = lower1(m.confidence)
+		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
 	}
 	if d.Samples[value] {
 		m.sample = true
@@ -239,6 +288,9 @@ func dedupe(ms []match) []match {
 		if ms[i].confidence != ms[j].confidence {
 			return ms[i].confidence > ms[j].confidence
 		}
+		if ms[i].ownWord != ms[j].ownWord {
+			return ms[i].ownWord
+		}
 		if ms[i].det.Base != ms[j].det.Base {
 			return ms[i].det.Base > ms[j].det.Base
 		}
@@ -247,9 +299,12 @@ func dedupe(ms []match) []match {
 	var kept []match
 	for _, m := range ms {
 		overlaps := false
-		for _, k := range kept {
+		for i, k := range kept {
 			if m.start < k.end && k.start < m.end {
 				overlaps = true
+				if m.start == k.start && m.end == k.end {
+					kept[i].reasons = append(kept[i].reasons, "also valid as "+m.det.Label+"; reported once, as the more likely")
+				}
 				break
 			}
 		}
@@ -301,4 +356,13 @@ func lineShape(line string, ms []match) string {
 func fingerprint(detector, path, shape string, index int) string {
 	sum := sha256.Sum256([]byte(fmt.Sprintf("%s\x00%s\x00%s\x00%d", detector, path, shape, index)))
 	return hex.EncodeToString(sum[:16])
+}
+
+func contains(xs []string, x string) bool {
+	for _, v := range xs {
+		if v == x {
+			return true
+		}
+	}
+	return false
 }

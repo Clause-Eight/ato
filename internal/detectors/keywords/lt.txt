@@ -1,0 +1,19 @@
+# Lithuanian
+national-id: asmens kodas, asmens kodą
+tax-id: mokesčių mokėtojo kodas, įmonės kodas
+social-security: socialinis draudimas, sodra
+health-insurance: sveikatos draudimas, europos sveikatos draudimo kortelė
+phone: telefonas, telefono numeris, mobilusis, tel
+email: el paštas, elektroninis paštas, el pašto adresas
+bank-account: banko sąskaita, sąskaitos numeris, iban
+card: kortelė, kortelės numeris, kredito kortelė, mokėjimo kortelė
+vat: pvm mokėtojo kodas, pvm kodas, pvm
+passport: pasas, paso numeris
+id-card: asmens tapatybės kortelė, asmens tapatybės
+birth-date: gimimo data, gimęs, gimusi
+address: adresas, gyvenamoji vieta
+postcode: pašto kodas
+driving-licence: vairuotojo pažymėjimas
+licence-plate: valstybinis numeris, numerio ženklas
+location: platuma, ilguma, koordinatės, vieta
+name: pavardė, vardas pavardė

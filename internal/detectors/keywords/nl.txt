@@ -1,0 +1,19 @@
+# Dutch
+national-id: burgerservicenummer, bsn, rijksregisternummer, identificatienummer, persoonsnummer, sofinummer
+tax-id: fiscaal nummer, fiscaalnummer, belastingnummer, rsin
+social-security: sociale zekerheid, sofinummer, insz
+health-insurance: zorgverzekering, zorgpas, ziekteverzekering, europese ziekteverzekeringskaart
+phone: telefoon, telefoonnummer, mobiel, gsm, tel
+email: e-mail, e-mailadres, emailadres
+bank-account: bankrekening, rekeningnummer, iban
+card: kaart, kaartnummer, creditcard, betaalkaart, bankpas
+vat: btw, btw-nummer, btw-id, ondernemingsnummer
+passport: paspoort, paspoortnummer
+id-card: identiteitskaart, identiteitsbewijs, id-kaart
+birth-date: geboortedatum, geboren
+address: adres, woonadres, woonplaats
+postcode: postcode
+driving-licence: rijbewijs, rijbewijsnummer
+licence-plate: kenteken, nummerplaat, kentekenplaat
+location: breedtegraad, lengtegraad, coördinaten, locatie
+name: voornaam, achternaam, familienaam, volledige naam

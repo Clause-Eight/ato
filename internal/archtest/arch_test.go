@@ -18,6 +18,7 @@ var allowed = map[string][]string{
 	"engine":    {"domain", "detectors", "walk"},
 	"report":    {"domain"},
 	"baseline":  {"domain"},
+	"synth":     {},
 }
 
 func TestLayers(t *testing.T) {

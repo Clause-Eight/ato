@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
+	"github.com/Clause-Eight/pii-eu/internal/synth"
 )
 
 func run(args ...string) (int, string, string) {
@@ -168,5 +170,47 @@ func TestDetectorReferenceIsUpToDate(t *testing.T) {
 	}
 	if strings.ReplaceAll(string(want), "\r\n", "\n") != DetectorTable() {
 		t.Fatal("docs/DETECTORS.md is out of date: run PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli")
+	}
+}
+
+func TestCoverageMatrixInReadmeIsUpToDate(t *testing.T) {
+	path := filepath.Join("..", "..", "README.md")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := strings.ReplaceAll(string(data), "\r\n", "\n")
+	const start, end = "<!-- coverage:start -->\n", "<!-- coverage:end -->"
+	i, j := strings.Index(text, start), strings.Index(text, end)
+	if i < 0 || j < i {
+		t.Fatal("README.md has no coverage markers")
+	}
+	want := text[:i+len(start)] + CoverageMatrix() + text[j:]
+	if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+		if err := os.WriteFile(path, []byte(want), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	if text != want {
+		t.Fatal("the coverage matrix in README.md is out of date: run PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli")
+	}
+}
+
+func TestCountriesFlag(t *testing.T) {
+	dir := t.TempDir()
+	r := rand.New(rand.NewSource(1))
+	gen, _ := synth.For("ro-cnp")
+	if err := os.WriteFile(filepath.Join(dir, "a.txt"), []byte("cnp: "+gen(r)+"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, _ := run("scan", "--no-git", "--countries", "bg,hu", dir); code != ExitClean {
+		t.Errorf("a Romanian number with only BG and HU selected: exit %d", code)
+	}
+	if code, _, _ := run("scan", "--no-git", "--countries", "cee", dir); code != ExitFindings {
+		t.Errorf("the cee preset includes RO: exit %d", code)
+	}
+	if code, _, errOut := run("scan", "--no-git", "--countries", "xx", dir); code != ExitUsage || !strings.Contains(errOut, "unknown country") {
+		t.Errorf("unknown country: exit %d, %q", code, errOut)
 	}
 }

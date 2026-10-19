@@ -1,0 +1,19 @@
+# Estonian
+national-id: isikukood
+tax-id: maksukohustuslase number, registrikood
+social-security: sotsiaalkindlustus
+health-insurance: ravikindlustus, euroopa ravikindlustuskaart
+phone: telefon, telefoninumber, mobiil, tel
+email: e-post, e-posti aadress, meiliaadress
+bank-account: pangakonto, kontonumber, arveldusarve, iban
+card: kaart, kaardi number, krediitkaart, pangakaart
+vat: käibemaksukohustuslase number, kmkr, käibemaks
+passport: passi number
+id-card: isikutunnistus, id-kaart
+birth-date: sünniaeg, sündinud
+address: aadress, tänav, elukoht
+postcode: postiindeks, sihtnumber
+driving-licence: juhiluba
+licence-plate: registreerimisnumber, numbrimärk
+location: laiuskraad, pikkuskraad, koordinaadid, asukoht
+name: eesnimi, perekonnanimi, täisnimi

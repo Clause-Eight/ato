@@ -1,0 +1,19 @@
+# Italian
+national-id: codice fiscale, numero di identificazione, numero personale
+tax-id: codice fiscale, partita iva, numero fiscale
+social-security: previdenza sociale, numero di previdenza, inps
+health-insurance: tessera sanitaria, assicurazione sanitaria, tessera europea di assicurazione malattia
+phone: telefono, numero di telefono, cellulare, tel
+email: posta elettronica, indirizzo email, e-mail, pec
+bank-account: conto corrente, conto bancario, numero di conto, iban
+card: carta, numero di carta, carta di credito, carta di debito
+vat: partita iva, p iva, iva
+passport: passaporto, numero di passaporto
+id-card: carta d'identità, carta di identità
+birth-date: data di nascita, nato il, nata il
+address: indirizzo, residenza, domicilio
+postcode: codice postale
+driving-licence: patente di guida, patente
+licence-plate: targa, numero di targa
+location: latitudine, longitudine, coordinate, posizione
+name: cognome, nome completo
