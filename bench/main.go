@@ -30,20 +30,13 @@ func main() {
 	seed := flag.Int64("seed", 1, "random seed")
 	export := flag.String("export", "", "also write the corpus and its labels to this folder (for bench/presidio_compare.py)")
 	flag.Parse()
-	r := rand.New(rand.NewSource(*seed))
-	corpus := build(r, *n)
-	text := make([]string, len(corpus))
-	for i, l := range corpus {
-		text[i] = l.text
-	}
-	body := strings.Join(text, "\n") + "\n"
+	corpus, body := corpusText(*seed, *n)
 	if *export != "" {
 		if err := writeCorpus(*export, body, corpus); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 	}
-
 	start := time.Now()
 	found, err := engine.ScanReader("corpus/data.txt", strings.NewReader(body), detectors.All())
 	if err != nil {
@@ -51,22 +44,39 @@ func main() {
 		os.Exit(1)
 	}
 	elapsed := time.Since(start)
-	baseline, _ := engine.ScanReader("corpus/data.txt", strings.NewReader(body), patternOnly())
-
-	fmt.Printf("Corpus: %d lines (%d with a value, %d without), %.1f MB, seed %d\n", len(corpus), positives(corpus), len(corpus)-positives(corpus), float64(len(body))/1e6, *seed)
 	fmt.Printf("Scan time: %s (%.0f lines/s, one core)\n\n", elapsed.Round(time.Millisecond), float64(len(corpus))/elapsed.Seconds())
-	fmt.Println("| Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |")
-	fmt.Println("|---|---|---|---|---|---|---|---|")
+	fmt.Print(results(corpus, body, found, *seed))
+}
+
+// corpusText builds the corpus for a seed and joins it into one text.
+func corpusText(seed int64, n int) ([]line, string) {
+	corpus := build(rand.New(rand.NewSource(seed)), n)
+	text := make([]string, len(corpus))
+	for i, l := range corpus {
+		text[i] = l.text
+	}
+	return corpus, strings.Join(text, "\n") + "\n"
+}
+
+// results is the corpus line and the per-detector table. It depends only on the seed and the detectors, so
+// docs/BENCHMARKS.md can be checked against it in CI.
+func results(corpus []line, body string, found []domain.Finding, seed int64) string {
+	baseline, _ := engine.ScanReader("corpus/data.txt", strings.NewReader(body), patternOnly())
+	var b strings.Builder
+	fmt.Fprintf(&b, "Corpus: %d lines (%d with a value, %d without), %.1f MB, seed %d\n\n", len(corpus), positives(corpus), len(corpus)-positives(corpus), float64(len(body))/1e6, seed)
+	b.WriteString("| Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |\n")
+	b.WriteString("|---|---|---|---|---|---|---|---|\n")
 	for _, d := range detectors.All() {
 		m := score(corpus, found, d.Name, domain.Medium)
 		l := score(corpus, found, d.Name, domain.Low)
-		b := score(corpus, baseline, d.Name, domain.Low)
-		fmt.Printf("| `%s` | %d | %s | %s | %d | %s | %s | %s |\n", d.Name, m.expected, pct(m.recall()), pct(m.precision()), m.fp, pct(l.recall()), pct(l.precision()), pct(b.precision()))
+		p := score(corpus, baseline, d.Name, domain.Low)
+		fmt.Fprintf(&b, "| `%s` | %d | %s | %s | %d | %s | %s | %s |\n", d.Name, m.expected, pct(m.recall()), pct(m.precision()), m.fp, pct(l.recall()), pct(l.precision()), pct(p.precision()))
 	}
 	all := score(corpus, found, "", domain.Medium)
 	allLow := score(corpus, found, "", domain.Low)
 	base := score(corpus, baseline, "", domain.Low)
-	fmt.Printf("| **All** | %d | %s | %s | %d | %s | %s | %s |\n", all.expected, pct(all.recall()), pct(all.precision()), all.fp, pct(allLow.recall()), pct(allLow.precision()), pct(base.precision()))
+	fmt.Fprintf(&b, "| **All** | %d | %s | %s | %d | %s | %s | %s |\n", all.expected, pct(all.recall()), pct(all.precision()), all.fp, pct(allLow.recall()), pct(allLow.precision()), pct(base.precision()))
+	return b.String()
 }
 
 // writeCorpus writes corpus.txt and labels.tsv (line number, expected detector) for other tools to score.

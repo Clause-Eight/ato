@@ -1,4 +1,4 @@
-"""Score Microsoft Presidio on the pii-eu benchmark corpus, for the identifiers both tools cover.
+"""Score Microsoft Presidio on the pii-eu benchmark corpus, for the identifiers both tools cover (see PAIRS).
 
     go run ./bench -lines 30000 -export /tmp/pii-eu-corpus
     python -m venv .venv && .venv/bin/pip install presidio-analyzer && .venv/bin/python -m spacy download en_core_web_sm
@@ -17,21 +17,42 @@ from pathlib import Path
 
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 from presidio_analyzer.nlp_engine import NlpEngineProvider
-from presidio_analyzer.predefined_recognizers import (
-    CreditCardRecognizer,
-    EmailRecognizer,
-    IbanRecognizer,
-    PhoneRecognizer,
-    PlPeselRecognizer,
-)
+from presidio_analyzer import predefined_recognizers as rec
 
-ENTITY_TO_DETECTOR = {
-    "CREDIT_CARD": "card",
-    "IBAN_CODE": "iban",
-    "EMAIL_ADDRESS": "email",
-    "PHONE_NUMBER": "eu-phone",
-    "PL_PESEL": "pl-pesel",
-}
+# Presidio recognizer, its keyword arguments, and the pii-eu detector it is scored against. Only identifiers
+# both tools cover are compared; each recognizer is enabled for English text so it is not penalised for its
+# language defaults.
+EU = ("AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU", "IE", "IT", "LT", "LU",
+      "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK")
+PAIRS = [
+    ("CreditCardRecognizer", {}, "card"),
+    ("IbanRecognizer", {}, "iban"),
+    ("EmailRecognizer", {}, "email"),
+    ("PhoneRecognizer", {"supported_regions": EU}, "eu-phone"),
+    ("PlPeselRecognizer", {"supported_language": "en"}, "pl-pesel"),
+    ("DeTaxIdRecognizer", {"supported_language": "en"}, "de-tax-id"),
+    ("DeIdCardRecognizer", {"supported_language": "en"}, "de-id-card"),
+    ("DeSocialSecurityRecognizer", {"supported_language": "en"}, "de-pension"),
+    ("EsNifRecognizer", {"supported_language": "en"}, "es-dni"),
+    ("EsNieRecognizer", {"supported_language": "en"}, "es-nie"),
+    ("FiPersonalIdentityCodeRecognizer", {"supported_language": "en"}, "fi-hetu"),
+    ("ItFiscalCodeRecognizer", {"supported_language": "en"}, "it-fiscal-code"),
+    ("SePersonnummerRecognizer", {"supported_language": "en"}, "se-personnummer"),
+    ("UkNinoRecognizer", {"supported_language": "en"}, "gb-nino"),
+    ("NhsRecognizer", {"supported_language": "en"}, "gb-nhs"),
+    ("IpRecognizer", {}, "ip-address"),
+    ("MacAddressRecognizer", {"supported_language": "en"}, "mac-address"),
+    ("CryptoRecognizer", {}, "crypto-wallet"),
+]
+
+
+def recognizers():
+    for name, kwargs, detector in PAIRS:
+        recognizer = getattr(rec, name)(**kwargs)
+        yield recognizer, detector
+
+
+ENTITY_TO_DETECTOR = {}
 
 
 def engine() -> AnalyzerEngine:
@@ -40,14 +61,10 @@ def engine() -> AnalyzerEngine:
         "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
     }).create_engine()
     registry = RecognizerRegistry(supported_languages=["en"])
-    for rec in (
-        CreditCardRecognizer(),
-        IbanRecognizer(),
-        EmailRecognizer(),
-        PhoneRecognizer(supported_regions=("RO", "BG", "HU", "PL")),
-        PlPeselRecognizer(supported_language="en"),
-    ):
-        registry.add_recognizer(rec)
+    for recognizer, detector in recognizers():
+        registry.add_recognizer(recognizer)
+        for entity in recognizer.supported_entities:
+            ENTITY_TO_DETECTOR[entity] = detector
     return AnalyzerEngine(nlp_engine=nlp, registry=registry, supported_languages=["en"])
 
 
@@ -60,6 +77,8 @@ def main(folder: str) -> None:
         labels[int(n)] = det
 
     analyzer = engine()
+    import importlib.metadata
+    version = importlib.metadata.version("presidio-analyzer")
     found: dict[float, list[tuple[int, str]]] = {0.0: [], 0.5: []}
     start = time.perf_counter()
     for i, text in enumerate(lines, 1):
@@ -70,10 +89,10 @@ def main(folder: str) -> None:
                     found[threshold].append((i, det))
     elapsed = time.perf_counter() - start
 
-    print(f"Presidio {analyzer.__class__.__module__.split('.')[0]}, {len(lines)} lines in {elapsed:.1f} s ({len(lines) / elapsed:.0f} lines/s, one core)\n")
+    print(f"presidio-analyzer {version}, {len(lines)} lines in {elapsed:.1f} s ({len(lines) / elapsed:.0f} lines/s, one core)\n")
     print("| Detector | Values | Recall (score ≥ 0) | Precision (score ≥ 0) | Recall (score ≥ 0.5) | Precision (score ≥ 0.5) |")
     print("|---|---|---|---|---|---|")
-    for det in ENTITY_TO_DETECTOR.values():
+    for det in dict.fromkeys(ENTITY_TO_DETECTOR.values()):
         cells = []
         for threshold in found:
             tp_lines, fp = set(), 0
