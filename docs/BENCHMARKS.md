@@ -114,18 +114,31 @@ The first run on this repository found 34. The run led to three engine fixes in 
 
 ## Compared with Microsoft Presidio
 
-[Presidio](https://github.com/microsoft/presidio) (presidio-analyzer 2.2, spaCy `en_core_web_sm`) on the same corpus, for the five identifiers both tools cover. Presidio's phone recognizer was given the RO, BG, HU and PL regions and its PESEL recognizer was enabled for English text, so it is not penalised for its defaults. Run it with `bench/presidio_compare.py`.
+[Presidio](https://github.com/microsoft/presidio) (presidio-analyzer 2.2.364, spaCy `en_core_web_sm`) on the same corpus, for the 18 identifiers both tools cover, measured on 19 October 2026. Each Presidio recognizer was enabled for English text and its phone recognizer for all 27 member states, so it is not penalised for its defaults. Run it with `bench/presidio_compare.py`.
 
 | Identifier | pii-eu recall / precision (default) | pii-eu recall / precision (low) | Presidio recall / precision (any score) | Presidio recall / precision (score ≥ 0.5) |
 |---|---|---|---|---|
-| `card` | 100.0% / 88.6% | 100.0% / 88.6% | 100.0% / 82.1% | 100.0% / 82.1% |
+| `card` | 81.6% / 99.3% | 100.0% / 59.9% | 81.0% / 44.1% | 81.0% / 44.1% |
 | `iban` | 100.0% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% |
-| `email` | 51.6% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% |
-| `eu-phone` | 51.7% / 99.8% | 100.0% / 95.2% | 87.6% / 40.4% | 44.5% / 100.0% |
-| `pl-pesel` | 49.5% / 99.7% | 95.5% / 99.6% | 100.0% / 64.5% | 100.0% / 64.5% |
+| `email` | 52.7% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% |
+| `eu-phone` | 90.8% / 100.0% | 100.0% / 82.0% | 98.6% / 1.1% | 52.5% / 100.0% |
+| `pl-pesel` | 51.6% / 100.0% | 92.3% / 97.3% | 100.0% / 33.0% | 100.0% / 33.0% |
+| `de-tax-id` | 71.6% / 100.0% | 100.0% / 95.9% | 59.3% / 31.0% | 59.3% / 31.0% |
+| `de-id-card` | 50.9% / 100.0% | 100.0% / 100.0% | 0.0% / 0.0% | 0.0% / 0.0% |
+| `de-pension` | 100.0% / 100.0% | 100.0% / 100.0% | 50.3% / 100.0% | 50.3% / 100.0% |
+| `es-dni` | 49.4% / 100.0% | 100.0% / 96.9% | 82.3% / 86.7% | 82.3% / 86.7% |
+| `es-nie` | 50.0% / 100.0% | 100.0% / 100.0% | 76.7% / 98.3% | 76.7% / 98.3% |
+| `fi-hetu` | 100.0% / 96.1% | 100.0% / 96.1% | 100.0% / 90.5% | 100.0% / 90.5% |
+| `it-fiscal-code` | 100.0% / 100.0% | 100.0% / 100.0% | 50.6% / 100.0% | 50.6% / 100.0% |
+| `se-personnummer` | 75.2% / 91.2% | 93.4% / 84.2% | 100.0% / 48.9% | 100.0% / 48.9% |
+| `gb-nino` | 76.8% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% |
+| `gb-nhs` | 76.2% / 100.0% | 97.2% / 73.9% | 100.0% / 23.4% | 100.0% / 23.4% |
+| `ip-address` | 49.3% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% |
+| `mac-address` | 47.4% / 100.0% | 47.4% / 100.0% | 100.0% / 100.0% | 100.0% / 100.0% |
+| `crypto-wallet` | 100.0% / 100.0% | 100.0% / 100.0% | 70.2% / 100.0% | 70.2% / 100.0% |
 
-- **Speed:** Presidio scanned the 30,000 lines in 57.9 s (518 lines/s); pii-eu takes about 0.3 s (110,447 lines/s), roughly 200 times faster on one core, without an NLP model.
-- **Coverage:** Presidio has no recognisers for CNP, EGN, LNCh, TAJ, Hungarian tax ID, Czech and Slovak birth numbers, Croatian OIB or most EU VAT numbers (it has German and Italian ones). Those are 8 of pii-eu's 13 detectors.
-- **Where Presidio is ahead:** it reports every email and phone number with no keyword needed. pii-eu reports them only next to a keyword at the default level, by design; at `--min-confidence low` it finds all of them.
-- **Where pii-eu is ahead:** PESEL precision (99.7% against 64.5%: Presidio checks the check digit and a rough month and day pattern, but not real calendar dates, and its pattern has no boundaries, so it can match inside longer numbers), phone precision at Presidio's lower scores, and card precision (88.6% against 82.1%).
-- **What it taught us:** Presidio checks each country's account-number format inside the IBAN. An earlier version of this corpus had Bulgarian IBANs with an all-digit bank code; they pass mod 97, but the real format starts with four letters. Presidio rightly rejected them and pii-eu did not. The corpus is fixed, and checking the national account format is tracked as an improvement to pii-eu.
+- **Speed:** 30000 lines in 70.4 s (426 lines/s, one core); pii-eu scans the same corpus in about a quarter of a second on one core, without an NLP model.
+- **Coverage:** Presidio has no recognizer for 46 of pii-eu's 64 detectors, including every national identifier of Romania, Bulgaria, Hungary, Czechia, Croatia, France, the Netherlands, Belgium, Austria, Portugal, Greece and the Baltic states, and the GDPR Art. 9 fields in schemas.
+- **Why Presidio's precision is lower here:** the corpus mixes identifiers from every member state, and many share a shape (eleven digits, a date and a serial). Presidio's recognizers check one country's rule each, so a valid number from another country often passes; pii-eu runs all the rules and reports each value once, preferring the detector whose own name is nearby.
+- **Where Presidio is ahead:** it reports every email, IP address and MAC address without a keyword. pii-eu reports contact data and device identifiers only next to a keyword, or with `--min-confidence low`, by design.
+- **German ID card:** Presidio found none of the generated card numbers, which use the ten-character form with its check digit; its recognizer may expect another layout.
