@@ -38,4 +38,21 @@ func init() {
 		local := regon + Digits(r, 4)
 		return local + fmt.Sprint(WeightedSum(local, []int{2, 4, 8, 5, 0, 9, 7, 3, 6, 1, 2, 4, 8})%11%10)
 	})
+	Register("pl-nip", func(r *rand.Rand) string {
+		for {
+			body := Pad(101+r.Intn(899), 3) + Digits(r, 6)
+			c := WeightedSum(body, []int{6, 5, 7, 2, 3, 4, 5, 6, 7}) % 11
+			if c == 10 {
+				continue
+			}
+			v := body + fmt.Sprint(c)
+			switch r.Intn(3) {
+			case 0:
+				return v[:3] + "-" + v[3:6] + "-" + v[6:8] + "-" + v[8:]
+			case 1:
+				return v[:3] + "-" + v[3:5] + "-" + v[5:7] + "-" + v[7:]
+			}
+			return v
+		}
+	})
 }
