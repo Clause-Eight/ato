@@ -31,10 +31,10 @@ National identifiers by country:
 <!-- coverage:start -->
 | Country | Personal number | Tax ID | Social security or health | ID card or passport |
 |---|---|---|---|---|
-| AT | – | – | `at-social-insurance` | – |
+| AT | – | `at-tax-number` | `at-social-insurance` | – |
 | BE | `be-national-register` | – | – | – |
 | BG | `bg-egn`, `bg-lnch` | – | – | – |
-| CY | – | – | – | `cy-id-card` |
+| CY | – | `cy-tic` | – | `cy-id-card` |
 | CZ | `cz-birth-number` | – | – | – |
 | DE | – | `de-tax-id` | `de-pension` | `de-id-card` |
 | DK | `dk-cpr`* | – | – | – |
@@ -52,11 +52,11 @@ National identifiers by country:
 | LV | `lv-personal-code`, `lv-personal-code-new` | – | – | – |
 | MT | – | – | – | `mt-id-card` |
 | NL | `nl-bsn` | – | – | – |
-| PL | `pl-pesel` | – | – | `pl-id-card`, `pl-regon` |
+| PL | `pl-pesel` | `pl-nip` | – | `pl-id-card`, `pl-regon` |
 | PT | – | `pt-nif` | – | `pt-citizen-card` |
 | RO | `ro-cnp` | – | – | `ro-id-card` |
 | SE | `se-personnummer` | – | – | – |
-| SI | `si-emso` | – | – | – |
+| SI | `si-emso` | `si-tax-number` | – | – |
 | SK | `cz-birth-number` | – | – | – |
 | CH | – | – | `ch-ahv`* | – |
 | GB | – | – | `gb-nhs`*, `gb-nino`* | – |

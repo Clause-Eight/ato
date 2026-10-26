@@ -21,4 +21,17 @@ func init() {
 			return body + fmt.Sprint((11-rem)%11)
 		}
 	})
+	Register("si-tax-number", func(r *rand.Rand) string {
+		for {
+			body := Pad(1000000+r.Intn(9000000), 7)
+			c := 11 - WeightedSum(body, []int{8, 7, 6, 5, 4, 3, 2})%11
+			if c == 11 {
+				continue
+			}
+			if c == 10 {
+				c = 0
+			}
+			return body + fmt.Sprint(c)
+		}
+	})
 }
