@@ -1,6 +1,6 @@
 # Data map
 
-Drafted by pii-eu test from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention, which code cannot show.
+Drafted by pii-eu test from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention periods, which code cannot show. Erasure and retention show whether the code has a path that removes the data, not that it runs.
 
 Categories of personal data: name, special-category/health.
 
@@ -16,9 +16,9 @@ Personal data written to logs or telemetry:
 
 ## services/clinic
 
-| Store | Categories of personal data | Special categories (Art. 9) | Source |
-|---|---|---|---|
-| `patients` | name | health | `services/clinic/db/001.sql:3` |
+| Store | Categories of personal data | Special categories (Art. 9) | Erasure (Art. 17) | Retention (Art. 5(1)(e)) | Source |
+|---|---|---|---|---|---|
+| `patients` | name | health | SQL DELETE (`services/clinic/repo.sql:7`) | none found | `services/clinic/db/001.sql:3` |
 
 | Recipient | Purpose | Established in the EEA | Where |
 |---|---|---|---|

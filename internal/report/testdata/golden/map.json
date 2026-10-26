@@ -59,7 +59,15 @@
               "path": "services/clinic/db/001.sql",
               "line": 4
             }
-          ]
+          ],
+          "erasure": [
+            {
+              "how": "SQL DELETE",
+              "path": "services/clinic/repo.sql",
+              "line": 7
+            }
+          ],
+          "retention": []
         }
       ],
       "sinks": [],
