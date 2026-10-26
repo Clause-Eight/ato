@@ -13,6 +13,7 @@ import (
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/pii-eu/internal/infra"
 	"github.com/Clause-Eight/pii-eu/internal/schema"
 	"github.com/Clause-Eight/pii-eu/internal/walk"
 )
@@ -21,7 +22,8 @@ import (
 const maxLine = 1 << 20
 
 // Request describes one scan of a folder or file. SpecialCategories reports schema fields holding GDPR Art. 9
-// data as findings; Inventory collects every personal-data field from schemas and models.
+// data as findings; Inventory collects every personal-data field from schemas and models, and the data stores
+// declared in Terraform. Infra names the checks on Terraform data stores to report, such as tf-unencrypted.
 type Request struct {
 	Root              string
 	Walk              walk.Options
@@ -29,14 +31,19 @@ type Request struct {
 	Workers           int
 	SpecialCategories bool
 	Inventory         bool
+	Infra             []string
 }
 
-// Result is what a scan found, sorted by path, line and column.
+// Result is what a scan found, sorted by path, line and column. Stores is set with Inventory.
 type Result struct {
 	Findings  []domain.Finding
 	Inventory []domain.InventoryEntry
+	Stores    []domain.Store
 	Summary   domain.Summary
 }
+
+func (r Request) infra() bool  { return r.Inventory || len(r.Infra) > 0 }
+func (r Request) fields() bool { return r.SpecialCategories || r.Inventory || len(r.Infra) > 0 }
 
 // Scan lists files, scans them in parallel and returns sorted findings.
 func Scan(req Request) (Result, error) {
@@ -51,6 +58,7 @@ func Scan(req Request) (Result, error) {
 	type out struct {
 		findings []domain.Finding
 		entries  []domain.InventoryEntry
+		tf       *infra.File
 		skip     *domain.Skipped
 		bad      *domain.Skipped
 	}
@@ -62,8 +70,8 @@ func Scan(req Request) (Result, error) {
 		go func() {
 			defer wg.Done()
 			for f := range jobs {
-				fs, entries, skip, err := scanFile(f, req)
-				o := out{findings: fs, entries: entries, skip: skip}
+				fs, entries, tf, skip, err := scanFile(f, req)
+				o := out{findings: fs, entries: entries, tf: tf, skip: skip}
 				if err != nil {
 					o.bad = &domain.Skipped{Path: f.Rel, Reason: err.Error()}
 				}
@@ -80,6 +88,8 @@ func Scan(req Request) (Result, error) {
 		close(results)
 	}()
 	res := Result{Summary: domain.Summary{FilesSkipped: skipped}}
+	var entries []domain.InventoryEntry
+	var tfFiles []*infra.File
 	for o := range results {
 		switch {
 		case o.bad != nil:
@@ -89,43 +99,60 @@ func Scan(req Request) (Result, error) {
 		default:
 			res.Summary.FilesScanned++
 			res.Findings = append(res.Findings, o.findings...)
-			if req.Inventory {
-				res.Inventory = append(res.Inventory, o.entries...)
+			entries = append(entries, o.entries...)
+			if o.tf != nil {
+				tfFiles = append(tfFiles, o.tf)
 			}
 		}
 	}
+	sortInventory(entries)
+	if req.Inventory {
+		res.Inventory = entries
+	}
+	if len(tfFiles) > 0 {
+		stores := infra.Stores(tfFiles)
+		linkStores(stores, entries)
+		res.Findings = append(res.Findings, storeFindings(stores, req.Infra, tfFiles)...)
+		if req.Inventory {
+			res.Stores = stores
+		}
+	}
 	sortFindings(res.Findings)
-	sortInventory(res.Inventory)
 	sortSkipped(res.Summary.FilesSkipped)
 	sortSkipped(res.Summary.Unreadable)
 	return res, nil
 }
 
-func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEntry, *domain.Skipped, error) {
+func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEntry, *infra.File, *domain.Skipped, error) {
 	fh, err := walk.Open(f)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	defer fh.Close()
 	r := bufio.NewReaderSize(fh, 64<<10)
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
-		return nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
+		return nil, nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
 	}
-	if !(req.SpecialCategories || req.Inventory) || !schema.Candidate(f.Rel) {
+	isSchema := req.fields() && schema.Candidate(f.Rel)
+	isInfra := req.infra() && infra.Candidate(f.Rel)
+	if !isSchema && !isInfra {
 		fs, err := ScanReader(f.Rel, r, req.Detectors)
-		return fs, nil, nil, err
+		return fs, nil, nil, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("read error: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("read error: %w", err)
 	}
 	fs, err := ScanReader(f.Rel, bytes.NewReader(data), req.Detectors)
+	if isInfra {
+		return fs, nil, infra.Parse(f.Rel, data), nil, err
+	}
 	entries := inventory(f.Rel, data)
 	if req.SpecialCategories {
 		fs = append(fs, specialFindings(entries, splitLines(data))...)
 	}
-	return fs, entries, nil, err
+	return fs, entries, nil, nil, err
 }
 
 // ScanReader scans text line by line. path is used for locations and for recognising test folders.

@@ -73,3 +73,20 @@ Schema and model fields whose names say they hold special-category data (GDPR Ar
 | `se-personnummer` | SE | Swedish personal identity number (personnummer) | birth date and Luhn check digit are valid | low | `personnummer`, `personnr`, `samordningsnummer` | national-id, tax-id |
 | `si-emso` | SI | Slovenian personal number (EMŠO) | birth date, register and mod-11 check digit are valid | medium | `emšo`, `emso`, `enotna matična številka`, `enotna maticna stevilka` | national-id |
 | `street-address` | EU | Street address (street and house number) (off by default) | a street-type word, a street name and a house number | low | `street_address`, `address_line`, `addressline`, `streetaddress` | address |
+
+## Terraform data stores
+
+`pii-eu scan` reads the data stores declared in `.tf` files, without running Terraform, and reports these checks as `infra` findings. A finding is high when the store is linked to personal data (a tag such as `data_classification = "pii"` or `pii = true`, or a name that matches a table or model in the inventory) and medium otherwise. A setting that comes from something the code does not show, such as a variable without a default, is never read as a failure: it is reported at low confidence, and only for linked stores. Switch a check off under `[detectors]`, for example `tf-no-retention = false`.
+
+| Name | Finding | Reported when | Supports |
+|---|---|---|---|
+| `tf-unencrypted` | Data store without encryption at rest | encryption at rest is switched off, or not set where the service leaves it off | GDPR Art. 32(1)(a) |
+| `tf-no-retention` | Data store without a retention limit | nothing expires the data: no lifecycle rule, retention period or TTL | GDPR Art. 5(1)(e) |
+| `tf-non-eea-region` | Data store outside the EEA | a region is outside the EEA; one step lower when the country has an EU adequacy decision | GDPR Chapter V |
+| `tf-public` | Data store open to the public | a public ACL, a grant to everyone or an internet-facing endpoint opens the store | GDPR Art. 32(1)(b) |
+
+Resource types read as data stores:
+
+- AWS: `aws_cloudwatch_log_group`, `aws_db_instance`, `aws_docdb_cluster`, `aws_dynamodb_table`, `aws_ebs_volume`, `aws_efs_file_system`, `aws_elasticache_replication_group`, `aws_elasticsearch_domain`, `aws_kinesis_stream`, `aws_opensearch_domain`, `aws_rds_cluster`, `aws_redshift_cluster`, `aws_s3_bucket`, `aws_sns_topic`, `aws_sqs_queue`
+- Google Cloud: `google_bigquery_dataset`, `google_bigquery_table`, `google_logging_project_bucket_config`, `google_pubsub_topic`, `google_sql_database_instance`, `google_storage_bucket`
+- Azure: `azurerm_cosmosdb_account`, `azurerm_log_analytics_workspace`, `azurerm_mssql_database`, `azurerm_postgresql_flexible_server`, `azurerm_storage_account`

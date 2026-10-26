@@ -1,0 +1,5 @@
+infra/main.tf
+  7:1  high    Data store outside the EEA  aws_s3_bucket.exports
+          region us-east-1 is outside the EEA; linked to personal data: tagged data_classification with "pii"
+
+1 finding in 1 file · 3 files scanned

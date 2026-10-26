@@ -111,9 +111,30 @@ func withField(r Report) Report {
 	return r
 }
 
+// syntheticStore is a made-up Terraform data store.
+func syntheticStore() domain.Store {
+	return domain.Store{
+		Type: "aws_s3_bucket", Name: "exports", Provider: "aws", Service: "object-storage", Names: []string{"example-exports"},
+		Regions: []string{"us-east-1"}, InEEA: domain.Setting{State: domain.No, Why: "region us-east-1 is outside the EEA"},
+		Encryption: domain.Setting{State: domain.Yes}, Retention: domain.Setting{State: domain.No}, Backup: domain.Setting{State: domain.Unknown},
+		Public: domain.Setting{State: domain.No}, PersonalData: true, PersonalWhy: `tagged data_classification with "pii"`,
+		Location: domain.Location{Path: "infra/main.tf", Line: 7, Column: 1},
+	}
+}
+
+func withStore(r Report) Report {
+	s := syntheticStore()
+	r.Findings = append(r.Findings, domain.Finding{
+		Kind: domain.KindInfra, Detector: "tf-non-eea-region", Label: "Data store outside the EEA", Country: "EU",
+		Location: s.Location, Masked: s.Address(), Confidence: domain.High, Reasons: []string{s.InEEA.Why, "linked to personal data: " + s.PersonalWhy},
+		Fingerprint: "ffeeddccbbaa99887766554433221100", Store: &s,
+	})
+	return r
+}
+
 func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	var buf bytes.Buffer
-	if err := Write("json", &buf, withField(sample()), Options{}); err != nil {
+	if err := Write("json", &buf, withStore(withField(sample())), Options{}); err != nil {
 		t.Fatal(err)
 	}
 	var doc map[string]any
@@ -127,7 +148,7 @@ func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	inv := Inventory{Tool: "pii-eu", Version: "test", Files: 1, Entries: []domain.InventoryEntry{{
 		Field:          domain.Field{Name: "diagnosis", Container: "patients", Format: "sql", Location: domain.Location{Path: "db/001.sql", Line: 4, Column: 3}},
 		Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth, Matched: "diagnosis"},
-	}}}
+	}}, Stores: []domain.Store{syntheticStore()}}
 	if err := WriteInventory("json", &buf, inv); err != nil {
 		t.Fatal(err)
 	}
@@ -172,4 +193,29 @@ func TestFrozenFieldsAreStillWritten(t *testing.T) {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+}
+
+func TestInfraFindingsInEachFormat(t *testing.T) {
+	r := withStore(Report{Tool: "pii-eu", Version: "test"})
+	var buf bytes.Buffer
+	if err := Write("sarif", &buf, r, Options{}); err != nil {
+		t.Fatal(err)
+	}
+	var log sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &log); err != nil {
+		t.Fatal(err)
+	}
+	rules := log.Runs[0].Tool.Driver.Rules
+	if len(rules) != 1 || rules[0].ID != "tf-non-eea-region" || !strings.Contains(rules[0].FullDescription.Text, "Chapter V") {
+		t.Fatalf("rule: %+v", rules)
+	}
+	buf.Reset()
+	if err := Write("json", &buf, r, Options{}); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`"kind": "infra"`, `"masked": "aws_s3_bucket.exports"`, `"provider": "aws"`, `"personal_data": true`} {
+		if !strings.Contains(buf.String(), want) {
+			t.Errorf("json misses %s:\n%s", want, buf.String())
+		}
+	}
 }

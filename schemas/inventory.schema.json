@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Clause-Eight/pii-eu/schemas/inventory.schema.json",
   "title": "pii-eu data inventory",
-  "description": "Output of `pii-eu inventory --format json`: fields declared in schemas and models that hold personal data. Field names and locations only, never values.",
+  "description": "Output of `pii-eu inventory --format json`: fields declared in schemas and models that hold personal data, and the data stores declared in Terraform. Names and locations only, never values.",
   "type": "object",
   "required": [
     "schema_version",
@@ -13,7 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "const": "1.1",
+      "description": "1.1 added stores; a 1.0 inventory is a 1.1 inventory without them."
     },
     "tool": {
       "type": "object",
@@ -109,6 +110,136 @@
             "minimum": 1
           },
           "column": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "stores": {
+      "type": "array",
+      "description": "Data stores declared in Terraform, read without running Terraform. unknown means the value depends on something the code does not show; not-applicable means the setting does not exist for that kind of store.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "name",
+          "provider",
+          "service",
+          "names",
+          "regions",
+          "in_eea",
+          "encrypted",
+          "retention",
+          "backup",
+          "public",
+          "personal_data",
+          "path",
+          "line"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "provider": {
+            "enum": [
+              "aws",
+              "google",
+              "azurerm"
+            ]
+          },
+          "service": {
+            "enum": [
+              "database",
+              "warehouse",
+              "key-value",
+              "object-storage",
+              "log",
+              "queue",
+              "topic",
+              "stream",
+              "cache",
+              "search",
+              "block-storage",
+              "file-storage"
+            ]
+          },
+          "names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names in the cloud (bucket, table, database) as far as they are written out; parts from variables are left out."
+          },
+          "regions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "in_eea": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown",
+              "not-applicable"
+            ],
+            "description": "Whether every region is in the European Economic Area."
+          },
+          "adequacy": {
+            "type": "string",
+            "description": "Country with an EU adequacy decision, when every region outside the EEA has one."
+          },
+          "encrypted": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown",
+              "not-applicable"
+            ],
+            "description": "Encryption at rest."
+          },
+          "retention": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown",
+              "not-applicable"
+            ],
+            "description": "Whether data expires: a lifecycle rule, retention period or TTL."
+          },
+          "backup": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown",
+              "not-applicable"
+            ],
+            "description": "Versioning, point-in-time recovery or automated backups."
+          },
+          "public": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown",
+              "not-applicable"
+            ],
+            "description": "Open to the public: a public grant, ACL or network endpoint."
+          },
+          "personal_data": {
+            "type": "boolean"
+          },
+          "personal_data_reason": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "line": {
             "type": "integer",
             "minimum": 1
           }

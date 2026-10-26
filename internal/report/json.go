@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "1.1"
+const SchemaVersion = "1.3"
 
 func init() { register("json", writeJSON) }
 
@@ -39,20 +39,38 @@ type jsonSkipped struct {
 }
 
 type jsonFinding struct {
-	Kind            string   `json:"kind"`
-	SpecialCategory string   `json:"special_category,omitempty"`
-	Detector        string   `json:"detector"`
-	Label           string   `json:"label"`
-	Country         string   `json:"country"`
-	Path            string   `json:"path"`
-	Line            int      `json:"line"`
-	Column          int      `json:"column"`
-	Confidence      string   `json:"confidence"`
-	Masked          string   `json:"masked"`
-	Reasons         []string `json:"reasons"`
-	Sample          bool     `json:"sample"`
-	TestPath        bool     `json:"test_path"`
-	Fingerprint     string   `json:"fingerprint"`
+	Kind            string     `json:"kind"`
+	SpecialCategory string     `json:"special_category,omitempty"`
+	Detector        string     `json:"detector"`
+	Label           string     `json:"label"`
+	Country         string     `json:"country"`
+	Path            string     `json:"path"`
+	Line            int        `json:"line"`
+	Column          int        `json:"column"`
+	Confidence      string     `json:"confidence"`
+	Masked          string     `json:"masked"`
+	Reasons         []string   `json:"reasons"`
+	Sample          bool       `json:"sample"`
+	TestPath        bool       `json:"test_path"`
+	Fingerprint     string     `json:"fingerprint"`
+	Store           *jsonStore `json:"store,omitempty"`
+}
+
+// jsonStore names the data store an infra finding is about.
+type jsonStore struct {
+	Type         string   `json:"type"`
+	Name         string   `json:"name"`
+	Provider     string   `json:"provider"`
+	Service      string   `json:"service"`
+	Regions      []string `json:"regions"`
+	PersonalData bool     `json:"personal_data"`
+}
+
+func storeRef(s *domain.Store) *jsonStore {
+	if s == nil {
+		return nil
+	}
+	return &jsonStore{Type: s.Type, Name: s.Name, Provider: s.Provider, Service: s.Service, Regions: nonNilStrings(s.Regions), PersonalData: s.PersonalData}
 }
 
 func writeJSON(w io.Writer, r Report, _ Options) error {
@@ -79,7 +97,7 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 			Detector: f.Detector, Label: f.Label, Country: f.Country,
 			Path: f.Location.Path, Line: f.Location.Line, Column: f.Location.Column,
 			Confidence: f.Confidence.String(), Masked: f.Masked, Reasons: nonNilStrings(f.Reasons),
-			Sample: f.Sample, TestPath: f.TestPath, Fingerprint: f.Fingerprint,
+			Sample: f.Sample, TestPath: f.TestPath, Fingerprint: f.Fingerprint, Store: storeRef(f.Store),
 		})
 	}
 	enc := json.NewEncoder(w)
