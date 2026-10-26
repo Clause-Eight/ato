@@ -91,6 +91,13 @@
           "items": {
             "$ref": "#/$defs/recipient"
           }
+        },
+        "infrastructure": {
+          "description": "Data stores declared in Terraform. Settings are yes, no or unknown, and absent when they do not apply.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/infra"
+          }
         }
       }
     },
@@ -229,6 +236,70 @@
       "properties": {
         "how": {
           "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "infra": {
+      "type": "object",
+      "required": [
+        "address",
+        "service",
+        "regions",
+        "personal_data",
+        "path",
+        "line"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "in_eea": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "encrypted": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "retention": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "public": {
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        },
+        "personal_data": {
+          "type": "boolean"
         },
         "path": {
           "type": "string"

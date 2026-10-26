@@ -14,13 +14,22 @@ change is announced before it breaks anything.
 | JSON report | `schemas/findings.schema.json`: fields listed there are never removed, renamed or given a new type. `schema_version` stays `1.x`. |
 | Inventory | `schemas/inventory.schema.json` and the CSV columns, under the same rule. |
 | Data map | `schemas/map.schema.json`, under the same rule; `map --diff` exits `1` when something is new. |
-| SARIF | Rule IDs (`<detector>`, `special-category/<category>`) and the `piiEu/v1` partial fingerprint. |
-| Detector names | A detector's name never changes and is never reused for a different identifier. |
+| SARIF | Rule IDs (`<detector>`, `special-category/<category>`, the Terraform checks `tf-unencrypted`, `tf-no-retention`, `tf-non-eea-region`, `tf-public`, and `no-erasure-path`, `no-retention`) and the `piiEu/v1` partial fingerprint. |
+| Detector names | A detector's name never changes and is never reused for a different identifier. The same holds for `special-category`, the `tf-*` checks, `no-erasure-path` and `no-retention`. |
 | Fingerprints and baselines | A finding's fingerprint stays the same for the same detector, path and line text, so a committed baseline keeps working. |
 | Masking | No output format ever prints a found value, except text output with `--show-values` on screen. |
 
 `TestReportsMatchThePublishedSchemas` and `TestFrozenFieldsAreStillWritten` check the JSON promises on every
 pull request, and the golden files under `internal/report/testdata` pin the exact output of each format.
+
+## Schema versions
+
+| Release | Findings report | Inventory |
+|---|---|---|
+| 1.0 | `1.1`: `kind` and `special_category` | `1.0` |
+| 1.3 | `1.3`: kind `infra` and the `store` object, for data stores declared in Terraform | `1.1`: the `stores` array; the CSV columns are unchanged |
+
+Each version only adds optional fields, so a reader written for an earlier `1.x` keeps working.
 
 ## What a minor release may change
 

@@ -83,6 +83,22 @@
             }
           ]
         }
+      ],
+      "infrastructure": [
+        {
+          "address": "aws_s3_bucket.patient_exports",
+          "service": "object-storage",
+          "regions": [
+            "us-east-1"
+          ],
+          "in_eea": "no",
+          "encrypted": "yes",
+          "retention": "no",
+          "public": "no",
+          "personal_data": true,
+          "path": "services/clinic/infra/main.tf",
+          "line": 4
+        }
       ]
     }
   ]

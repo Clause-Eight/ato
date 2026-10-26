@@ -13,6 +13,7 @@ import (
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/pii-eu/internal/infra"
 	"github.com/Clause-Eight/pii-eu/internal/lifecycle"
 	"github.com/Clause-Eight/pii-eu/internal/recipients"
 	"github.com/Clause-Eight/pii-eu/internal/schema"
@@ -37,6 +38,13 @@ type Request struct {
 	Lifecycle         bool
 	ErasureFindings   bool
 	RetentionFindings bool
+	// Infra names the checks on Terraform data stores to report, such as tf-unencrypted.
+	Infra []string
+}
+
+func (r Request) infra() bool { return r.Inventory || r.Lifecycle || len(r.Infra) > 0 }
+func (r Request) fields() bool {
+	return r.SpecialCategories || r.Inventory || r.Lifecycle || len(r.Infra) > 0
 }
 
 // Result is what a scan found, sorted by path, line and column.
@@ -45,7 +53,9 @@ type Result struct {
 	Inventory  []domain.InventoryEntry
 	Recipients []domain.RecipientUse
 	Lifecycle  []domain.StoreLifecycle
-	Summary    domain.Summary
+	// Stores are the data stores declared in Terraform, set with Inventory or Lifecycle.
+	Stores  []domain.Store
+	Summary domain.Summary
 }
 
 // Scan lists files, scans them in parallel and returns sorted findings.
@@ -63,6 +73,7 @@ func Scan(req Request) (Result, error) {
 		entries  []domain.InventoryEntry
 		uses     []domain.RecipientUse
 		evidence []lifecycle.Evidence
+		tf       *infra.File
 		skip     *domain.Skipped
 		bad      *domain.Skipped
 	}
@@ -75,7 +86,7 @@ func Scan(req Request) (Result, error) {
 			defer wg.Done()
 			for f := range jobs {
 				fs, sf, skip, err := scanFile(f, req)
-				o := out{findings: fs, entries: sf.entries, uses: sf.uses, evidence: sf.evidence, skip: skip}
+				o := out{findings: fs, entries: sf.entries, uses: sf.uses, evidence: sf.evidence, tf: sf.tf, skip: skip}
 				if err != nil {
 					o.bad = &domain.Skipped{Path: f.Rel, Reason: err.Error()}
 				}
@@ -94,6 +105,7 @@ func Scan(req Request) (Result, error) {
 	res := Result{Summary: domain.Summary{FilesSkipped: skipped}}
 	var entries []domain.InventoryEntry
 	var evidence []lifecycle.Evidence
+	var tfFiles []*infra.File
 	for o := range results {
 		switch {
 		case o.bad != nil:
@@ -106,11 +118,22 @@ func Scan(req Request) (Result, error) {
 			entries = append(entries, o.entries...)
 			res.Recipients = append(res.Recipients, o.uses...)
 			evidence = append(evidence, o.evidence...)
+			if o.tf != nil {
+				tfFiles = append(tfFiles, o.tf)
+			}
 		}
 	}
 	sortInventory(entries)
 	if req.Inventory {
 		res.Inventory = entries
+	}
+	if len(tfFiles) > 0 {
+		stores := infra.Stores(tfFiles)
+		linkStores(stores, entries)
+		res.Findings = append(res.Findings, storeFindings(stores, req.Infra, tfFiles)...)
+		if req.Inventory || req.Lifecycle {
+			res.Stores = stores
+		}
 	}
 	if req.Lifecycle {
 		res.Lifecycle = assessLifecycle(entries, evidence)
@@ -128,6 +151,7 @@ type fileFacts struct {
 	entries  []domain.InventoryEntry
 	uses     []domain.RecipientUse
 	evidence []lifecycle.Evidence
+	tf       *infra.File
 }
 
 func scanFile(f walk.File, req Request) ([]domain.Finding, fileFacts, *domain.Skipped, error) {
@@ -142,7 +166,16 @@ func scanFile(f walk.File, req Request) ([]domain.Finding, fileFacts, *domain.Sk
 	if walk.IsBinary(head) {
 		return nil, facts, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
 	}
-	wantSchema := (req.SpecialCategories || req.Inventory || req.Lifecycle) && schema.Candidate(f.Rel)
+	if req.infra() && infra.Candidate(f.Rel) {
+		data, err := io.ReadAll(r)
+		if err != nil {
+			return nil, facts, nil, fmt.Errorf("read error: %w", err)
+		}
+		fs, err := ScanReader(f.Rel, bytes.NewReader(data), req.Detectors)
+		facts.tf = infra.Parse(f.Rel, data)
+		return fs, facts, nil, err
+	}
+	wantSchema := req.fields() && schema.Candidate(f.Rel)
 	wantRecipients := req.Recipients && recipients.Candidate(f.Rel)
 	wantLifecycle := req.Lifecycle && lifecycle.Candidate(f.Rel)
 	if !wantSchema && !wantRecipients && !wantLifecycle {
