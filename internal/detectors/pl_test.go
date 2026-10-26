@@ -51,3 +51,27 @@ func TestPolishREGONRules(t *testing.T) {
 		}
 	}
 }
+
+func TestPolishNIPRules(t *testing.T) {
+	d, _ := Get("pl-nip")
+	cases := map[string]bool{
+		"2234567895":    true, // the worked example in the OECD TIN sheet
+		"223-456-78-95": true,
+		"223-45-67-895": true,
+		"2234567896":    false, // wrong check digit
+		"1234567080":    false, // remainder 10 is never issued
+		"1234567089":    false,
+		"0000000000":    false,
+		"223456789":     false, // too short
+	}
+	for v, want := range cases {
+		if got := d.Validate(d.Normalize(v)); got != want {
+			t.Errorf("case %d characters, valid=%v: got %v", len(v), want, got)
+		}
+	}
+	for _, v := range []string{"223-456-78-95", "223-45-67-895", "2234567895"} {
+		if d.Pattern.FindString(v) != v {
+			t.Errorf("a %d-character form is not found whole", len(v))
+		}
+	}
+}

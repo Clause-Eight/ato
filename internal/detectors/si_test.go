@@ -29,3 +29,22 @@ func TestSlovenianEMSO(t *testing.T) {
 		}
 	}
 }
+
+func TestSITaxNumber(t *testing.T) {
+	d, _ := Get("si-tax-number")
+	cases := map[string]bool{
+		"97803570": true,
+		"33975825": true,
+		"60704144": true,
+		"97803579": false, // wrong check digit
+		"81297920": false, // remainder 0 is never issued
+		"81297929": false,
+		"01234567": false, // first digit 0
+		"9780357":  false, // too short
+	}
+	for v, want := range cases {
+		if got := d.Validate(v); got != want {
+			t.Errorf("case %d characters, valid=%v: got %v", len(v), want, got)
+		}
+	}
+}
