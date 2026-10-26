@@ -247,6 +247,52 @@ func TestSpecialCategoryFieldsAndInventory(t *testing.T) {
 	}
 }
 
+// The Terraform and SQL here are made up.
+func TestTerraformStores(t *testing.T) {
+	dir := t.TempDir()
+	tf := `provider "aws" {
+  region = "eu-central-1"
+}
+
+resource "aws_db_instance" "patients" {
+  identifier = "patients"
+}
+
+resource "aws_s3_bucket" "site" {
+  bucket = "example-site"
+}
+`
+	write := func(name, body string) {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("main.tf", tf)
+	write("001_patients.sql", "CREATE TABLE patients (\n  id bigint,\n  full_name text\n);\n")
+	code, out, errOut := run("scan", "--no-git", "--format", "json", dir)
+	if code != ExitFindings || !strings.Contains(out, `"detector": "tf-unencrypted"`) || !strings.Contains(out, `"type": "aws_db_instance"`) || !strings.Contains(out, `"confidence": "high"`) {
+		t.Fatalf("scan: exit %d %s\n%s", code, errOut, out)
+	}
+	if !strings.Contains(out, `"masked": "aws_s3_bucket.site"`) {
+		t.Errorf("a bucket kept forever is a medium finding:\n%s", out)
+	}
+	write(".pii-eu.toml", "[detectors]\ntf-unencrypted = false\ntf-no-retention = false\n")
+	if code, out, errOut := run("scan", "--no-git", dir); code != ExitClean {
+		t.Errorf("checks switched off: exit %d %s %s", code, out, errOut)
+	}
+	code, out, _ = run("inventory", "--no-git", "--format", "json", dir)
+	if code != ExitClean || !strings.Contains(out, `"stores": [`) || !strings.Contains(out, `"in_eea": "yes"`) || !strings.Contains(out, `"encrypted": "no"`) {
+		t.Fatalf("inventory: exit %d\n%s", code, out)
+	}
+	code, out, _ = run("inventory", "--no-git", dir)
+	if code != ExitClean || strings.Contains(out, "aws_") {
+		t.Errorf("the CSV inventory keeps its columns: %s", out)
+	}
+	if _, out, _ := run("detectors"); !strings.Contains(out, "tf-non-eea-region") {
+		t.Error("the detector list names the Terraform checks")
+	}
+}
+
 func TestDeprecatedFlagWarns(t *testing.T) {
 	deprecatedFlags["no-git"] = "--walk"
 	defer delete(deprecatedFlags, "no-git")

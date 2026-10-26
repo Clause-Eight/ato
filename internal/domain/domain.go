@@ -44,8 +44,9 @@ type Location struct {
 	Column int
 }
 
-// Finding is one detected value, or a schema field holding special-category data (Kind says which). Value is
-// the raw text and must never reach a report; reporters use Masked. For a field, Masked is the field's name.
+// Finding is one detected value, a schema field holding special-category data, or a data store declared in
+// infrastructure code (Kind says which). Value is the raw text and must never reach a report; reporters use
+// Masked. For a field, Masked is the field's name; for a store, its resource address.
 type Finding struct {
 	Kind        Kind
 	Category    DataCategory
@@ -62,6 +63,8 @@ type Finding struct {
 	TestPath    bool
 	Fingerprint string
 	Ignored     bool
+	// Store is the data store an infra finding is about; nil for other kinds.
+	Store *Store
 }
 
 // Summary describes one scan.
