@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "tool": {
+    "name": "pii-eu",
+    "version": "test"
+  },
+  "categories": [
+    "name",
+    "special-category/health"
+  ],
+  "components": [
+    {
+      "name": "services/billing",
+      "stores": [],
+      "sinks": [
+        {
+          "label": "Personal data written to a log",
+          "category": "contact",
+          "path": "services/billing/api.py",
+          "line": 9
+        }
+      ],
+      "recipients": [
+        {
+          "name": "Stripe",
+          "purpose": "payments",
+          "established_in_eea": false,
+          "evidence": [
+            {
+              "path": "services/billing/requirements.txt",
+              "line": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "services/clinic",
+      "stores": [
+        {
+          "name": "patients",
+          "categories": [
+            "name"
+          ],
+          "special_categories": [
+            "health"
+          ],
+          "fields": [
+            {
+              "name": "first_name",
+              "category": "name",
+              "path": "services/clinic/db/001.sql",
+              "line": 3
+            },
+            {
+              "name": "diagnosis",
+              "category": "special-category",
+              "special_category": "health",
+              "path": "services/clinic/db/001.sql",
+              "line": 4
+            }
+          ]
+        }
+      ],
+      "sinks": [],
+      "recipients": [
+        {
+          "name": "Mistral AI",
+          "purpose": "AI model provider",
+          "established_in_eea": true,
+          "evidence": [
+            {
+              "path": "services/clinic/notes.py",
+              "line": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

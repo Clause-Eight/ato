@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Clause-Eight/pii-eu/schemas/map.schema.json",
+  "title": "pii-eu data map",
+  "description": "Output of `pii-eu map --format json`: per component, the stores of personal data, where personal data is logged and the third parties the code names. Field names and locations only, never values.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "categories",
+    "components"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "tool": {
+      "type": "object",
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/component"
+      }
+    }
+  },
+  "$defs": {
+    "place": {
+      "type": "object",
+      "required": [
+        "path",
+        "line"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "required": [
+        "name",
+        "stores",
+        "sinks",
+        "recipients"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "stores": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/store"
+          }
+        },
+        "sinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sink"
+          }
+        },
+        "recipients": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/recipient"
+          }
+        }
+      }
+    },
+    "store": {
+      "type": "object",
+      "required": [
+        "name",
+        "categories",
+        "special_categories",
+        "fields"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "special_categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "category",
+              "path",
+              "line"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "special_category": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "sink": {
+      "type": "object",
+      "required": [
+        "label",
+        "category",
+        "path",
+        "line"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "recipient": {
+      "type": "object",
+      "required": [
+        "name",
+        "purpose",
+        "established_in_eea",
+        "evidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "established_in_eea": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/place"
+          }
+        }
+      }
+    }
+  }
+}

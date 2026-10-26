@@ -255,3 +255,40 @@ func TestDeprecatedFlagWarns(t *testing.T) {
 		t.Fatalf("no warning: %q", errOut)
 	}
 }
+
+func TestMapAndDiff(t *testing.T) {
+	dir := t.TempDir()
+	write := func(rel, text string) {
+		p := filepath.Join(dir, rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	write("services/clinic/db/001.sql", "CREATE TABLE patients (\n  first_name text,\n  diagnosis text\n);\n")
+	write("services/billing/requirements.txt", "stripe==10.1.0\n")
+	code, out, errOut := run("map", "--no-git", dir)
+	if code != ExitClean || !strings.Contains(out, "| `patients` | name | health |") || !strings.Contains(out, "| Stripe | payments |") {
+		t.Fatalf("map: exit %d\n%s%s", code, out, errOut)
+	}
+	saved := filepath.Join(t.TempDir(), "map.json")
+	if code, _, errOut := run("map", "--no-git", "--format", "json", "--output", saved, dir); code != ExitClean {
+		t.Fatalf("map json: exit %d %s", code, errOut)
+	}
+	if code, out, _ := run("map", "--no-git", "--diff", saved, dir); code != ExitClean || !strings.Contains(out, "Nothing new") {
+		t.Errorf("unchanged map: exit %d\n%s", code, out)
+	}
+	write("services/clinic/ai.py", "import openai\n")
+	code, out, _ = run("map", "--no-git", "--diff", saved, dir)
+	if code != ExitFindings || !strings.Contains(out, "services/clinic") || !strings.Contains(out, "OpenAI") {
+		t.Errorf("new recipient: exit %d\n%s", code, out)
+	}
+	if code, _, _ := run("map", "--format", "sarif", dir); code != ExitUsage {
+		t.Errorf("map accepts only markdown, json and html: exit %d", code)
+	}
+	if code, _, _ := run("map", "--diff", filepath.Join(dir, "missing.json"), dir); code != ExitUsage {
+		t.Errorf("missing diff file: exit %d", code)
+	}
+}

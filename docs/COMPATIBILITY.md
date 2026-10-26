@@ -7,12 +7,13 @@ change is announced before it breaks anything.
 
 | Interface | Promise |
 |---|---|
-| Commands | `scan`, `baseline`, `inventory`, `detectors` and `version` keep their names and meaning. |
+| Commands | `scan`, `baseline`, `inventory`, `map`, `detectors` and `version` keep their names and meaning. |
 | Flags | Every flag listed by `pii-eu help` keeps its name, its meaning and its default. |
 | Exit codes | `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read. |
 | Settings file | `.pii-eu.toml` keys keep their names and meaning. An unknown key stays an error. |
 | JSON report | `schemas/findings.schema.json`: fields listed there are never removed, renamed or given a new type. `schema_version` stays `1.x`. |
 | Inventory | `schemas/inventory.schema.json` and the CSV columns, under the same rule. |
+| Data map | `schemas/map.schema.json`, under the same rule; `map --diff` exits `1` when something is new. |
 | SARIF | Rule IDs (`<detector>`, `special-category/<category>`) and the `piiEu/v1` partial fingerprint. |
 | Detector names | A detector's name never changes and is never reused for a different identifier. |
 | Fingerprints and baselines | A finding's fingerprint stays the same for the same detector, path and line text, so a committed baseline keeps working. |
@@ -42,6 +43,7 @@ pull request, and the golden files under `internal/report/testdata` pin the exac
 
 ## Not covered
 
-- Text output (`--format text`) is for people and may change in any release.
+- Text output (`--format text`), Markdown and HTML are for people and may change in any release.
+- The catalogue of third-party recipients grows and is corrected in minor releases.
 - Go packages under `internal/` are not an API.
 - The benchmark numbers are measurements, not promises.

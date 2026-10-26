@@ -11,17 +11,19 @@ import (
 const module = "github.com/Clause-Eight/pii-eu/internal/"
 
 var allowed = map[string][]string{
-	"domain":    {},
-	"detectors": {"domain", "textfold"},
-	"textfold":  {},
-	"config":    {"domain"},
-	"walk":      {"domain"},
-	"engine":    {"domain", "detectors", "walk", "schema", "classify"},
-	"schema":    {"domain"},
-	"report":    {"domain"},
-	"baseline":  {"domain"},
-	"synth":     {},
-	"classify":  {"domain", "detectors", "textfold"},
+	"domain":     {},
+	"detectors":  {"domain", "textfold"},
+	"textfold":   {},
+	"config":     {"domain"},
+	"walk":       {"domain"},
+	"engine":     {"domain", "detectors", "walk", "schema", "classify", "recipients"},
+	"schema":     {"domain"},
+	"report":     {"domain", "datamap"},
+	"datamap":    {"domain"},
+	"recipients": {"domain"},
+	"baseline":   {"domain"},
+	"synth":      {},
+	"classify":   {"domain", "detectors", "textfold"},
 }
 
 func TestLayers(t *testing.T) {
