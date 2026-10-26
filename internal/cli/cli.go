@@ -51,6 +51,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		code, err = runDetectors(args[1:], stdout)
 	case "inventory":
 		code, err = runInventory(args[1:], stdout, stderr)
+	case "fix":
+		code, err = runFix(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
 		fmt.Fprintf(stdout, "pii-eu %s\n", Version)
 	case "help", "--help", "-h":
@@ -78,6 +80,7 @@ Usage:
   pii-eu scan [flags] [path]   scan a folder or file (default: current folder); "-" reads stdin
   pii-eu baseline [path]       accept current findings so only new ones are reported
   pii-eu inventory [flags] [path]  list the personal-data fields declared in schemas and models
+  pii-eu fix [flags] [path]    replace found values in test, fixture and example files with synthetic ones
   pii-eu detectors [--markdown]  list what can be detected
   pii-eu version               print the version
 
@@ -97,6 +100,10 @@ Scan flags:
 
 Inventory flags: --config, --include, --exclude, --no-git, --output as for scan, and
   --format FORMAT          json or csv (default: csv)
+
+Fix flags: --config, --include, --exclude, --min-confidence, --countries, --no-git, --baseline as for scan, and
+  --dry-run                print the changes as a diff with found values masked, and change nothing
+  --all                    also replace values outside test, fixture and example paths
 
 Exit codes: 0 nothing found, 1 findings, 2 usage or settings error, 3 some files could not be read.
 `
@@ -132,11 +139,18 @@ type scanFlags struct {
 	staged        bool
 	baselinePath  string
 	inventory     bool
+	dryRun        bool
+	all           bool
 }
 
 func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) {
+	return parseFlags("scan", args, stderr, nil)
+}
+
+// parseFlags reads the scan flags, plus any that extra adds for one command.
+func parseFlags(command string, args []string, stderr io.Writer, extra func(*flag.FlagSet, *scanFlags)) (scanFlags, string, error) {
 	var f scanFlags
-	fs := flag.NewFlagSet("scan", flag.ContinueOnError)
+	fs := flag.NewFlagSet(command, flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.StringVar(&f.configPath, "config", "", "")
 	fs.Var(&f.include, "include", "")
@@ -149,6 +163,9 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	fs.BoolVar(&f.showValues, "show-values", false, "")
 	fs.BoolVar(&f.staged, "staged", false, "")
 	fs.StringVar(&f.baselinePath, "baseline", "", "")
+	if extra != nil {
+		extra(fs, &f)
+	}
 	fs.Usage = func() { fmt.Fprint(stderr, usage) }
 	warnDeprecated(args, stderr)
 	if err := fs.Parse(reorder(args)); err != nil {
@@ -160,7 +177,7 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	case 1:
 		return f, fs.Arg(0), nil
 	}
-	return f, "", usageError{"scan takes one path"}
+	return f, "", usageError{command + " takes one path"}
 }
 
 // reorder moves flags in front of the path so `pii-eu scan . --format json` works.
@@ -183,7 +200,7 @@ func reorder(args []string) []string {
 
 func takesValue(flagName string) bool {
 	switch strings.TrimLeft(flagName, "-") {
-	case "no-git", "show-values", "staged":
+	case "no-git", "show-values", "staged", "dry-run", "all":
 		return false
 	}
 	return true

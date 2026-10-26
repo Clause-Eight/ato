@@ -171,6 +171,10 @@ func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bo
 		m.sample = true
 		m.confidence = domain.Low
 		m.reasons = append(m.reasons, "a published sample value")
+	} else if detectors.Synthetic(ctx.line[start:end]) {
+		m.sample = true
+		m.confidence = domain.Low
+		m.reasons = append(m.reasons, "carries the mark of a synthetic value written by pii-eu fix")
 	}
 	if !m.sample && numberTable(ctx.line) {
 		m.confidence = lower1(m.confidence)
@@ -329,6 +333,7 @@ func toFindings(ctx lineContext, ms []match) []domain.Finding {
 			Label:       m.det.Label,
 			Country:     m.det.Country,
 			Location:    domain.Location{Path: ctx.path, Line: ctx.number, Column: utf8.RuneCountInString(ctx.line[:m.start]) + 1},
+			Span:        domain.Span{Start: m.start, End: m.end},
 			Value:       m.value,
 			Masked:      m.det.Mask(m.value),
 			Confidence:  m.confidence,

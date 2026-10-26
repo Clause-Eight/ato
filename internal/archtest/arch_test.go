@@ -22,6 +22,7 @@ var allowed = map[string][]string{
 	"baseline":  {"domain"},
 	"synth":     {},
 	"classify":  {"domain", "detectors", "textfold"},
+	"fix":       {"domain", "detectors", "synth"},
 }
 
 func TestLayers(t *testing.T) {
