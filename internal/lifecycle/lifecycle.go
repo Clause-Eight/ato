@@ -65,7 +65,7 @@ var rules = []rule{
 	{kind: Erasure, how: "Spring Data delete", re: regexp.MustCompile(`\b(\w+?)Repository\s*\.\s*delete\w*\(`), group: 1},
 	{kind: Erasure, how: "Prisma delete", re: regexp.MustCompile(`\bprisma\.(\w+)\.delete(?:Many)?\(`), group: 1},
 	{kind: Erasure, how: "Laravel delete", re: regexp.MustCompile(`\b([A-Z]\w*)::(?:where\(.*\)->|find\(.*\)->|destroy\()(?:delete\(|forceDelete\(|)`), group: 1, onlyIf: regexp.MustCompile(`::destroy\(|->(?:force)?[dD]elete\(`)},
-	{kind: Erasure, how: "anonymising routine", re: regexp.MustCompile(`(?i)\b(?:def|func|function|fun|void|public|private|async)\s+(?:\w+\s+)*?(?:anonymi[sz]e|pseudonymi[sz]e|erase|forget|redact)_?([A-Za-z]\w*)\s*\(`), group: 1},
+	{kind: Erasure, how: "erasure routine", re: regexp.MustCompile(`(?i)\b(?:def|func|function|fun|void|public|private|async)\s+(?:\w+\s+)*?(?:anonymi[sz]e|pseudonymi[sz]e|erase|forget|redact)_?([A-Za-z]\w*)\s*\(`), group: 1},
 	{kind: Retention, how: "TTL index", re: regexp.MustCompile(`\b(?:db\.)?(\w+)\.create_?[iI]ndex\(.*expire_?[aA]fter_?[sS]econds`), group: 1},
 	{kind: Retention, how: "partition drop", re: regexp.MustCompile("(?i)\\bALTER\\s+TABLE\\s+(?:\\w+\\.)?[\"`]?(\\w+)[\"`]?\\s+(?:DROP|DETACH|TRUNCATE)\\s+PARTITION"), group: 1},
 	{kind: Retention, how: "pg_partman retention", re: regexp.MustCompile(`(?i)part_config\b.*\bretention\b.*parent_table\s*=\s*'(?:\w+\.)?(\w+)'`), group: 1},
