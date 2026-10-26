@@ -160,3 +160,27 @@ func TestInventoryFormats(t *testing.T) {
 		t.Fatal("unknown format accepted")
 	}
 }
+
+func TestHTMLIsSelfContained(t *testing.T) {
+	var findings, inventory bytes.Buffer
+	if err := Write("html", &findings, sample(), Options{}); err != nil {
+		t.Fatal(err)
+	}
+	inv := Inventory{Tool: "pii-eu", Version: "test", Files: 3, Entries: []domain.InventoryEntry{
+		{Field: domain.Field{Name: "diagnosis", Container: "patients", Location: domain.Location{Path: "db/001.sql", Line: 4}}, Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth}},
+		{Field: domain.Field{Name: "<script>", Container: "patients", Location: domain.Location{Path: "db/001.sql", Line: 5}}, Classification: domain.Classification{Category: domain.CategoryName}},
+	}}
+	if err := WriteInventory("html", &inventory, inv); err != nil {
+		t.Fatal(err)
+	}
+	for name, page := range map[string]string{"findings": findings.String(), "inventory": inventory.String()} {
+		for _, bad := range []string{"http://", "https://", "<script", "src="} {
+			if strings.Contains(page, bad) {
+				t.Errorf("%s page contains %q: it must load nothing and run nothing", name, bad)
+			}
+		}
+	}
+	if !strings.Contains(inventory.String(), "health (Art. 9)") {
+		t.Error("inventory page should name the special category")
+	}
+}
