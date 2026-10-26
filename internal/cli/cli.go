@@ -88,7 +88,7 @@ Scan flags:
   --min-confidence LEVEL   report low, medium or high and above (default: medium)
   --countries LIST         only run detectors for these countries, e.g. ro,bg or a preset: cee, dach,
                            benelux, nordics, baltics, eu, eea (default: every EU country)
-  --format FORMAT          text, json or sarif (default: text)
+  --format FORMAT          text, json, sarif, github, codequality or html (default: text)
   --output FILE            write the report to a file instead of stdout
   --no-git                 walk the folder instead of asking git for the file list
   --staged                 scan the staged version of staged files (for pre-commit hooks)
@@ -96,7 +96,7 @@ Scan flags:
   --show-values            print found values in full in text output (never in files)
 
 Inventory flags: --config, --include, --exclude, --no-git, --output as for scan, and
-  --format FORMAT          json or csv (default: csv)
+  --format FORMAT          json, csv or html (default: csv)
 
 Exit codes: 0 nothing found, 1 findings, 2 usage or settings error, 3 some files could not be read.
 `
@@ -522,7 +522,7 @@ func runInventory(args []string, stdout, stderr io.Writer) (int, error) {
 		f.format = "csv"
 	}
 	if !contains(report.InventoryFormats, f.format) {
-		return 0, usageError{fmt.Sprintf("unknown inventory format %q: use json or csv", f.format)}
+		return 0, usageError{fmt.Sprintf("unknown inventory format %q: use json, csv or html", f.format)}
 	}
 	f.inventory = true
 	res, _, err := collect(f, root)

@@ -21,7 +21,7 @@ type Inventory struct {
 }
 
 // InventoryFormats are the formats `pii-eu inventory` writes.
-var InventoryFormats = []string{"json", "csv"}
+var InventoryFormats = []string{"json", "csv", "html"}
 
 type jsonInventory struct {
 	SchemaVersion string           `json:"schema_version"`
@@ -42,7 +42,7 @@ type jsonInventoryE struct {
 	Column          int    `json:"column"`
 }
 
-// WriteInventory writes the inventory as JSON or as CSV laid out like an Art. 30 record.
+// WriteInventory writes the inventory as JSON, as CSV laid out like an Art. 30 record, or as an HTML page.
 func WriteInventory(format string, w io.Writer, inv Inventory) error {
 	switch format {
 	case "json":
@@ -66,6 +66,8 @@ func WriteInventory(format string, w io.Writer, inv Inventory) error {
 		}
 		cw.Flush()
 		return cw.Error()
+	case "html":
+		return writeInventoryHTML(w, inv)
 	}
-	return fmt.Errorf("unknown inventory format %q: use json or csv", format)
+	return fmt.Errorf("unknown inventory format %q: use json, csv or html", format)
 }

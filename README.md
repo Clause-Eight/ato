@@ -97,7 +97,7 @@ pii-eu baseline                   # accept what is there today; report only new 
 
 | Flag | Meaning |
 |---|---|
-| `--format` | `text` (default), `json`, `sarif`, `github` (workflow annotations), `codequality` (GitLab) |
+| `--format` | `text` (default), `json`, `sarif`, `github` (workflow annotations), `codequality` (GitLab), `html` (one self-contained page for people who do not use the command line) |
 | `--output FILE` | write the report to a file |
 | `--min-confidence` | `low`, `medium` (default) or `high` |
 | `--countries` | only these countries' national detectors, as ISO codes or presets: `--countries ro,bg` or `--countries cee`. Cross-border detectors (IBAN, cards, VAT, contact data) always run |
@@ -135,7 +135,7 @@ Presets: `eu` (the 27 member states, the default), `eea` (adds Iceland, Liechten
 pii-eu also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Django, SQLAlchemy, ActiveRecord, GORM, JPA and Prisma models, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
 
 - `pii-eu scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
-- `pii-eu inventory` writes every personal-data field it finds as CSV (default) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
+- `pii-eu inventory` writes every personal-data field it finds as CSV (default), HTML (`--format html`) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
 
 ```console
 $ pii-eu inventory --format csv db/
