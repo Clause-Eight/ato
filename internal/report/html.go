@@ -105,3 +105,16 @@ func containsString(xs []string, x string) bool {
 	}
 	return false
 }
+
+func writeMapHTML(w io.Writer, m DataMap) error {
+	stores, recipients, sinks := 0, 0, 0
+	for _, c := range m.Map.Components {
+		stores += len(c.Stores)
+		recipients += len(c.Recipients)
+		sinks += len(c.Sinks)
+	}
+	return htmlTemplates.ExecuteTemplate(w, "map.html", map[string]any{
+		"CSS": htmlCSS(), "Tool": m.Tool, "Version": m.Version, "Map": m.Map,
+		"Stores": stores, "Recipients": recipients, "Sinks": sinks,
+	})
+}

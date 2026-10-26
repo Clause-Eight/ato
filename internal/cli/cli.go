@@ -12,6 +12,7 @@ import (
 
 	"github.com/Clause-Eight/pii-eu/internal/baseline"
 	"github.com/Clause-Eight/pii-eu/internal/config"
+	"github.com/Clause-Eight/pii-eu/internal/datamap"
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
 	"github.com/Clause-Eight/pii-eu/internal/engine"
@@ -51,6 +52,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		code, err = runDetectors(args[1:], stdout)
 	case "inventory":
 		code, err = runInventory(args[1:], stdout, stderr)
+	case "map":
+		code, err = runMap(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
 		fmt.Fprintf(stdout, "pii-eu %s\n", Version)
 	case "help", "--help", "-h":
@@ -78,6 +81,7 @@ Usage:
   pii-eu scan [flags] [path]   scan a folder or file (default: current folder); "-" reads stdin
   pii-eu baseline [path]       accept current findings so only new ones are reported
   pii-eu inventory [flags] [path]  list the personal-data fields declared in schemas and models
+  pii-eu map [flags] [path]    draft a data map: stores, logged personal data and third-party recipients
   pii-eu detectors [--markdown]  list what can be detected
   pii-eu version               print the version
 
@@ -97,6 +101,10 @@ Scan flags:
 
 Inventory flags: --config, --include, --exclude, --no-git, --output as for scan, and
   --format FORMAT          json, csv or html (default: csv)
+
+Map flags: --config, --include, --exclude, --no-git, --output as for scan, and
+  --format FORMAT          markdown, json or html (default: markdown)
+  --diff FILE              compare with a map saved as JSON; list what is new and exit 1 if anything is
 
 Exit codes: 0 nothing found, 1 findings, 2 usage or settings error, 3 some files could not be read.
 `
@@ -132,6 +140,8 @@ type scanFlags struct {
 	staged        bool
 	baselinePath  string
 	inventory     bool
+	recipients    bool
+	diff          string
 }
 
 func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) {
@@ -149,6 +159,7 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	fs.BoolVar(&f.showValues, "show-values", false, "")
 	fs.BoolVar(&f.staged, "staged", false, "")
 	fs.StringVar(&f.baselinePath, "baseline", "", "")
+	fs.StringVar(&f.diff, "diff", "", "")
 	fs.Usage = func() { fmt.Fprint(stderr, usage) }
 	warnDeprecated(args, stderr)
 	if err := fs.Parse(reorder(args)); err != nil {
@@ -294,6 +305,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		Detectors:         dets,
 		SpecialCategories: cfg.Enabled(engine.SpecialCategoryDetector, []string{domain.CrossBorder}, true),
 		Inventory:         f.inventory,
+		Recipients:        f.recipients,
 	})
 	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) {
 		return res, cfg, usageError{err.Error()}
@@ -555,4 +567,80 @@ func contains(xs []string, x string) bool {
 		}
 	}
 	return false
+}
+
+func runMap(args []string, stdout, stderr io.Writer) (int, error) {
+	f, root, err := parseScanFlags(args, stderr)
+	if err != nil {
+		return 0, err
+	}
+	if root == "-" {
+		return 0, usageError{"a data map needs a folder or file, not stdin"}
+	}
+	if f.format == "text" {
+		f.format = "markdown"
+	}
+	if !contains(report.MapFormats, f.format) {
+		return 0, usageError{fmt.Sprintf("unknown map format %q: use markdown, json or html", f.format)}
+	}
+	var previous *datamap.Map
+	if f.diff != "" {
+		file, err := os.Open(f.diff)
+		if err != nil {
+			return 0, usageError{fmt.Sprintf("cannot read %s: %v", f.diff, err)}
+		}
+		m, err := report.ReadMap(file)
+		file.Close()
+		if err != nil {
+			return 0, usageError{fmt.Sprintf("%s: %v", f.diff, err)}
+		}
+		previous = &m
+	}
+	f.inventory, f.recipients = true, true
+	res, _, err := collect(f, root)
+	if err != nil {
+		return 0, err
+	}
+	findings, _ := withoutIgnored(res.Findings)
+	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients})
+	if previous != nil {
+		if f.output != "" {
+			if err := writeMapFile(f, m); err != nil {
+				return 0, err
+			}
+		}
+		changes := datamap.Diff(*previous, m)
+		if len(changes) == 0 {
+			fmt.Fprintln(stdout, "Nothing new since the previous map.")
+			return ExitClean, nil
+		}
+		fmt.Fprintf(stdout, "New since the previous map (%d):\n", len(changes))
+		for _, c := range changes {
+			fmt.Fprintf(stdout, "  %-18s %-17s %s\n", c.Component, c.Kind, c.Name)
+		}
+		return ExitFindings, nil
+	}
+	if f.output != "" {
+		if err := writeMapFile(f, m); err != nil {
+			return 0, err
+		}
+	} else if err := report.WriteMap(f.format, stdout, report.DataMap{Tool: "pii-eu", Version: Version, Map: m}); err != nil {
+		return 0, err
+	}
+	if len(res.Summary.Unreadable) > 0 {
+		return ExitIncomplete, nil
+	}
+	return ExitClean, nil
+}
+
+func writeMapFile(f scanFlags, m datamap.Map) error {
+	file, err := os.Create(f.output)
+	if err != nil {
+		return fmt.Errorf("cannot write %s: %w", f.output, err)
+	}
+	if err := report.WriteMap(f.format, file, report.DataMap{Tool: "pii-eu", Version: Version, Map: m}); err != nil {
+		file.Close()
+		return err
+	}
+	return file.Close()
 }

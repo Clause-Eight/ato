@@ -13,6 +13,7 @@ import (
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/pii-eu/internal/recipients"
 	"github.com/Clause-Eight/pii-eu/internal/schema"
 	"github.com/Clause-Eight/pii-eu/internal/walk"
 )
@@ -29,13 +30,15 @@ type Request struct {
 	Workers           int
 	SpecialCategories bool
 	Inventory         bool
+	Recipients        bool
 }
 
 // Result is what a scan found, sorted by path, line and column.
 type Result struct {
-	Findings  []domain.Finding
-	Inventory []domain.InventoryEntry
-	Summary   domain.Summary
+	Findings   []domain.Finding
+	Inventory  []domain.InventoryEntry
+	Recipients []domain.RecipientUse
+	Summary    domain.Summary
 }
 
 // Scan lists files, scans them in parallel and returns sorted findings.
@@ -51,6 +54,7 @@ func Scan(req Request) (Result, error) {
 	type out struct {
 		findings []domain.Finding
 		entries  []domain.InventoryEntry
+		uses     []domain.RecipientUse
 		skip     *domain.Skipped
 		bad      *domain.Skipped
 	}
@@ -62,8 +66,8 @@ func Scan(req Request) (Result, error) {
 		go func() {
 			defer wg.Done()
 			for f := range jobs {
-				fs, entries, skip, err := scanFile(f, req)
-				o := out{findings: fs, entries: entries, skip: skip}
+				fs, entries, uses, skip, err := scanFile(f, req)
+				o := out{findings: fs, entries: entries, uses: uses, skip: skip}
 				if err != nil {
 					o.bad = &domain.Skipped{Path: f.Rel, Reason: err.Error()}
 				}
@@ -92,40 +96,51 @@ func Scan(req Request) (Result, error) {
 			if req.Inventory {
 				res.Inventory = append(res.Inventory, o.entries...)
 			}
+			res.Recipients = append(res.Recipients, o.uses...)
 		}
 	}
 	sortFindings(res.Findings)
 	sortInventory(res.Inventory)
+	sortRecipients(res.Recipients)
 	sortSkipped(res.Summary.FilesSkipped)
 	sortSkipped(res.Summary.Unreadable)
 	return res, nil
 }
 
-func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEntry, *domain.Skipped, error) {
+func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEntry, []domain.RecipientUse, *domain.Skipped, error) {
 	fh, err := walk.Open(f)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	defer fh.Close()
 	r := bufio.NewReaderSize(fh, 64<<10)
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
-		return nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
+		return nil, nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
 	}
-	if !(req.SpecialCategories || req.Inventory) || !schema.Candidate(f.Rel) {
+	wantSchema := (req.SpecialCategories || req.Inventory) && schema.Candidate(f.Rel)
+	wantRecipients := req.Recipients && recipients.Candidate(f.Rel)
+	if !wantSchema && !wantRecipients {
 		fs, err := ScanReader(f.Rel, r, req.Detectors)
-		return fs, nil, nil, err
+		return fs, nil, nil, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("read error: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("read error: %w", err)
 	}
 	fs, err := ScanReader(f.Rel, bytes.NewReader(data), req.Detectors)
-	entries := inventory(f.Rel, data)
-	if req.SpecialCategories {
-		fs = append(fs, specialFindings(entries, splitLines(data))...)
+	var entries []domain.InventoryEntry
+	if wantSchema {
+		entries = inventory(f.Rel, data)
+		if req.SpecialCategories {
+			fs = append(fs, specialFindings(entries, splitLines(data))...)
+		}
 	}
-	return fs, entries, nil, err
+	var uses []domain.RecipientUse
+	if wantRecipients {
+		uses = recipients.Find(f.Rel, data)
+	}
+	return fs, entries, uses, nil, err
 }
 
 // ScanReader scans text line by line. path is used for locations and for recognising test folders.
@@ -186,4 +201,17 @@ func sortFindings(fs []domain.Finding) {
 
 func sortSkipped(s []domain.Skipped) {
 	sort.Slice(s, func(i, j int) bool { return s[i].Path < s[j].Path })
+}
+
+func sortRecipients(us []domain.RecipientUse) {
+	sort.SliceStable(us, func(i, j int) bool {
+		a, b := us[i].Location, us[j].Location
+		if a.Path != b.Path {
+			return a.Path < b.Path
+		}
+		if a.Line != b.Line {
+			return a.Line < b.Line
+		}
+		return us[i].Name < us[j].Name
+	})
 }

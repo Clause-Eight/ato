@@ -8,6 +8,8 @@ const (
 	KindValue Kind = "value"
 	// KindField is a column, property or message field whose name says it holds special-category data.
 	KindField Kind = "field"
+	// KindSink is a call that writes personal data to a log, an error tracker or analytics.
+	KindSink Kind = "sink"
 )
 
 // Field is a named place in a schema or model that holds data: a table column, a model attribute, an API or
@@ -64,4 +66,14 @@ type Classification struct {
 type InventoryEntry struct {
 	Field          Field
 	Classification Classification
+}
+
+// RecipientUse is a place where code names a third-party service that may receive personal data. EEA says
+// whether the provider is established in the EEA. Evidence is "dependency", "import" or "host".
+type RecipientUse struct {
+	Name     string
+	Purpose  string
+	EEA      bool
+	Evidence string
+	Location Location
 }
