@@ -24,7 +24,7 @@ tests/fixtures/users.json
 
 ## What it finds
 
-Romanian CNP, Bulgarian EGN and LNCh, Hungarian TAJ and tax ID, Polish PESEL, Czech and Slovak birth numbers, Croatian OIB, IBANs for every SEPA country, payment cards, EU VAT numbers (with check digits for RO, BG, HU, DE and PL), email addresses and RO, BG, HU and PL phone numbers. The full list, with how each match is confirmed, is in [docs/DETECTORS.md](docs/DETECTORS.md).
+Romanian CNP, Bulgarian EGN and LNCh, Hungarian TAJ and tax ID, Polish PESEL, Czech and Slovak birth numbers, Croatian OIB, IBANs for every SEPA country, payment cards, EU VAT numbers (with check digits for RO, BG, HU, DE and PL), email addresses and RO, BG, HU and PL phone numbers. The full list, with how each match is confirmed, is in [docs/DETECTORS.md](docs/DETECTORS.md). It also reads schemas and models for a data inventory, and Terraform for data stores without encryption, retention or EU residency.
 
 National identifiers by country:
 
@@ -123,6 +123,7 @@ countries = ["ro", "bg", "hu"]   # or presets: eu, eea, cee, dach, benelux, nord
 
 [detectors]
 email = false        # switch a detector off
+tf-public = false    # Terraform checks are switched off the same way
 
 [min_confidence_per_detector]
 eu-phone = "high"    # report phone numbers only when the evidence is strong
@@ -143,6 +144,30 @@ Field,Table or model,Category of personal data,Special category (Art. 9),Source 
 first_name,patients,name,,sql,db/migrations/001_patients.sql,3
 diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
 ```
+
+### Data stores in Terraform
+
+pii-eu reads the databases, buckets, queues, streams, caches and log groups declared in `.tf` files, for AWS, Google Cloud and Azure, without running Terraform: no binary, no providers, no credentials. For each store it reads encryption at rest, retention (lifecycle rules, retention periods, TTL), backups or versioning, public access and the region, following variables with defaults, `terraform.tfvars`, `*.auto.tfvars`, locals and references between resources in the same folder, including the provider block's region.
+
+`pii-eu scan` reports four checks as `infra` findings:
+
+| Check | Reported when |
+|---|---|
+| `tf-unencrypted` | encryption at rest is switched off, or not set where the service leaves it off |
+| `tf-no-retention` | nothing expires the data: no lifecycle rule, retention period or TTL |
+| `tf-non-eea-region` | a region is outside the EEA, such as `us-east-1`; one step lower for a country with an EU adequacy decision, such as `eu-west-2` (London) or `eu-central-2` (Zurich) |
+| `tf-public` | a public ACL, a grant to `allUsers` or an internet-facing endpoint opens the store |
+
+A finding is high when the store is linked to personal data, and medium otherwise. A store is linked by a tag or label (`data_classification = "pii"`, `pii = true` and similar) or when its name matches a table or model in the inventory: a bucket `acme-patient-exports` is linked to a `patients` table. A setting that comes from something the code does not show, such as a variable without a default, is never treated as missing: it is reported at low confidence, and only for linked stores. Put `pii-eu:ignore` and a reason on the line before a resource to accept it, or switch a check off under `[detectors]`.
+
+```text
+$ pii-eu scan infra/
+infra/main.tf
+  9:1  high    Data store outside the EEA  aws_s3_bucket.customer_exports
+          region us-east-1 is outside the EEA (from the aws provider block); linked to personal data: tagged data_classification with "pii"
+```
+
+`pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
 
 ### Keeping a deliberate value
 
