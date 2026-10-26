@@ -54,6 +54,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		code, err = runInventory(args[1:], stdout, stderr)
 	case "map":
 		code, err = runMap(args[1:], stdout, stderr)
+	case "fix":
+		code, err = runFix(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
 		fmt.Fprintf(stdout, "pii-eu %s\n", Version)
 	case "help", "--help", "-h":
@@ -84,6 +86,7 @@ Usage:
   pii-eu inventory [flags] [path]  list the personal-data fields in schemas and models, and the
                                data stores declared in Terraform
   pii-eu map [flags] [path]    draft a data map: stores, logged personal data and third-party recipients
+  pii-eu fix [flags] [path]    replace found values in test, fixture and example files with synthetic ones
   pii-eu detectors [--markdown]  list what can be detected
   pii-eu version               print the version
 
@@ -114,6 +117,10 @@ Inventory flags: --config, --include, --exclude, --no-git, --output as for scan,
 Map flags: --config, --include, --exclude, --no-git, --output as for scan, and
   --format FORMAT          markdown, json or html (default: markdown)
   --diff FILE              compare with a map saved as JSON; list what is new and exit 1 if anything is
+
+Fix flags: --config, --include, --exclude, --min-confidence, --countries, --no-git, --baseline as for scan, and
+  --dry-run                print the changes as a diff with found values masked, and change nothing
+  --all                    also replace values outside test, fixture and example paths
 
 Exit codes: 0 nothing found, 1 findings, 2 usage or settings error, 3 some files could not be read.
 `
@@ -154,11 +161,18 @@ type scanFlags struct {
 	diff          string
 	maxRows       int
 	image         string
+	dryRun        bool
+	all           bool
 }
 
 func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) {
+	return parseFlags("scan", args, stderr, nil)
+}
+
+// parseFlags reads the scan flags, plus any that extra adds for one command.
+func parseFlags(command string, args []string, stderr io.Writer, extra func(*flag.FlagSet, *scanFlags)) (scanFlags, string, error) {
 	var f scanFlags
-	fs := flag.NewFlagSet("scan", flag.ContinueOnError)
+	fs := flag.NewFlagSet(command, flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.StringVar(&f.configPath, "config", "", "")
 	fs.Var(&f.include, "include", "")
@@ -174,6 +188,9 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	fs.StringVar(&f.diff, "diff", "", "")
 	fs.IntVar(&f.maxRows, "max-rows", -1, "")
 	fs.StringVar(&f.image, "image", "", "")
+	if extra != nil {
+		extra(fs, &f)
+	}
 	fs.Usage = func() { fmt.Fprint(stderr, usage) }
 	warnDeprecated(args, stderr)
 	if err := fs.Parse(reorder(args)); err != nil {
@@ -192,7 +209,7 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	case fs.NArg() == 1:
 		return f, fs.Arg(0), nil
 	}
-	return f, "", usageError{"scan takes one path"}
+	return f, "", usageError{command + " takes one path"}
 }
 
 // reorder moves flags in front of the path so `pii-eu scan . --format json` works.
@@ -215,7 +232,7 @@ func reorder(args []string) []string {
 
 func takesValue(flagName string) bool {
 	switch strings.TrimLeft(flagName, "-") {
-	case "no-git", "show-values", "staged":
+	case "no-git", "show-values", "staged", "dry-run", "all":
 		return false
 	}
 	return true
@@ -342,6 +359,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 			ImageExclude: cfg.ImageExclude},
 		Detectors:         dets,
 		SpecialCategories: cfg.Enabled(engine.SpecialCategoryDetector, []string{domain.CrossBorder}, true),
+		Sinks:             cfg.Enabled(engine.SinkDetector, []string{domain.CrossBorder}, true),
 		Inventory:         f.inventory,
 		Recipients:        f.recipients,
 		Lifecycle:         f.lifecycle || erasure || retention,
@@ -367,7 +385,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 // engineDetector names the findings made by the engine rather than by a registered detector. Settings may switch
 // them on or off like a detector.
 var engineDetector = func() map[string]bool {
-	m := map[string]bool{engine.SpecialCategoryDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
+	m := map[string]bool{engine.SpecialCategoryDetector: true, engine.SinkDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
 	for _, name := range engine.InfraDetectors() {
 		m[name] = true
 	}
@@ -565,6 +583,7 @@ func DetectorTable() string {
 	b.WriteString("Keywords are the identifier's own names. Concepts add the shared words for that kind of data in all 24 EU languages, from `internal/detectors/keywords/`. Detectors marked off by default run when switched on in `[detectors]` or when their country is selected with `--countries`.\n\n")
 	b.WriteString("Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.\n\n")
 	b.WriteString("Tables and models holding personal data can also be checked for an erasure path (GDPR Art. 17: a delete, an anonymising update or a cascade from an erasable parent) and a retention limit (Art. 5(1)(e): a time-based delete, a TTL or a partition drop). Switch the `no-erasure-path` and `no-retention` findings on under `[detectors]`; they are off by default because data can be removed in ways the code does not show. `pii-eu map` always shows both.\n\n")
+	b.WriteString("Log, print, error-tracker and analytics calls in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP that are passed a field whose name says it holds personal data (`user.email`), a whole request body (`req.body`) or a user-like object (`currentUser`) are reported as `log-sink` findings, with the sink (log, error-tracker or analytics) and the data category: medium confidence for a named field or a request body, low for a whole object or an online identifier. Switch them off with `log-sink = false` under `[detectors]`.\n\n")
 	b.WriteString("| Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |\n|---|---|---|---|---|---|---|\n")
 	for _, d := range detectors.All() {
 		kws := make([]string, 0, len(d.Keywords))

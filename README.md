@@ -95,6 +95,8 @@ kubectl logs deploy/api | pii-eu scan -     # a log stream
 pii-eu scan exports/              # CSV, TSV, JSON Lines and SQL dumps, by column; .gz and .tar inside
 pii-eu scan --image app.tar       # a container image saved with `docker save app:latest -o app.tar`
 pii-eu baseline                   # accept what is there today; report only new findings
+pii-eu fix --dry-run              # show how fixture values would be replaced with synthetic ones
+pii-eu fix                        # replace them
 ```
 
 | Flag | Meaning |
@@ -218,6 +220,43 @@ infra/main.tf
 
 `pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
 
+### Personal data in logs, error trackers and analytics
+
+`pii-eu scan` also reads source code in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP for log, print, error-tracker (Sentry, Bugsnag, Rollbar, Crashlytics and others) and analytics (Segment, Mixpanel, Amplitude, PostHog, Google tag and others) calls. A call is a `log-sink` finding when it is passed:
+
+- a field whose name says it holds personal data, such as `user.email`, `customer.getIban()` or `{"phone": ...}`: medium confidence, with the data category;
+- a whole request body, such as `req.body`, `request.json`, `$request->all()` or `$_POST`: medium confidence;
+- a whole user-like object, such as `user` or `currentUser`: low confidence.
+
+The finding names the sink (`log`, `error-tracker` or `analytics`) and shows the expression passed, never a value. Names that are about a value rather than the value (`isEmail`, `emailTemplate`, `len(user.email)`, `hash(user.phone)`) are left alone, and ambiguous words such as `address` count only on a person (`customer.address`, not `server.address`). Switch these findings off with `log-sink = false` under `[detectors]`.
+
+```text
+app/signup.py
+  42:30  medium  Personal data written to a log  user.email
+          the name contains "email"; passed to logger.info, which writes to a log
+```
+
+### Fixing test fixtures
+
+`pii-eu fix [path]` replaces the values a scan reports in test, fixture and example paths with synthetic ones from the same generators the test suite uses. It takes the scan flags (`--min-confidence`, `--include`, `--countries` and so on), and:
+
+- each replacement passes the same detector's checks, keeps the original's separators, case and length where the format allows, and is the same for the same value in every file and every run;
+- each replacement carries a synthetic mark, so a later scan reports it as a sample at low confidence and `fix` leaves it alone. A real value carries the mark by chance about once in 65,536 values; it is then reported at low confidence instead of being hidden;
+- `--dry-run` prints the changes as a unified diff, with found values masked, and changes nothing;
+- `--all` also replaces values outside test, fixture and example paths. Review that diff first: it rewrites code and configuration.
+
+Values that are ignored by comment or in the baseline are left alone. For a few detectors with few possible values (dates of birth, names) a marked value cannot always be found; `fix` still replaces the value and says how many replacements are unmarked.
+
+```console
+$ pii-eu fix --dry-run
+--- a/tests/fixtures/users.json
++++ b/tests/fixtures/users.json
+@@ -14 +14 @@
+-    "cnp": "•••••••••••••",
++    "cnp": "6081006222714",
+Would replace 1 value in 1 file.
+```
+
 ### Keeping a deliberate value
 
 Put `pii-eu:ignore` and a reason on the same line or the line before. Without a reason the comment does not apply.
@@ -259,7 +298,8 @@ repos:
 3. The validator checks the identifier's rules. Only valid values become findings.
 4. Confidence starts at the detector's base. It rises one step when the value is written in the identifier's usual format (an IBAN in groups of four, a birth number with its slash) and one step when a keyword is on the line or the line before, or, in a file with columns, in the value's column name. Keywords come in all 24 EU languages and match without regard to case or diacritics. It drops one step in test, fixture and example paths, and is always low for published sample values (documentation IBANs, well-known test cards).
 5. Overlapping matches keep the most confident one. A value that is valid for two detectors is reported once, preferring the detector whose own name is nearby, and the finding says what else it could be.
-6. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.
+6. Values that carry the synthetic mark written by `pii-eu fix` are treated like published sample values.
+7. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.
 
 The JSON report follows [schemas/findings.schema.json](schemas/findings.schema.json). What stays stable across 1.x releases, and how deprecations work, is in [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
 
