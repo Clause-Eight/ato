@@ -11,7 +11,8 @@ The tool will grow by adding detectors and output formats. Those additions must 
 - `domain`: shared types, imports nothing from this module.
 - `detectors`: one file per identifier, registered in a map; imports `domain` only.
 - `walk`, `config`, `report`, `baseline`: import `domain` only.
-- `engine`: runs detectors over files; imports `domain`, `detectors`, `walk`.
+- `schema` (fields in schemas and models) and `infra` (data stores in Terraform, ADR 4): import `domain` only.
+- `engine`: runs detectors over files; imports `domain`, `detectors`, `walk`, `schema`, `classify` and `infra`.
 - `cli`: the only package that reads arguments, prints and chooses exit codes.
 
 `internal/archtest` fails the build when an import breaks these rules.

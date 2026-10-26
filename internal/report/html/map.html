@@ -29,6 +29,10 @@
 <tr><th>Recipient</th><th>Purpose</th><th>Established in the EEA</th><th>Named in</th></tr>
 {{range .Recipients}}<tr><td>{{.Name}}</td><td>{{.Purpose}}</td><td>{{if .EEA}}yes{{else}}no: check transfers{{end}}</td><td class="mono">{{range $i, $e := .Evidence}}{{if $i}}, {{end}}{{$e.Path}}:{{$e.Line}}{{end}}</td></tr>
 {{end}}</table></div>{{end}}
+{{if .Infra}}<div class="wrap gap"><table>
+<tr><th>Infrastructure</th><th>Service</th><th>Regions</th><th>In the EEA</th><th>Encrypted</th><th>Retention</th><th>Public</th><th>Personal data</th></tr>
+{{range .Infra}}<tr><td class="mono">{{.Address}}</td><td>{{.Service}}</td><td>{{join .Regions ", "}}</td><td>{{.InEEA}}</td><td>{{.Encrypted}}</td><td>{{.Retention}}</td><td>{{.Public}}</td><td>{{if .PersonalData}}yes{{else}}no{{end}}</td></tr>
+{{end}}</table></div>{{end}}
 {{if .Sinks}}<div class="wrap gap"><table>
 <tr><th>Personal data logged</th><th>Category</th><th>Where</th></tr>
 {{range .Sinks}}<tr><td>{{.Label}}</td><td>{{.Category}}</td><td class="mono">{{.Location.Path}}:{{.Location.Line}}</td></tr>

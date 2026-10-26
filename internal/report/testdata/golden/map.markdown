@@ -24,3 +24,7 @@ Personal data written to logs or telemetry:
 |---|---|---|---|
 | Mistral AI | AI model provider | yes | `services/clinic/notes.py:1` |
 
+| Infrastructure | Service | Regions | In the EEA | Encrypted | Retention | Public | Personal data |
+|---|---|---|---|---|---|---|---|
+| `aws_s3_bucket.patient_exports` | object-storage | us-east-1 | no | yes | no | no | yes |
+

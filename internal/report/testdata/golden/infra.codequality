@@ -1,0 +1,14 @@
+[
+  {
+    "description": "Data store outside the EEA aws_s3_bucket.exports (high confidence): region us-east-1 is outside the EEA; linked to personal data: tagged data_classification with \"pii\"",
+    "check_name": "pii-eu/tf-non-eea-region",
+    "fingerprint": "ffeeddccbbaa99887766554433221100",
+    "severity": "critical",
+    "location": {
+      "path": "infra/main.tf",
+      "lines": {
+        "begin": 7
+      }
+    }
+  }
+]

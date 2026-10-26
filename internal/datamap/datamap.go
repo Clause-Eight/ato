@@ -22,6 +22,20 @@ type Component struct {
 	Stores     []Store
 	Sinks      []Sink
 	Recipients []Recipient
+	Infra      []Infra
+}
+
+// Infra is a data store declared in Terraform. Settings are "yes", "no", "unknown" or "" when they do not apply.
+type Infra struct {
+	Address      string
+	Service      string
+	Regions      []string
+	InEEA        string
+	Encrypted    string
+	Retention    string
+	Public       string
+	PersonalData bool
+	Location     domain.Location
 }
 
 // Store is a table, model or message that holds personal data. Special lists the Art. 9 categories, which are
@@ -67,6 +81,7 @@ type Input struct {
 	Findings   []domain.Finding
 	Recipients []domain.RecipientUse
 	Lifecycle  []domain.StoreLifecycle
+	Infra      []domain.Store
 }
 
 // Build groups the input by component.
@@ -122,6 +137,14 @@ func Build(in Input) Map {
 			recipients[c.Name][u.Name] = r
 		}
 		r.Evidence = append(r.Evidence, u.Location)
+	}
+	for _, s := range in.Infra {
+		c := get(s.Location.Path)
+		c.Infra = append(c.Infra, Infra{
+			Address: s.Type + "." + s.Name, Service: s.Service, Regions: s.Regions, InEEA: string(s.InEEA.State),
+			Encrypted: string(s.Encryption.State), Retention: string(s.Retention.State), Public: string(s.Public.State),
+			PersonalData: s.PersonalData, Location: s.Location,
+		})
 	}
 	life := map[string]domain.StoreLifecycle{}
 	for _, l := range in.Lifecycle {

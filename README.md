@@ -24,7 +24,7 @@ tests/fixtures/users.json
 
 ## What it finds
 
-Romanian CNP, Bulgarian EGN and LNCh, Hungarian TAJ and tax ID, Polish PESEL, Czech and Slovak birth numbers, Croatian OIB, IBANs for every SEPA country, payment cards, EU VAT numbers (with check digits for RO, BG, HU, DE and PL), email addresses and RO, BG, HU and PL phone numbers. The full list, with how each match is confirmed, is in [docs/DETECTORS.md](docs/DETECTORS.md).
+Romanian CNP, Bulgarian EGN and LNCh, Hungarian TAJ and tax ID, Polish PESEL, Czech and Slovak birth numbers, Croatian OIB, IBANs for every SEPA country, payment cards, EU VAT numbers (with check digits for RO, BG, HU, DE and PL), email addresses and RO, BG, HU and PL phone numbers. The full list, with how each match is confirmed, is in [docs/DETECTORS.md](docs/DETECTORS.md). It also reads schemas and models for a data inventory, and Terraform for data stores without encryption, retention or EU residency.
 
 National identifiers by country:
 
@@ -92,6 +92,8 @@ pii-eu scan                       # the current folder
 pii-eu scan --format json --output pii-eu.json path/to/repo
 pii-eu scan --staged .            # staged changes only, for pre-commit
 kubectl logs deploy/api | pii-eu scan -     # a log stream
+pii-eu scan exports/              # CSV, TSV, JSON Lines and SQL dumps, by column; .gz and .tar inside
+pii-eu scan --image app.tar       # a container image saved with `docker save app:latest -o app.tar`
 pii-eu baseline                   # accept what is there today; report only new findings
 ```
 
@@ -106,6 +108,8 @@ pii-eu baseline                   # accept what is there today; report only new 
 | `--baseline FILE` | baseline file (default `.pii-eu-baseline.json` in the scanned folder) |
 | `--no-git` | walk the folder instead of asking git (inside a work tree, `.gitignore` is honoured) |
 | `--show-values` | print found values on screen; never in JSON, SARIF or files |
+| `--max-rows N` | read at most N rows of each CSV, TSV or JSON Lines file (default 100000); `0` reads every row |
+| `--image FILE` | scan a saved container image instead of a path |
 
 Exit codes: `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read.
 
@@ -121,14 +125,41 @@ max_file_size = 5242880
 
 countries = ["ro", "bg", "hu"]   # or presets: eu, eea, cee, dach, benelux, nordics, baltics
 
+max_rows = 100000             # rows read per data file; 0 reads every row
+max_archive_bytes = 4294967296   # uncompressed bytes read from one archive or image
+max_archive_entries = 1000000    # entries read from one archive or image
+max_archive_depth = 3            # archives inside archives
+image_exclude = ["/usr/share/", "/usr/lib/"]   # replaces the default; [] scans the whole image
+
 [detectors]
 email = false        # switch a detector off
+tf-public = false    # Terraform checks are switched off the same way
 
 [min_confidence_per_detector]
 eu-phone = "high"    # report phone numbers only when the evidence is strong
 ```
 
 Presets: `eu` (the 27 member states, the default), `eea` (adds Iceland, Liechtenstein and Norway), `cee`, `dach`, `benelux`, `nordics` and `baltics`. Naming a country outside the EU, such as `ch` or `gb`, switches on its detectors, which are off by default. An unknown code is an error.
+
+### Data exports, dumps and archives
+
+pii-eu reads exports column by column, so a header like `cnp` raises confidence for every value in that column, and a keyword in one column never raises a value in another.
+
+- **CSV and TSV** (`.csv`, `.tsv`, `.tab`): the first line is the header unless it looks like data (a cell with five or more digits); the delimiter (comma, semicolon, tab or pipe) is sniffed from it. Quoted values may hold delimiters and line breaks. Without a header, columns are named `#1`, `#2` and so on.
+- **JSON Lines** (`.jsonl`, `.ndjson`): every string and number is named by its key path, such as `customer.cnp`.
+- **SQL dumps** (`.sql`): `INSERT` values are named by the statement's column list, or by the table's `CREATE TABLE` earlier in the dump; extended inserts and PostgreSQL `COPY ... FROM stdin` blocks work too.
+
+Findings carry the column name (`column_name` in JSON), and the JSON summary groups them by file and column with counts per detector (`summary.columns`). Column headers and JSON keys also go into `pii-eu inventory` and, for special categories such as `diagnosis`, into scan findings.
+
+Large data files are sampled: only the first `max_rows` rows of a CSV, TSV or JSON Lines file are read (default 100000; `--max-rows 0` reads every row), and the file is listed under `summary.sampled`. Data files are not skipped by `max_file_size`; SQL dumps are, so raise `max_file_size` for a large dump.
+
+Gzip and tar files (`.gz`, `.tar`, `.tar.gz`, `.tgz`) are scanned inside, archives in archives too, and findings name the entry: `dump.tar.gz!/data/users.csv`. Archives are not skipped by `max_file_size`; each entry is. `exclude` patterns apply to paths inside archives. Against archive bombs, one archive with everything nested in it may produce at most `max_archive_bytes` uncompressed bytes (4 GiB) and `max_archive_entries` entries (1,000,000), nested at most `max_archive_depth` deep (3). Reading stops at a limit, the archive is listed as unreadable with the reason, and the exit code is 3 when nothing else was found.
+
+### Container images
+
+`pii-eu scan --image app.tar` reads an image saved with `docker save` (the classic `manifest.json` layout and the OCI layout with `index.json`; gzip-compressed layers included). Decompress an image saved through `gzip` first. Each layer is scanned in parallel, the image configuration (environment, labels, build history) too, and findings name the layer by its short digest: `app.tar!/3f2a9c1b7d4e/etc/app/config.yml`.
+
+A file deleted or replaced in a later layer is still in the image, so it is still reported, and the finding says which layer deleted it. `include` and `exclude` match paths inside the image (`etc/app/**`). Operating system package folders (`/usr/share/`, `/usr/lib/`, `/lib/`, `/var/lib/dpkg/` and the like) are skipped by default; set `image_exclude` to change that list, or to `[]` to scan everything.
 
 ### Schemas, special categories and a data inventory
 
@@ -162,6 +193,30 @@ The map is a draft for the record of processing activities (GDPR Art. 30). Purpo
 pii-eu map --format json --output pii-eu-map.json   # save the map, e.g. on the main branch
 pii-eu map --diff pii-eu-map.json                   # in a pull request: exit 1 if a category, store, recipient or log of personal data is new
 ```
+
+### Data stores in Terraform
+
+pii-eu reads the databases, buckets, queues, streams, caches and log groups declared in `.tf` files, for AWS, Google Cloud and Azure, without running Terraform: no binary, no providers, no credentials. For each store it reads encryption at rest, retention (lifecycle rules, retention periods, TTL), backups or versioning, public access and the region, following variables with defaults, `terraform.tfvars`, `*.auto.tfvars`, locals and references between resources in the same folder, including the provider block's region.
+
+`pii-eu scan` reports four checks as `infra` findings:
+
+| Check | Reported when |
+|---|---|
+| `tf-unencrypted` | encryption at rest is switched off, or not set where the service leaves it off |
+| `tf-no-retention` | nothing expires the data: no lifecycle rule, retention period or TTL |
+| `tf-non-eea-region` | a region is outside the EEA, such as `us-east-1`; one step lower for a country with an EU adequacy decision, such as `eu-west-2` (London) or `eu-central-2` (Zurich) |
+| `tf-public` | a public ACL, a grant to `allUsers` or an internet-facing endpoint opens the store |
+
+A finding is high when the store is linked to personal data, and medium otherwise. A store is linked by a tag or label (`data_classification = "pii"`, `pii = true` and similar) or when its name matches a table or model in the inventory: a bucket `acme-patient-exports` is linked to a `patients` table. A setting that comes from something the code does not show, such as a variable without a default, is never treated as missing: it is reported at low confidence, and only for linked stores. Put `pii-eu:ignore` and a reason on the line before a resource to accept it, or switch a check off under `[detectors]`.
+
+```text
+$ pii-eu scan infra/
+infra/main.tf
+  9:1  high    Data store outside the EEA  aws_s3_bucket.customer_exports
+          region us-east-1 is outside the EEA (from the aws provider block); linked to personal data: tagged data_classification with "pii"
+```
+
+`pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
 
 ### Keeping a deliberate value
 
@@ -202,7 +257,7 @@ repos:
 1. A cheap prefilter skips detectors that cannot match a line (too few digits, a missing literal), so scan time stays flat as detectors are added.
 2. A pattern finds candidates; the characters around a candidate must not be letters or digits.
 3. The validator checks the identifier's rules. Only valid values become findings.
-4. Confidence starts at the detector's base. It rises one step when the value is written in the identifier's usual format (an IBAN in groups of four, a birth number with its slash) and one step when a keyword is on the line or the line before. Keywords come in all 24 EU languages and match without regard to case or diacritics. It drops one step in test, fixture and example paths, and is always low for published sample values (documentation IBANs, well-known test cards).
+4. Confidence starts at the detector's base. It rises one step when the value is written in the identifier's usual format (an IBAN in groups of four, a birth number with its slash) and one step when a keyword is on the line or the line before, or, in a file with columns, in the value's column name. Keywords come in all 24 EU languages and match without regard to case or diacritics. It drops one step in test, fixture and example paths, and is always low for published sample values (documentation IBANs, well-known test cards).
 5. Overlapping matches keep the most confident one. A value that is valid for two detectors is reported once, preferring the detector whose own name is nearby, and the finding says what else it could be.
 6. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.
 

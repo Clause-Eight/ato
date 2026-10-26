@@ -32,12 +32,26 @@ type jsonMap struct {
 
 type jsonComponent struct {
 	Name       string          `json:"name"`
-	Stores     []jsonStore     `json:"stores"`
+	Stores     []jsonMapStore  `json:"stores"`
 	Sinks      []jsonSink      `json:"sinks"`
 	Recipients []jsonRecipient `json:"recipients"`
+	Infra      []jsonInfra     `json:"infrastructure,omitempty"`
 }
 
-type jsonStore struct {
+type jsonInfra struct {
+	Address      string   `json:"address"`
+	Service      string   `json:"service"`
+	Regions      []string `json:"regions"`
+	InEEA        string   `json:"in_eea,omitempty"`
+	Encrypted    string   `json:"encrypted,omitempty"`
+	Retention    string   `json:"retention,omitempty"`
+	Public       string   `json:"public,omitempty"`
+	PersonalData bool     `json:"personal_data"`
+	Path         string   `json:"path"`
+	Line         int      `json:"line"`
+}
+
+type jsonMapStore struct {
 	Name       string        `json:"name"`
 	Categories []string      `json:"categories"`
 	Special    []string      `json:"special_categories"`
@@ -126,6 +140,9 @@ func ReadMap(r io.Reader) (datamap.Map, error) {
 			}
 			comp.Recipients = append(comp.Recipients, rec)
 		}
+		for _, s := range c.Infra {
+			comp.Infra = append(comp.Infra, datamap.Infra{Address: s.Address, Service: s.Service, Regions: s.Regions, InEEA: s.InEEA, Encrypted: s.Encrypted, Retention: s.Retention, Public: s.Public, PersonalData: s.PersonalData, Location: domain.Location{Path: s.Path, Line: s.Line}})
+		}
 		m.Components = append(m.Components, comp)
 	}
 	return m, nil
@@ -134,9 +151,9 @@ func ReadMap(r io.Reader) (datamap.Map, error) {
 func toJSONMap(m DataMap) jsonMap {
 	out := jsonMap{SchemaVersion: MapSchemaVersion, Tool: jsonTool{Name: m.Tool, Version: m.Version}, Categories: strs(m.Map.Categories()), Components: []jsonComponent{}}
 	for _, c := range m.Map.Components {
-		jc := jsonComponent{Name: c.Name, Stores: []jsonStore{}, Sinks: []jsonSink{}, Recipients: []jsonRecipient{}}
+		jc := jsonComponent{Name: c.Name, Stores: []jsonMapStore{}, Sinks: []jsonSink{}, Recipients: []jsonRecipient{}}
 		for _, s := range c.Stores {
-			js := jsonStore{Name: s.Name, Categories: strs(s.Categories), Special: strs(s.Special), Fields: []jsonField{}}
+			js := jsonMapStore{Name: s.Name, Categories: strs(s.Categories), Special: strs(s.Special), Fields: []jsonField{}}
 			for _, f := range s.Fields {
 				js.Fields = append(js.Fields, jsonField{Name: f.Name, Category: f.Category, Special: f.Special, Path: f.Location.Path, Line: f.Location.Line})
 			}
@@ -154,6 +171,9 @@ func toJSONMap(m DataMap) jsonMap {
 				jr.Evidence = append(jr.Evidence, jsonPlace{Path: e.Path, Line: e.Line})
 			}
 			jc.Recipients = append(jc.Recipients, jr)
+		}
+		for _, s := range c.Infra {
+			jc.Infra = append(jc.Infra, jsonInfra{Address: s.Address, Service: s.Service, Regions: strs(s.Regions), InEEA: s.InEEA, Encrypted: s.Encrypted, Retention: s.Retention, Public: s.Public, PersonalData: s.PersonalData, Path: s.Location.Path, Line: s.Location.Line})
 		}
 		out.Components = append(out.Components, jc)
 	}
@@ -239,6 +259,13 @@ func markdownMap(m DataMap) string {
 			}
 			b.WriteString("\n")
 		}
+		if len(c.Infra) > 0 {
+			b.WriteString("| Infrastructure | Service | Regions | In the EEA | Encrypted | Retention | Public | Personal data |\n|---|---|---|---|---|---|---|---|\n")
+			for _, s := range c.Infra {
+				fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s | %s | %s |\n", s.Address, s.Service, dash(strings.Join(s.Regions, ", ")), dash(s.InEEA), dash(s.Encrypted), dash(s.Retention), dash(s.Public), yesNo(s.PersonalData))
+			}
+			b.WriteString("\n")
+		}
 		if len(c.Sinks) > 0 {
 			b.WriteString("Personal data written to logs or telemetry:\n\n")
 			for _, s := range c.Sinks {
@@ -248,6 +275,13 @@ func markdownMap(m DataMap) string {
 		}
 	}
 	return b.String()
+}
+
+func yesNo(b bool) string {
+	if b {
+		return "yes"
+	}
+	return "no"
 }
 
 func dash(s string) string {
