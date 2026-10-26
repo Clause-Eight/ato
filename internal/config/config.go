@@ -19,6 +19,12 @@ const FileName = ".pii-eu.toml"
 // DefaultMaxFileSize skips files larger than 5 MiB.
 const DefaultMaxFileSize = 5 << 20
 
+// DefaultMaxRows is how many rows of a CSV, TSV or JSON Lines file are read.
+const DefaultMaxRows = 100_000
+
+// DefaultImageExclude skips the folders of operating system packages inside container images.
+var DefaultImageExclude = []string{"/usr/share/", "/usr/lib/", "/usr/lib64/", "/usr/libexec/", "/usr/include/", "/lib/", "/lib64/", "/var/lib/dpkg/", "/var/lib/apt/", "/var/lib/rpm/", "/var/cache/", "/etc/ssl/certs/", "/proc/", "/sys/"}
+
 // Config is the effective configuration for one scan.
 type Config struct {
 	Include       []string
@@ -29,6 +35,14 @@ type Config struct {
 	// DetectorMinConfidence overrides MinConfidence for single detectors.
 	DetectorMinConfidence map[string]domain.Confidence
 	Countries             domain.Countries
+	// MaxRows caps the rows read from each data file; 0 reads every row.
+	MaxRows int
+	// Archive limits; 0 takes the built-in default.
+	MaxArchiveBytes   int64
+	MaxArchiveEntries int64
+	MaxArchiveDepth   int
+	// ImageExclude is excluded inside container images, in addition to Exclude.
+	ImageExclude []string
 }
 
 type fileConfig struct {
@@ -40,11 +54,17 @@ type fileConfig struct {
 	Countries     []string        `toml:"countries"`
 	// DetectorMinConfidence is the [min_confidence_per_detector] table.
 	DetectorMinConfidence map[string]string `toml:"min_confidence_per_detector"`
+	MaxRows               *int              `toml:"max_rows"`
+	MaxArchiveBytes       int64             `toml:"max_archive_bytes"`
+	MaxArchiveEntries     int64             `toml:"max_archive_entries"`
+	MaxArchiveDepth       int               `toml:"max_archive_depth"`
+	ImageExclude          *[]string         `toml:"image_exclude"`
 }
 
 // Default is the configuration used when no file and no flags change it.
 func Default() Config {
-	return Config{MinConfidence: domain.Medium, MaxFileSize: DefaultMaxFileSize, Detectors: map[string]bool{}, DetectorMinConfidence: map[string]domain.Confidence{}}
+	return Config{MinConfidence: domain.Medium, MaxFileSize: DefaultMaxFileSize, Detectors: map[string]bool{}, DetectorMinConfidence: map[string]domain.Confidence{},
+		MaxRows: DefaultMaxRows, ImageExclude: append([]string{}, DefaultImageExclude...)}
 }
 
 // Load reads path, or returns Default when explicit is false and the file does not exist.
@@ -83,6 +103,19 @@ func apply(cfg Config, fc fileConfig) (Config, error) {
 	}
 	if fc.MaxFileSize > 0 {
 		cfg.MaxFileSize = fc.MaxFileSize
+	}
+	if fc.MaxRows != nil {
+		if *fc.MaxRows < 0 {
+			return cfg, errors.New("max_rows must be zero (every row) or more")
+		}
+		cfg.MaxRows = *fc.MaxRows
+	}
+	if fc.MaxArchiveBytes < 0 || fc.MaxArchiveEntries < 0 || fc.MaxArchiveDepth < 0 {
+		return cfg, errors.New("max_archive_bytes, max_archive_entries and max_archive_depth must be zero (the default) or more")
+	}
+	cfg.MaxArchiveBytes, cfg.MaxArchiveEntries, cfg.MaxArchiveDepth = fc.MaxArchiveBytes, fc.MaxArchiveEntries, fc.MaxArchiveDepth
+	if fc.ImageExclude != nil {
+		cfg.ImageExclude = *fc.ImageExclude
 	}
 	for name, on := range fc.Detectors {
 		cfg.Detectors[name] = on

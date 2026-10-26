@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -25,13 +26,16 @@ type File struct {
 	Staged bool
 }
 
-// Options select files.
+// Options select files. MaxFileSize skips larger files, except archives (bounded by Limits) and data files
+// (bounded by the engine's row limit). ImageExclude is added to Exclude inside container images.
 type Options struct {
-	Include     []string
-	Exclude     []string
-	MaxFileSize int64
-	NoGit       bool
-	Staged      bool
+	Include      []string
+	Exclude      []string
+	MaxFileSize  int64
+	NoGit        bool
+	Staged       bool
+	Limits       Limits
+	ImageExclude []string
 }
 
 var alwaysSkippedDirs = map[string]bool{".git": true, ".hg": true, ".svn": true}
@@ -71,7 +75,7 @@ func Files(root string, opts Options) ([]File, []domain.Skipped, error) {
 		if err != nil || !st.Mode().IsRegular() {
 			continue
 		}
-		if opts.MaxFileSize > 0 && st.Size() > opts.MaxFileSize {
+		if tooLarge(rel, st.Size(), opts.MaxFileSize) {
 			skipped = append(skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", opts.MaxFileSize)})
 			continue
 		}
@@ -83,10 +87,29 @@ func Files(root string, opts Options) ([]File, []domain.Skipped, error) {
 
 func single(path string, info fs.FileInfo, opts Options) ([]File, []domain.Skipped, error) {
 	rel := filepath.ToSlash(filepath.Base(path))
-	if opts.MaxFileSize > 0 && info.Size() > opts.MaxFileSize {
+	if tooLarge(rel, info.Size(), opts.MaxFileSize) {
 		return nil, []domain.Skipped{{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", opts.MaxFileSize)}}, nil
 	}
 	return []File{{Rel: filepath.ToSlash(path), Abs: path, Size: info.Size()}}, nil, nil
+}
+
+// tooLarge applies the size limit to files that have no other bound: archives and data files are exempt.
+func tooLarge(name string, size, max int64) bool {
+	return max > 0 && size > max && !IsArchive(name) && DataKind(name) == ""
+}
+
+// DataKind names the column-aware format of a data file by its extension: "csv", "tsv", "jsonl", or "" for
+// any other file.
+func DataKind(name string) string {
+	switch strings.ToLower(path.Ext(name)) {
+	case ".csv":
+		return "csv"
+	case ".tsv", ".tab":
+		return "tsv"
+	case ".jsonl", ".ndjson":
+		return "jsonl"
+	}
+	return ""
 }
 
 func selected(rel string, inc, exc []glob) bool {

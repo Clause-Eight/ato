@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/Clause-Eight/pii-eu/internal/domain"
@@ -102,13 +103,22 @@ func writeSARIF(w io.Writer, r Report, _ Options) error {
 				Region:           sarifRegion{StartLine: f.Location.Line, StartColumn: f.Location.Column},
 			}}},
 			PartialFingerprints: map[string]string{"piiEu/v1": f.Fingerprint},
-			Properties:          map[string]any{"confidence": f.Confidence.String(), "sample": f.Sample, "testPath": f.TestPath},
+			Properties:          properties(f),
 		})
 	}
 	return writeLog(w, r, rules, results)
 }
 
-// ruleID is the detector name, with the Art. 9 category for special-category fields.
+func properties(f domain.Finding) map[string]any {
+	p := map[string]any{"confidence": f.Confidence.String(), "sample": f.Sample, "testPath": f.TestPath}
+	if f.ColumnName != "" {
+		p["columnName"] = f.ColumnName
+	}
+	return p
+}
+
+// ruleID is the detector name, with the Art. 9 category for special-category fields. Checks on data stores use
+// the detector name, such as tf-unencrypted.
 func ruleID(f domain.Finding) string {
 	if f.Kind == domain.KindField {
 		return f.Detector + "/" + string(f.Special)
@@ -117,6 +127,16 @@ func ruleID(f domain.Finding) string {
 }
 
 func ruleFor(f domain.Finding) sarifRule {
+	if c, ok := domain.InfraCheckFor(f.Detector); ok && f.Kind == domain.KindInfra {
+		return sarifRule{
+			ID:               c.Detector,
+			Name:             ruleName(c.Label),
+			ShortDescription: sarifText{c.Label},
+			FullDescription:  sarifText{c.Label + ", declared in Terraform. Personal data at rest needs encryption, a retention limit and EU residency or a documented transfer (" + c.Rule + ")."},
+			Help:             sarifText{c.Help},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "terraform", "infrastructure"}},
+		}
+	}
 	if f.Kind == domain.KindField {
 		return sarifRule{
 			ID:               ruleID(f),
@@ -127,7 +147,7 @@ func ruleFor(f domain.Finding) sarifRule {
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
 		}
 	}
-	if f.Kind == domain.KindStore {
+	if f.Kind == domain.KindLifecycle {
 		return sarifRule{
 			ID:               ruleID(f),
 			Name:             ruleName(f.Label),
@@ -165,7 +185,11 @@ func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarif
 }
 
 func message(f domain.Finding) string {
-	msg := f.Label + " " + f.Masked + " (" + f.Confidence.String() + " confidence)"
+	msg := f.Label + " " + f.Masked
+	if f.ColumnName != "" {
+		msg += " in column " + strconv.Quote(f.ColumnName)
+	}
+	msg += " (" + f.Confidence.String() + " confidence)"
 	if len(f.Reasons) > 0 {
 		msg += ": " + strings.Join(f.Reasons, "; ")
 	}

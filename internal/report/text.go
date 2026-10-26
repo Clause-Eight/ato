@@ -25,6 +25,9 @@ func writeText(w io.Writer, r Report, opts Options) error {
 		if opts.ShowValues {
 			value = f.Value
 		}
+		if f.ColumnName != "" {
+			value += fmt.Sprintf("  in column %q", f.ColumnName)
+		}
 		fmt.Fprintf(&b, "  %d:%d  %-6s  %s  %s\n", f.Location.Line, f.Location.Column, f.Confidence, f.Label, value)
 		if len(f.Reasons) > 0 {
 			fmt.Fprintf(&b, "          %s\n", strings.Join(f.Reasons, "; "))
@@ -55,6 +58,9 @@ func summaryLine(r Report, files int) string {
 	parts = append(parts, fmt.Sprintf("%d %s scanned", r.Summary.FilesScanned, plural(r.Summary.FilesScanned, "file", "files")))
 	if k := len(r.Summary.FilesSkipped); k > 0 {
 		parts = append(parts, fmt.Sprintf("%d skipped", k))
+	}
+	if k := len(r.Summary.Sampled); k > 0 {
+		parts = append(parts, fmt.Sprintf("%d sampled", k))
 	}
 	if k := r.Summary.Ignored; k > 0 {
 		parts = append(parts, fmt.Sprintf("%d ignored by comment", k))

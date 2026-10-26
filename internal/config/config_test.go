@@ -54,6 +54,8 @@ func TestBadSettingsAreErrors(t *testing.T) {
 	for body, want := range map[string]string{
 		`min_confidence = "very"`: "min_confidence",
 		`max_file_size = -1`:      "max_file_size",
+		`max_rows = -1`:           "max_rows",
+		`max_archive_depth = -2`:  "max_archive_depth",
 		`colour = "blue"`:         "unknown setting",
 		`include = [`:             FileName,
 	} {
@@ -61,6 +63,20 @@ func TestBadSettingsAreErrors(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("%s: got %v, want error containing %q", body, err, want)
 		}
+	}
+}
+
+func TestDataAndArchiveSettings(t *testing.T) {
+	def := Default()
+	if def.MaxRows != DefaultMaxRows || len(def.ImageExclude) == 0 {
+		t.Fatalf("defaults: %+v", def)
+	}
+	cfg, err := Load(write(t, "max_rows = 0\nmax_archive_bytes = 1000\nmax_archive_entries = 10\nmax_archive_depth = 1\nimage_exclude = []\n"), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.MaxRows != 0 || cfg.MaxArchiveBytes != 1000 || cfg.MaxArchiveEntries != 10 || cfg.MaxArchiveDepth != 1 || len(cfg.ImageExclude) != 0 {
+		t.Fatalf("got %+v", cfg)
 	}
 }
 

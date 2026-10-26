@@ -44,8 +44,11 @@ type Location struct {
 	Column int
 }
 
-// Finding is one detected value, or a schema field holding special-category data (Kind says which). Value is
-// the raw text and must never reach a report; reporters use Masked. For a field, Masked is the field's name.
+// Finding is one detected value, a schema field holding special-category data, or a data store declared in
+// infrastructure code (Kind says which). Value is the raw text and must never reach a report; reporters use
+// Masked. For a field, Masked is the field's name; for a store, its resource address.
+// ColumnName is the data column a value was found in (a CSV or TSV header, a JSON Lines key path or a SQL
+// column), when the file has columns.
 type Finding struct {
 	Kind        Kind
 	Category    DataCategory
@@ -54,6 +57,7 @@ type Finding struct {
 	Label       string
 	Country     string
 	Location    Location
+	ColumnName  string
 	Value       string
 	Masked      string
 	Confidence  Confidence
@@ -62,13 +66,16 @@ type Finding struct {
 	TestPath    bool
 	Fingerprint string
 	Ignored     bool
+	// Store is the data store an infra finding is about; nil for other kinds.
+	Store *Store
 }
 
-// Summary describes one scan.
+// Summary describes one scan. Sampled lists data files of which only the first rows were read.
 type Summary struct {
 	FilesScanned int
 	FilesSkipped []Skipped
 	Unreadable   []Skipped
+	Sampled      []Skipped
 	Ignored      int
 	Baselined    int
 }

@@ -79,8 +79,10 @@ const usage = `pii-eu finds EU personal data in code, fixtures and logs.
 
 Usage:
   pii-eu scan [flags] [path]   scan a folder or file (default: current folder); "-" reads stdin
+  pii-eu scan --image FILE     scan a container image saved with ` + "`docker save`" + `, layer by layer
   pii-eu baseline [path]       accept current findings so only new ones are reported
-  pii-eu inventory [flags] [path]  list the personal-data fields declared in schemas and models
+  pii-eu inventory [flags] [path]  list the personal-data fields in schemas and models, and the
+                               data stores declared in Terraform
   pii-eu map [flags] [path]    draft a data map: stores, logged personal data and third-party recipients
   pii-eu detectors [--markdown]  list what can be detected
   pii-eu version               print the version
@@ -98,6 +100,13 @@ Scan flags:
   --staged                 scan the staged version of staged files (for pre-commit hooks)
   --baseline FILE          baseline file (default: <path>/.pii-eu-baseline.json)
   --show-values            print found values in full in text output (never in files)
+  --max-rows N             read at most N rows of each CSV, TSV or JSON Lines file; 0 reads every row
+                           (default: 100000)
+  --image FILE             scan a saved container image (docker save or OCI layout tar) instead of a path
+
+Archives (.gz, .tar, .tar.gz, .tgz) are scanned inside; findings name the entry, as in
+dump.tar.gz!/data/users.csv. Limits against archive bombs are settings: max_archive_bytes,
+max_archive_entries and max_archive_depth.
 
 Inventory flags: --config, --include, --exclude, --no-git, --output as for scan, and
   --format FORMAT          json, csv or html (default: csv)
@@ -143,6 +152,8 @@ type scanFlags struct {
 	recipients    bool
 	lifecycle     bool
 	diff          string
+	maxRows       int
+	image         string
 }
 
 func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) {
@@ -161,15 +172,24 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	fs.BoolVar(&f.staged, "staged", false, "")
 	fs.StringVar(&f.baselinePath, "baseline", "", "")
 	fs.StringVar(&f.diff, "diff", "", "")
+	fs.IntVar(&f.maxRows, "max-rows", -1, "")
+	fs.StringVar(&f.image, "image", "", "")
 	fs.Usage = func() { fmt.Fprint(stderr, usage) }
 	warnDeprecated(args, stderr)
 	if err := fs.Parse(reorder(args)); err != nil {
 		return f, "", err
 	}
-	switch fs.NArg() {
-	case 0:
+	if f.maxRows < -1 {
+		return f, "", usageError{"--max-rows must be zero (every row) or more"}
+	}
+	switch {
+	case f.image != "" && fs.NArg() > 0:
+		return f, "", usageError{"give either a path or --image, not both"}
+	case f.image != "":
+		return f, f.image, nil
+	case fs.NArg() == 0:
 		return f, ".", nil
-	case 1:
+	case fs.NArg() == 1:
 		return f, fs.Arg(0), nil
 	}
 	return f, "", usageError{"scan takes one path"}
@@ -235,6 +255,9 @@ func loadConfig(f scanFlags, root string) (config.Config, error) {
 		}
 		cfg.Countries = countries
 	}
+	if f.maxRows >= 0 {
+		cfg.MaxRows = f.maxRows
+	}
 	return cfg, nil
 }
 
@@ -243,6 +266,16 @@ func enabledDetectors(cfg config.Config) []detectors.Detector {
 	for _, d := range detectors.All() {
 		if cfg.Enabled(d.Name, d.Countries(), d.OnByDefault) {
 			out = append(out, d)
+		}
+	}
+	return out
+}
+
+func enabledInfra(cfg config.Config) []string {
+	var out []string
+	for _, name := range engine.InfraDetectors() {
+		if cfg.Enabled(name, []string{domain.CrossBorder}, true) {
+			out = append(out, name)
 		}
 	}
 	return out
@@ -302,9 +335,11 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		fs, err := engine.ScanReader("<stdin>", Stdin, dets)
 		return engine.Result{Findings: fs, Summary: domain.Summary{FilesScanned: 1}}, cfg, err
 	}
-	res, err := engine.Scan(engine.Request{
-		Root:              root,
-		Walk:              walk.Options{Include: cfg.Include, Exclude: cfg.Exclude, MaxFileSize: cfg.MaxFileSize, NoGit: f.noGit, Staged: f.staged},
+	req := engine.Request{
+		Root: root,
+		Walk: walk.Options{Include: cfg.Include, Exclude: cfg.Exclude, MaxFileSize: cfg.MaxFileSize, NoGit: f.noGit, Staged: f.staged,
+			Limits:       walk.Limits{MaxBytes: cfg.MaxArchiveBytes, MaxEntries: cfg.MaxArchiveEntries, MaxDepth: cfg.MaxArchiveDepth},
+			ImageExclude: cfg.ImageExclude},
 		Detectors:         dets,
 		SpecialCategories: cfg.Enabled(engine.SpecialCategoryDetector, []string{domain.CrossBorder}, true),
 		Inventory:         f.inventory,
@@ -312,8 +347,18 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		Lifecycle:         f.lifecycle || erasure || retention,
 		ErasureFindings:   erasure,
 		RetentionFindings: retention,
-	})
-	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) {
+		Infra:             enabledInfra(cfg),
+		MaxRows:           cfg.MaxRows,
+	}
+	scan := engine.Scan
+	if f.image != "" {
+		if f.staged {
+			return engine.Result{}, cfg, usageError{"--staged does not apply to --image"}
+		}
+		scan = engine.ScanImage
+	}
+	res, err := scan(req)
+	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) || errors.Is(err, walk.ErrNotImage) {
 		return res, cfg, usageError{err.Error()}
 	}
 	return res, cfg, err
@@ -321,7 +366,13 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 
 // engineDetector names the findings made by the engine rather than by a registered detector. Settings may switch
 // them on or off like a detector.
-var engineDetector = map[string]bool{engine.SpecialCategoryDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
+var engineDetector = func() map[string]bool {
+	m := map[string]bool{engine.SpecialCategoryDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
+	for _, name := range engine.InfraDetectors() {
+		m[name] = true
+	}
+	return m
+}()
 
 // Stdin is read by `pii-eu scan -`. Tests replace it.
 var Stdin io.Reader = os.Stdin
@@ -432,6 +483,9 @@ func runDetectors(args []string, stdout io.Writer) (int, error) {
 		}
 		fmt.Fprintf(&b, "%-16s %-3s %-7s %s%s\n", d.Name, d.Country, d.Base, d.Label, state)
 	}
+	for _, c := range domain.InfraChecks {
+		fmt.Fprintf(&b, "%-16s %-3s %-7s %s (Terraform)\n", c.Detector, domain.CrossBorder, domain.Medium, c.Label)
+	}
 	_, err := io.WriteString(stdout, b.String())
 	return ExitClean, err
 }
@@ -530,6 +584,28 @@ func DetectorTable() string {
 		}
 		fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s | %s |\n", d.Name, d.Country, label, d.Validation, d.Base, strings.Join(kws, ", "), strings.Join(concepts, ", "))
 	}
+	b.WriteString(storeTable())
+	return b.String()
+}
+
+// storeTable is the part of docs/DETECTORS.md about Terraform data stores.
+func storeTable() string {
+	var b strings.Builder
+	b.WriteString("\n## Terraform data stores\n\n")
+	b.WriteString("`pii-eu scan` reads the data stores declared in `.tf` files, without running Terraform, and reports these checks as `infra` findings. A finding is high when the store is linked to personal data (a tag such as `data_classification = \"pii\"` or `pii = true`, or a name that matches a table or model in the inventory) and medium otherwise. A setting that comes from something the code does not show, such as a variable without a default, is never read as a failure: it is reported at low confidence, and only for linked stores. Switch a check off under `[detectors]`, for example `tf-no-retention = false`.\n\n")
+	b.WriteString("| Name | Finding | Reported when | Supports |\n|---|---|---|---|\n")
+	for _, c := range domain.InfraChecks {
+		fmt.Fprintf(&b, "| `%s` | %s | %s | %s |\n", c.Detector, c.Label, c.When, c.Rule)
+	}
+	b.WriteString("\nResource types read as data stores:\n\n")
+	types := engine.StoreTypes()
+	for _, p := range []struct{ key, title string }{{"aws", "AWS"}, {"google", "Google Cloud"}, {"azurerm", "Azure"}} {
+		names := make([]string, 0, len(types[p.key]))
+		for _, t := range types[p.key] {
+			names = append(names, "`"+t+"`")
+		}
+		fmt.Fprintf(&b, "- %s: %s\n", p.title, strings.Join(names, ", "))
+	}
 	return b.String()
 }
 
@@ -552,7 +628,7 @@ func runInventory(args []string, stdout, stderr io.Writer) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	inv := report.Inventory{Tool: "pii-eu", Version: Version, Entries: res.Inventory, Files: res.Summary.FilesScanned}
+	inv := report.Inventory{Tool: "pii-eu", Version: Version, Entries: res.Inventory, Stores: res.Stores, Files: res.Summary.FilesScanned}
 	w := stdout
 	if f.output != "" {
 		file, err := os.Create(f.output)
@@ -613,7 +689,7 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 		return 0, err
 	}
 	findings, _ := withoutIgnored(res.Findings)
-	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle})
+	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle, Infra: res.Stores})
 	if previous != nil {
 		if f.output != "" {
 			if err := writeMapFile(f, m); err != nil {
