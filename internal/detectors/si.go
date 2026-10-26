@@ -16,6 +16,15 @@ import (
 // https://www.uradni-list.si/glasilo-uradni-list-rs/vsebina/1999-01-0345 and article 8 of ZCRP as amended by
 // ZCRP-B, Uradni list RS 32/2024 (registers 50-59).
 // EMŠOs from the other former Yugoslav registers are not accepted: they belong to other countries' numbering.
+//
+// Slovenian tax number (davčna številka): eight digits. The first seven are a random number from 1000000 to
+// 9999999, so the first digit is never 0; the eighth is a mod-11 check digit. The first seven digits are weighted
+// 8,7,6,5,4,3,2 from the left; the check digit is 11 minus the sum mod 11, written 0 when that is 10. A remainder
+// of 0 would need a check of 11, so those numbers are not issued. The same number with the SI prefix is the VAT
+// number, which eu-vat finds. Sources: the Slovenian TIN sheet published by the OECD (format, first digit, mod 11),
+// https://www.oecd.org/tax/automatic-exchange/crs-implementation-and-assistance/tax-identification-numbers/Slovenia-TIN.pdf
+// and the European Commission's TIN-on-the-Web syntax check, checkTinService (weights and the remainder rules),
+// https://taxation-customs.ec.europa.eu/online-services/online-services-and-databases-taxation/taxpayer-identification-number-tin_en
 func init() {
 	Register(Detector{
 		Name:        "si-emso",
@@ -30,6 +39,34 @@ func init() {
 		Samples:     map[string]bool{"2902932505526": true},
 		Validation:  "birth date, register and mod-11 check digit are valid",
 	})
+	Register(Detector{
+		Name:        "si-tax-number",
+		Label:       "Slovenian tax number (davčna številka)",
+		Country:     "SI",
+		OnByDefault: true,
+		Pattern:     regexp.MustCompile(`[1-9]\d{7}`),
+		Validate:    validSITaxNumber,
+		Keywords:    []string{"davčna številka", "davcna stevilka", "davčna št.", "davcna st."},
+		Concepts:    []Concept{TaxID},
+		Base:        domain.Low,
+		Validation:  "mod-11 check digit is valid",
+	})
+}
+
+func validSITaxNumber(s string) bool {
+	d, ok := Digits(s)
+	if !ok || len(d) != 8 || d[0] == 0 {
+		return false
+	}
+	sum := 0
+	for i := 0; i < 7; i++ {
+		sum += d[i] * (8 - i)
+	}
+	rem := sum % 11
+	if rem == 0 {
+		return false
+	}
+	return (11-rem)%10 == d[7]
 }
 
 var siEMSOWeights = [12]int{7, 6, 5, 4, 3, 2, 7, 6, 5, 4, 3, 2}
