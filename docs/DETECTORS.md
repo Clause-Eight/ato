@@ -8,6 +8,8 @@ Keywords are the identifier's own names. Concepts add the shared words for that 
 
 Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.
 
+Log, print, error-tracker and analytics calls in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP that are passed a field whose name says it holds personal data (`user.email`), a whole request body (`req.body`) or a user-like object (`currentUser`) are reported as `log-sink` findings, with the sink (log, error-tracker or analytics) and the data category: medium confidence for a named field or a request body, low for a whole object or an online identifier. Switch them off with `log-sink = false` under `[detectors]`.
+
 | Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |
 |---|---|---|---|---|---|---|
 | `advertising-id` | EU | Mobile advertising ID (IDFA, GAID) (off by default) (only with a keyword) | a UUID that is not the all-zero opt-out value | low | `idfa`, `gaid`, `advertising id`, `advertisingid`, `advertising identifier`, `advertisingidentifier`, `adid`, `aaid`, `ifa` |  |

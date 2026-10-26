@@ -1,6 +1,7 @@
 package domain
 
-// Kind says what a finding is: a personal-data value, or a schema field that holds a special category of data.
+// Kind says what a finding is: a personal-data value, a schema field that holds a special category of data, or
+// a call that writes personal data to a log or telemetry sink.
 type Kind string
 
 const (
@@ -8,7 +9,21 @@ const (
 	KindValue Kind = "value"
 	// KindField is a column, property or message field whose name says it holds special-category data.
 	KindField Kind = "field"
+	// KindSink is a log, error-tracker or analytics call that is passed personal data.
+	KindSink Kind = "sink"
 )
+
+// Sink is where a call sends what it is passed.
+type Sink string
+
+const (
+	SinkLog          Sink = "log"
+	SinkErrorTracker Sink = "error-tracker"
+	SinkAnalytics    Sink = "analytics"
+)
+
+// Sinks lists the sink kinds.
+var Sinks = []Sink{SinkLog, SinkErrorTracker, SinkAnalytics}
 
 // Field is a named place in a schema or model that holds data: a table column, a model attribute, an API or
 // JSON Schema property, a protobuf message field or a dbt column.

@@ -21,7 +21,8 @@ import (
 const maxLine = 1 << 20
 
 // Request describes one scan of a folder or file. SpecialCategories reports schema fields holding GDPR Art. 9
-// data as findings; Inventory collects every personal-data field from schemas and models.
+// data as findings; Inventory collects every personal-data field from schemas and models; Sinks reports log,
+// error-tracker and analytics calls that are passed personal data.
 type Request struct {
 	Root              string
 	Walk              walk.Options
@@ -29,6 +30,7 @@ type Request struct {
 	Workers           int
 	SpecialCategories bool
 	Inventory         bool
+	Sinks             bool
 }
 
 // Result is what a scan found, sorted by path, line and column.
@@ -113,14 +115,14 @@ func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEnt
 		return nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
 	}
 	if !(req.SpecialCategories || req.Inventory) || !schema.Candidate(f.Rel) {
-		fs, err := ScanReader(f.Rel, r, req.Detectors)
+		fs, err := ScanText(f.Rel, r, req.Detectors, req.Sinks)
 		return fs, nil, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("read error: %w", err)
 	}
-	fs, err := ScanReader(f.Rel, bytes.NewReader(data), req.Detectors)
+	fs, err := ScanText(f.Rel, bytes.NewReader(data), req.Detectors, req.Sinks)
 	entries := inventory(f.Rel, data)
 	if req.SpecialCategories {
 		fs = append(fs, specialFindings(entries, splitLines(data))...)
@@ -128,19 +130,32 @@ func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEnt
 	return fs, entries, nil, err
 }
 
-// ScanReader scans text line by line. path is used for locations and for recognising test folders.
+// ScanReader scans text line by line for values. path is used for locations and for recognising test folders.
 func ScanReader(path string, r io.Reader, dets []detectors.Detector) ([]domain.Finding, error) {
+	return ScanText(path, r, dets, false)
+}
+
+// ScanText scans text line by line for values and, when sinks is set and path names source code, for log and
+// telemetry calls that are passed personal data.
+func ScanText(path string, r io.Reader, dets []detectors.Detector, sinks bool) ([]domain.Finding, error) {
 	br, ok := r.(*bufio.Reader)
 	if !ok {
 		br = bufio.NewReaderSize(r, 64<<10)
 	}
 	var findings []domain.Finding
 	ctx := lineContext{path: path, testPath: IsTestPath(path)}
+	var calls *sinkScanner
+	if sinks {
+		calls = newSinkScanner(path)
+	}
 	for lineNo := 1; ; lineNo++ {
 		line, err := readLine(br)
 		if len(line) > 0 || err == nil {
 			ctx.line, ctx.number = line, lineNo
 			findings = append(findings, scanLine(ctx, dets)...)
+			if calls != nil {
+				findings = append(findings, calls.line(ctx)...)
+			}
 			ctx.previous = line
 		}
 		if errors.Is(err, io.EOF) {

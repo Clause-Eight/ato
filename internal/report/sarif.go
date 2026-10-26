@@ -108,15 +108,29 @@ func writeSARIF(w io.Writer, r Report, _ Options) error {
 	return writeLog(w, r, rules, results)
 }
 
-// ruleID is the detector name, with the Art. 9 category for special-category fields.
+// ruleID is the detector name, with the Art. 9 category for special-category fields and the sink for sink
+// calls.
 func ruleID(f domain.Finding) string {
-	if f.Kind == domain.KindField {
+	switch f.Kind {
+	case domain.KindField:
 		return f.Detector + "/" + string(f.Special)
+	case domain.KindSink:
+		return f.Detector + "/" + string(f.Sink)
 	}
 	return f.Detector
 }
 
 func ruleFor(f domain.Finding) sarifRule {
+	if f.Kind == domain.KindSink {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". Personal data in logs, error reports and analytics is copied to systems with wider access and longer retention than the data itself."},
+			Help:             sarifText{"Log an identifier or a masked value instead, or remove the field from what is sent."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "logging", string(f.Sink)}},
+		}
+	}
 	if f.Kind == domain.KindField {
 		return sarifRule{
 			ID:               ruleID(f),

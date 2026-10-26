@@ -6,4 +6,8 @@ tests/fixtures/users.json
   14:12  low     Romanian personal number (CNP)  •••••••••••••
           date, county code and check digit are valid; in a test, fixture or example path
 
-2 findings in 2 files · 42 files scanned · 1 skipped
+app/handler.go
+  12:30  medium  Personal data written to a log  user.Email
+          the name contains "email"; passed to log.Printf, which writes to a log
+
+3 findings in 3 files · 42 files scanned · 1 skipped

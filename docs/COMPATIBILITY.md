@@ -13,7 +13,7 @@ change is announced before it breaks anything.
 | Settings file | `.pii-eu.toml` keys keep their names and meaning. An unknown key stays an error. |
 | JSON report | `schemas/findings.schema.json`: fields listed there are never removed, renamed or given a new type. `schema_version` stays `1.x`. |
 | Inventory | `schemas/inventory.schema.json` and the CSV columns, under the same rule. |
-| SARIF | Rule IDs (`<detector>`, `special-category/<category>`) and the `piiEu/v1` partial fingerprint. |
+| SARIF | Rule IDs (`<detector>`, `special-category/<category>`, `log-sink/<sink>`) and the `piiEu/v1` partial fingerprint. |
 | Detector names | A detector's name never changes and is never reused for a different identifier. |
 | Fingerprints and baselines | A finding's fingerprint stays the same for the same detector, path and line text, so a committed baseline keeps working. |
 | Masking | No output format ever prints a found value, except text output with `--show-values` on screen. `pii-eu fix --dry-run` masks found values and shows only the synthetic replacements. |
@@ -21,6 +21,15 @@ change is announced before it breaks anything.
 
 `TestReportsMatchThePublishedSchemas` and `TestFrozenFieldsAreStillWritten` check the JSON promises on every
 pull request, and the golden files under `internal/report/testdata` pin the exact output of each format.
+
+## Schema versions
+
+| Version | Release | Change |
+|---|---|---|
+| `1.2` | 1.1.0 | Findings may have `kind` `sink`, with the new optional fields `sink` (`log`, `error-tracker`, `analytics`) and `data_category`. `data_category` is also written for `field` findings. |
+| `1.1` | 1.0.0 | Findings have `kind` and, for fields, `special_category`. |
+
+A reader written for an earlier `1.x` schema keeps working: it ignores the new fields, and a finding of an unknown `kind` can be read like a `field` finding, with the expression in `masked`.
 
 ## What a minor release may change
 

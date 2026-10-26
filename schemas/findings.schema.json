@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.1",
-      "description": "1.1 added kind and special_category to findings; 1.0 reports are 1.1 reports without them."
+      "const": "1.2",
+      "description": "1.2 added sink and data_category to findings and the sink kind; 1.1 added kind and special_category. Older reports are 1.2 reports without those fields."
     },
     "tool": {
       "type": "object",
@@ -96,9 +96,10 @@
           "kind": {
             "enum": [
               "value",
-              "field"
+              "field",
+              "sink"
             ],
-            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9); masked then holds the field name."
+            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9); masked then holds the field name. sink: a log, error-tracker or analytics call that is passed personal data; masked then holds the expression passed, never a value."
           },
           "special_category": {
             "enum": [
@@ -111,7 +112,30 @@
               "health",
               "sex-life-or-sexual-orientation"
             ],
-            "description": "The GDPR Art. 9 category, for kind field."
+            "description": "The GDPR Art. 9 category, for kind field, and for kind sink when the data is special-category data."
+          },
+          "sink": {
+            "enum": [
+              "log",
+              "error-tracker",
+              "analytics"
+            ],
+            "description": "Where the call sends the data, for kind sink."
+          },
+          "data_category": {
+            "enum": [
+              "name",
+              "contact",
+              "address",
+              "government-identifier",
+              "financial",
+              "birth-date",
+              "location",
+              "online-identifier",
+              "demographic",
+              "special-category"
+            ],
+            "description": "The kind of personal data, for kind field and for kind sink when a field name says which. Left out for a whole request body or a user-like object."
           },
           "detector": {
             "type": "string",
