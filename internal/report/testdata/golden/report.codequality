@@ -22,5 +22,17 @@
         "begin": 14
       }
     }
+  },
+  {
+    "description": "Romanian personal number (CNP) ••••••••••••• in column \"cnp\" (medium confidence): date, county code and check digit are valid; the word \"cnp\" is nearby",
+    "check_name": "pii-eu/ro-cnp",
+    "fingerprint": "00ff00ff00ff00ff00ff00ff00ff00ff",
+    "severity": "major",
+    "location": {
+      "path": "exports/users.csv.gz!/users.csv",
+      "lines": {
+        "begin": 2
+      }
+    }
   }
 ]

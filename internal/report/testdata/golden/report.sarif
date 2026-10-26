@@ -110,6 +110,36 @@
             "sample": false,
             "testPath": true
           }
+        },
+        {
+          "ruleId": "ro-cnp",
+          "level": "warning",
+          "message": {
+            "text": "Romanian personal number (CNP) ••••••••••••• in column \"cnp\" (medium confidence): date, county code and check digit are valid; the word \"cnp\" is nearby"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "exports/users.csv.gz!/users.csv",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 7
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "piiEu/v1": "00ff00ff00ff00ff00ff00ff00ff00ff"
+          },
+          "properties": {
+            "columnName": "cnp",
+            "confidence": "medium",
+            "sample": false,
+            "testPath": false
+          }
         }
       ]
     }
