@@ -11,7 +11,7 @@ import (
 
 func scanRows(t *testing.T, path, text string, maxRows int) textResult {
 	t.Helper()
-	res, err := scanText(path, strings.NewReader(text), []detectors.Detector{sevens}, maxRows)
+	res, err := scanText(path, strings.NewReader(text), []detectors.Detector{sevens}, maxRows, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +185,7 @@ func BenchmarkScanCSV(b *testing.B) {
 	dets := detectors.All()
 	b.SetBytes(int64(len(body)))
 	for b.Loop() {
-		if _, err := scanText("bench.csv", strings.NewReader(body), dets, 0); err != nil {
+		if _, err := scanText("bench.csv", strings.NewReader(body), dets, 0, false); err != nil {
 			b.Fatal(err)
 		}
 	}

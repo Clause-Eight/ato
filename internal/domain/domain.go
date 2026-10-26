@@ -44,20 +44,23 @@ type Location struct {
 	Column int
 }
 
-// Finding is one detected value, a schema field holding special-category data, or a data store declared in
-// infrastructure code (Kind says which). Value is the raw text and must never reach a report; reporters use
-// Masked. For a field, Masked is the field's name; for a store, its resource address.
+// Finding is one detected value, a schema field holding special-category data, a call that writes personal data
+// to a log or telemetry sink, or a data store declared in infrastructure code (Kind says which). Value is the raw
+// text and must never reach a report; reporters use Masked. For a field, Masked is the field's name; for a sink,
+// the expression passed to the call; for a store, its resource address.
 // ColumnName is the data column a value was found in (a CSV or TSV header, a JSON Lines key path or a SQL
-// column), when the file has columns.
+// column), when the file has columns. Span is where a value sits in its line, in bytes, so it can be replaced.
 type Finding struct {
 	Kind        Kind
 	Category    DataCategory
 	Special     SpecialCategory
+	Sink        Sink
 	Detector    string
 	Label       string
 	Country     string
 	Location    Location
 	ColumnName  string
+	Span        Span
 	Value       string
 	Masked      string
 	Confidence  Confidence
@@ -68,6 +71,11 @@ type Finding struct {
 	Ignored     bool
 	// Store is the data store an infra finding is about; nil for other kinds.
 	Store *Store
+}
+
+// Span is a byte range within one line: Start is inclusive, End exclusive.
+type Span struct {
+	Start, End int
 }
 
 // Summary describes one scan. Sampled lists data files of which only the first rows were read.

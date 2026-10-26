@@ -134,7 +134,7 @@ func withStore(r Report) Report {
 
 func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	var buf bytes.Buffer
-	if err := Write("json", &buf, withStore(withField(sample())), Options{}); err != nil {
+	if err := Write("json", &buf, withSink(withStore(withField(sample()))), Options{}); err != nil {
 		t.Fatal(err)
 	}
 	var doc map[string]any
@@ -218,4 +218,13 @@ func TestInfraFindingsInEachFormat(t *testing.T) {
 			t.Errorf("json misses %s:\n%s", want, buf.String())
 		}
 	}
+}
+
+func withSink(r Report) Report {
+	r.Findings = append(r.Findings, domain.Finding{
+		Kind: domain.KindSink, Category: domain.CategoryContact, Sink: domain.SinkLog, Detector: "log-sink",
+		Label: "Personal data written to a log", Country: "EU", Location: domain.Location{Path: "app/handler.go", Line: 12, Column: 30},
+		Masked: "user.Email", Confidence: domain.Medium, Reasons: []string{`the name contains "email"`, "passed to log.Printf, which writes to a log"}, Fingerprint: "ffeeddccbbaa99887766554433221100",
+	})
+	return r
 }

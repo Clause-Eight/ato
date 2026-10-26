@@ -1,11 +1,11 @@
 {
-  "schema_version": "1.5",
+  "schema_version": "1.2",
   "tool": {
     "name": "pii-eu",
     "version": "test"
   },
   "summary": {
-    "findings": 3,
+    "findings": 4,
     "files_scanned": 42,
     "files_skipped": [
       {
@@ -91,6 +91,26 @@
       "sample": false,
       "test_path": false,
       "fingerprint": "00ff00ff00ff00ff00ff00ff00ff00ff"
+    },
+    {
+      "kind": "sink",
+      "sink": "log",
+      "data_category": "contact",
+      "detector": "log-sink",
+      "label": "Personal data written to a log",
+      "country": "EU",
+      "path": "app/handler.go",
+      "line": 12,
+      "column": 30,
+      "confidence": "medium",
+      "masked": "user.Email",
+      "reasons": [
+        "the name contains \"email\"",
+        "passed to log.Printf, which writes to a log"
+      ],
+      "sample": false,
+      "test_path": false,
+      "fingerprint": "ffeeddccbbaa99887766554433221100"
     }
   ]
 }
