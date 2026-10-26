@@ -108,7 +108,8 @@ func writeSARIF(w io.Writer, r Report, _ Options) error {
 	return writeLog(w, r, rules, results)
 }
 
-// ruleID is the detector name, with the Art. 9 category for special-category fields.
+// ruleID is the detector name, with the Art. 9 category for special-category fields. Checks on data stores use
+// the detector name, such as tf-unencrypted.
 func ruleID(f domain.Finding) string {
 	if f.Kind == domain.KindField {
 		return f.Detector + "/" + string(f.Special)
@@ -117,6 +118,16 @@ func ruleID(f domain.Finding) string {
 }
 
 func ruleFor(f domain.Finding) sarifRule {
+	if c, ok := domain.InfraCheckFor(f.Detector); ok && f.Kind == domain.KindInfra {
+		return sarifRule{
+			ID:               c.Detector,
+			Name:             ruleName(c.Label),
+			ShortDescription: sarifText{c.Label},
+			FullDescription:  sarifText{c.Label + ", declared in Terraform. Personal data at rest needs encryption, a retention limit and EU residency or a documented transfer (" + c.Rule + ")."},
+			Help:             sarifText{c.Help},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "terraform", "infrastructure"}},
+		}
+	}
 	if f.Kind == domain.KindField {
 		return sarifRule{
 			ID:               ruleID(f),
@@ -127,7 +138,7 @@ func ruleFor(f domain.Finding) sarifRule {
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
 		}
 	}
-	if f.Kind == domain.KindStore {
+	if f.Kind == domain.KindLifecycle {
 		return sarifRule{
 			ID:               ruleID(f),
 			Name:             ruleName(f.Label),

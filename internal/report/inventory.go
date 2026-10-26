@@ -10,13 +10,15 @@ import (
 )
 
 // InventorySchemaVersion is the version of the JSON inventory, versioned like the findings report.
-const InventorySchemaVersion = "1.0"
+const InventorySchemaVersion = "1.1"
 
-// Inventory is a draft record of the personal data a code base declares: field names and where they are, never values.
+// Inventory is a draft record of the personal data a code base declares: field names and where they are, and the
+// data stores its Terraform deploys. Never values.
 type Inventory struct {
 	Tool    string
 	Version string
 	Entries []domain.InventoryEntry
+	Stores  []domain.Store
 	Files   int
 }
 
@@ -28,6 +30,36 @@ type jsonInventory struct {
 	Tool          jsonTool         `json:"tool"`
 	FilesScanned  int              `json:"files_scanned"`
 	Entries       []jsonInventoryE `json:"entries"`
+	Stores        []jsonStoreE     `json:"stores"`
+}
+
+// jsonStoreE is a data store in the inventory. Tag values are left out: they are free text and may name people.
+type jsonStoreE struct {
+	Type         string   `json:"type"`
+	Name         string   `json:"name"`
+	Provider     string   `json:"provider"`
+	Service      string   `json:"service"`
+	Names        []string `json:"names"`
+	Regions      []string `json:"regions"`
+	InEEA        string   `json:"in_eea"`
+	Adequacy     string   `json:"adequacy,omitempty"`
+	Encrypted    string   `json:"encrypted"`
+	Retention    string   `json:"retention"`
+	Backup       string   `json:"backup"`
+	Public       string   `json:"public"`
+	PersonalData bool     `json:"personal_data"`
+	PersonalWhy  string   `json:"personal_data_reason,omitempty"`
+	Path         string   `json:"path"`
+	Line         int      `json:"line"`
+}
+
+func storeEntry(s domain.Store) jsonStoreE {
+	return jsonStoreE{
+		Type: s.Type, Name: s.Name, Provider: s.Provider, Service: s.Service, Names: nonNilStrings(s.Names), Regions: nonNilStrings(s.Regions),
+		InEEA: s.InEEA.State.String(), Adequacy: s.Adequacy, Encrypted: s.Encryption.State.String(), Retention: s.Retention.State.String(),
+		Backup: s.Backup.State.String(), Public: s.Public.State.String(), PersonalData: s.PersonalData, PersonalWhy: s.PersonalWhy,
+		Path: s.Location.Path, Line: s.Location.Line,
+	}
 }
 
 type jsonInventoryE struct {
@@ -43,10 +75,14 @@ type jsonInventoryE struct {
 }
 
 // WriteInventory writes the inventory as JSON, as CSV laid out like an Art. 30 record, or as an HTML page.
+// Stores are written in JSON only, since the CSV columns are fixed.
 func WriteInventory(format string, w io.Writer, inv Inventory) error {
 	switch format {
 	case "json":
-		out := jsonInventory{SchemaVersion: InventorySchemaVersion, Tool: jsonTool{Name: inv.Tool, Version: inv.Version}, FilesScanned: inv.Files, Entries: make([]jsonInventoryE, 0, len(inv.Entries))}
+		out := jsonInventory{SchemaVersion: InventorySchemaVersion, Tool: jsonTool{Name: inv.Tool, Version: inv.Version}, FilesScanned: inv.Files, Entries: make([]jsonInventoryE, 0, len(inv.Entries)), Stores: make([]jsonStoreE, 0, len(inv.Stores))}
+		for _, s := range inv.Stores {
+			out.Stores = append(out.Stores, storeEntry(s))
+		}
 		for _, e := range inv.Entries {
 			out.Entries = append(out.Entries, jsonInventoryE{
 				Field: e.Field.Name, Container: e.Field.Container, DataCategory: string(e.Classification.Category),

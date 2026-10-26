@@ -16,6 +16,8 @@ const (
 	NewRecipient = "recipient"
 	NewSink      = "sink"
 	NewStore     = "store"
+	// NewInfra is a Terraform data store linked to personal data.
+	NewInfra = "infrastructure"
 )
 
 // Diff lists what is new in current compared with previous: categories, special categories, stores and
@@ -55,6 +57,11 @@ func facts(m Map) map[Change]bool {
 		}
 		for _, r := range c.Recipients {
 			out[Change{c.Name, NewRecipient, r.Name}] = true
+		}
+		for _, s := range c.Infra {
+			if s.PersonalData {
+				out[Change{c.Name, NewInfra, s.Address}] = true
+			}
 		}
 		for _, s := range c.Sinks {
 			out[Change{c.Name, NewSink, s.Category}] = true

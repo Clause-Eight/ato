@@ -1,0 +1,2 @@
+::error file=infra/main.tf,line=7,col=1,title=pii-eu%3A Data store outside the EEA::Data store outside the EEA aws_s3_bucket.exports (high confidence): region us-east-1 is outside the EEA; linked to personal data: tagged data_classification with "pii"
+1 finding in 1 file · 3 files scanned

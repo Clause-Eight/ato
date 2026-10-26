@@ -10,8 +10,8 @@ const (
 	KindField Kind = "field"
 	// KindSink is a call that writes personal data to a log, an error tracker or analytics.
 	KindSink Kind = "sink"
-	// KindStore is a table, model or collection holding personal data that the code never erases or expires.
-	KindStore Kind = "store"
+	// KindLifecycle is a table, model or collection holding personal data that the code never erases or expires.
+	KindLifecycle Kind = "lifecycle"
 )
 
 // Field is a named place in a schema or model that holds data: a table column, a model attribute, an API or

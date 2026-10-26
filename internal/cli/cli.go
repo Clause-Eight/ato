@@ -80,7 +80,8 @@ const usage = `pii-eu finds EU personal data in code, fixtures and logs.
 Usage:
   pii-eu scan [flags] [path]   scan a folder or file (default: current folder); "-" reads stdin
   pii-eu baseline [path]       accept current findings so only new ones are reported
-  pii-eu inventory [flags] [path]  list the personal-data fields declared in schemas and models
+  pii-eu inventory [flags] [path]  list the personal-data fields in schemas and models, and the
+                               data stores declared in Terraform
   pii-eu map [flags] [path]    draft a data map: stores, logged personal data and third-party recipients
   pii-eu detectors [--markdown]  list what can be detected
   pii-eu version               print the version
@@ -248,6 +249,16 @@ func enabledDetectors(cfg config.Config) []detectors.Detector {
 	return out
 }
 
+func enabledInfra(cfg config.Config) []string {
+	var out []string
+	for _, name := range engine.InfraDetectors() {
+		if cfg.Enabled(name, []string{domain.CrossBorder}, true) {
+			out = append(out, name)
+		}
+	}
+	return out
+}
+
 func runScan(args []string, stdout, stderr io.Writer) (int, error) {
 	f, root, err := parseScanFlags(args, stderr)
 	if err != nil {
@@ -312,6 +323,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		Lifecycle:         f.lifecycle || erasure || retention,
 		ErasureFindings:   erasure,
 		RetentionFindings: retention,
+		Infra:             enabledInfra(cfg),
 	})
 	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) {
 		return res, cfg, usageError{err.Error()}
@@ -321,7 +333,13 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 
 // engineDetector names the findings made by the engine rather than by a registered detector. Settings may switch
 // them on or off like a detector.
-var engineDetector = map[string]bool{engine.SpecialCategoryDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
+var engineDetector = func() map[string]bool {
+	m := map[string]bool{engine.SpecialCategoryDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
+	for _, name := range engine.InfraDetectors() {
+		m[name] = true
+	}
+	return m
+}()
 
 // Stdin is read by `pii-eu scan -`. Tests replace it.
 var Stdin io.Reader = os.Stdin
@@ -432,6 +450,9 @@ func runDetectors(args []string, stdout io.Writer) (int, error) {
 		}
 		fmt.Fprintf(&b, "%-16s %-3s %-7s %s%s\n", d.Name, d.Country, d.Base, d.Label, state)
 	}
+	for _, c := range domain.InfraChecks {
+		fmt.Fprintf(&b, "%-16s %-3s %-7s %s (Terraform)\n", c.Detector, domain.CrossBorder, domain.Medium, c.Label)
+	}
 	_, err := io.WriteString(stdout, b.String())
 	return ExitClean, err
 }
@@ -530,6 +551,28 @@ func DetectorTable() string {
 		}
 		fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s | %s |\n", d.Name, d.Country, label, d.Validation, d.Base, strings.Join(kws, ", "), strings.Join(concepts, ", "))
 	}
+	b.WriteString(storeTable())
+	return b.String()
+}
+
+// storeTable is the part of docs/DETECTORS.md about Terraform data stores.
+func storeTable() string {
+	var b strings.Builder
+	b.WriteString("\n## Terraform data stores\n\n")
+	b.WriteString("`pii-eu scan` reads the data stores declared in `.tf` files, without running Terraform, and reports these checks as `infra` findings. A finding is high when the store is linked to personal data (a tag such as `data_classification = \"pii\"` or `pii = true`, or a name that matches a table or model in the inventory) and medium otherwise. A setting that comes from something the code does not show, such as a variable without a default, is never read as a failure: it is reported at low confidence, and only for linked stores. Switch a check off under `[detectors]`, for example `tf-no-retention = false`.\n\n")
+	b.WriteString("| Name | Finding | Reported when | Supports |\n|---|---|---|---|\n")
+	for _, c := range domain.InfraChecks {
+		fmt.Fprintf(&b, "| `%s` | %s | %s | %s |\n", c.Detector, c.Label, c.When, c.Rule)
+	}
+	b.WriteString("\nResource types read as data stores:\n\n")
+	types := engine.StoreTypes()
+	for _, p := range []struct{ key, title string }{{"aws", "AWS"}, {"google", "Google Cloud"}, {"azurerm", "Azure"}} {
+		names := make([]string, 0, len(types[p.key]))
+		for _, t := range types[p.key] {
+			names = append(names, "`"+t+"`")
+		}
+		fmt.Fprintf(&b, "- %s: %s\n", p.title, strings.Join(names, ", "))
+	}
 	return b.String()
 }
 
@@ -552,7 +595,7 @@ func runInventory(args []string, stdout, stderr io.Writer) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	inv := report.Inventory{Tool: "pii-eu", Version: Version, Entries: res.Inventory, Files: res.Summary.FilesScanned}
+	inv := report.Inventory{Tool: "pii-eu", Version: Version, Entries: res.Inventory, Stores: res.Stores, Files: res.Summary.FilesScanned}
 	w := stdout
 	if f.output != "" {
 		file, err := os.Create(f.output)
@@ -613,7 +656,7 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 		return 0, err
 	}
 	findings, _ := withoutIgnored(res.Findings)
-	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle})
+	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle, Infra: res.Stores})
 	if previous != nil {
 		if f.output != "" {
 			if err := writeMapFile(f, m); err != nil {

@@ -46,12 +46,18 @@ func TestNoFormatLeaksValues(t *testing.T) {
 }
 
 func TestGolden(t *testing.T) {
+	golden(t, "report", sample())
+	golden(t, "infra", withStore(Report{Tool: "pii-eu", Version: "test", Summary: domain.Summary{FilesScanned: 3}}))
+}
+
+func golden(t *testing.T, name string, r Report) {
+	t.Helper()
 	for _, format := range Formats() {
 		var buf bytes.Buffer
-		if err := Write(format, &buf, sample(), Options{}); err != nil {
+		if err := Write(format, &buf, r, Options{}); err != nil {
 			t.Fatal(err)
 		}
-		path := filepath.Join("testdata", "golden", "report."+format)
+		path := filepath.Join("testdata", "golden", name+"."+format)
 		if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
 			if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
 				t.Fatal(err)
