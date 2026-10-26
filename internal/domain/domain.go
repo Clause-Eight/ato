@@ -46,6 +46,7 @@ type Location struct {
 
 // Finding is one detected value, or a schema field holding special-category data (Kind says which). Value is
 // the raw text and must never reach a report; reporters use Masked. For a field, Masked is the field's name.
+// Span is where a value sits in its line, in bytes, so it can be replaced.
 type Finding struct {
 	Kind        Kind
 	Category    DataCategory
@@ -54,6 +55,7 @@ type Finding struct {
 	Label       string
 	Country     string
 	Location    Location
+	Span        Span
 	Value       string
 	Masked      string
 	Confidence  Confidence
@@ -62,6 +64,11 @@ type Finding struct {
 	TestPath    bool
 	Fingerprint string
 	Ignored     bool
+}
+
+// Span is a byte range within one line: Start is inclusive, End exclusive.
+type Span struct {
+	Start, End int
 }
 
 // Summary describes one scan.

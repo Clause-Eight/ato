@@ -7,16 +7,17 @@ change is announced before it breaks anything.
 
 | Interface | Promise |
 |---|---|
-| Commands | `scan`, `baseline`, `inventory`, `detectors` and `version` keep their names and meaning. |
+| Commands | `scan`, `baseline`, `inventory`, `fix`, `detectors` and `version` keep their names and meaning. |
 | Flags | Every flag listed by `pii-eu help` keeps its name, its meaning and its default. |
-| Exit codes | `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read. |
+| Exit codes | `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read. `pii-eu fix` exits `0` when it changed files or had nothing to do. |
 | Settings file | `.pii-eu.toml` keys keep their names and meaning. An unknown key stays an error. |
 | JSON report | `schemas/findings.schema.json`: fields listed there are never removed, renamed or given a new type. `schema_version` stays `1.x`. |
 | Inventory | `schemas/inventory.schema.json` and the CSV columns, under the same rule. |
 | SARIF | Rule IDs (`<detector>`, `special-category/<category>`) and the `piiEu/v1` partial fingerprint. |
 | Detector names | A detector's name never changes and is never reused for a different identifier. |
 | Fingerprints and baselines | A finding's fingerprint stays the same for the same detector, path and line text, so a committed baseline keeps working. |
-| Masking | No output format ever prints a found value, except text output with `--show-values` on screen. |
+| Masking | No output format ever prints a found value, except text output with `--show-values` on screen. `pii-eu fix --dry-run` masks found values and shows only the synthetic replacements. |
+| Synthetic mark | A value written by `pii-eu fix` keeps being recognised as synthetic by every later 1.x release. |
 
 `TestReportsMatchThePublishedSchemas` and `TestFrozenFieldsAreStillWritten` check the JSON promises on every
 pull request, and the golden files under `internal/report/testdata` pin the exact output of each format.
