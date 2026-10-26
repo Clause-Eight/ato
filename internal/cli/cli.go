@@ -295,7 +295,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 	}
 	for _, names := range []map[string]bool{cfg.Detectors, keys(cfg.DetectorMinConfidence)} {
 		for name := range names {
-			if _, ok := detectors.Get(name); !ok && name != engine.SpecialCategoryDetector {
+			if _, ok := detectors.Get(name); !ok && name != engine.SpecialCategoryDetector && name != engine.SinkDetector {
 				return engine.Result{}, cfg, usageError{fmt.Sprintf("unknown detector %q in settings: run `pii-eu detectors`", name)}
 			}
 		}
@@ -310,6 +310,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		Walk:              walk.Options{Include: cfg.Include, Exclude: cfg.Exclude, MaxFileSize: cfg.MaxFileSize, NoGit: f.noGit, Staged: f.staged},
 		Detectors:         dets,
 		SpecialCategories: cfg.Enabled(engine.SpecialCategoryDetector, []string{domain.CrossBorder}, true),
+		Sinks:             cfg.Enabled(engine.SinkDetector, []string{domain.CrossBorder}, true),
 		Inventory:         f.inventory,
 	})
 	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) {
@@ -505,6 +506,7 @@ func DetectorTable() string {
 	b.WriteString("Base confidence is what a valid match gets on its own. A keyword on the same line or the line before raises it one step; a test or fixture path lowers it one step; a published sample value is always low. The default `--min-confidence` is medium.\n\n")
 	b.WriteString("Keywords are the identifier's own names. Concepts add the shared words for that kind of data in all 24 EU languages, from `internal/detectors/keywords/`. Detectors marked off by default run when switched on in `[detectors]` or when their country is selected with `--countries`.\n\n")
 	b.WriteString("Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.\n\n")
+	b.WriteString("Log, print, error-tracker and analytics calls in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP that are passed a field whose name says it holds personal data (`user.email`), a whole request body (`req.body`) or a user-like object (`currentUser`) are reported as `log-sink` findings, with the sink (log, error-tracker or analytics) and the data category: medium confidence for a named field or a request body, low for a whole object or an online identifier. Switch them off with `log-sink = false` under `[detectors]`.\n\n")
 	b.WriteString("| Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |\n|---|---|---|---|---|---|---|\n")
 	for _, d := range detectors.All() {
 		kws := make([]string, 0, len(d.Keywords))

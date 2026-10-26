@@ -111,9 +111,18 @@ func withField(r Report) Report {
 	return r
 }
 
+func withSink(r Report) Report {
+	r.Findings = append(r.Findings, domain.Finding{
+		Kind: domain.KindSink, Category: domain.CategoryContact, Sink: domain.SinkLog, Detector: "log-sink",
+		Label: "Personal data written to a log", Country: "EU", Location: domain.Location{Path: "app/handler.go", Line: 12, Column: 30},
+		Masked: "user.Email", Confidence: domain.Medium, Reasons: []string{`the name contains "email"`, "passed to log.Printf, which writes to a log"}, Fingerprint: "ffeeddccbbaa99887766554433221100",
+	})
+	return r
+}
+
 func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	var buf bytes.Buffer
-	if err := Write("json", &buf, withField(sample()), Options{}); err != nil {
+	if err := Write("json", &buf, withSink(withField(sample())), Options{}); err != nil {
 		t.Fatal(err)
 	}
 	var doc map[string]any

@@ -48,7 +48,7 @@ func TestNoFormatLeaksValues(t *testing.T) {
 func TestGolden(t *testing.T) {
 	for _, format := range Formats() {
 		var buf bytes.Buffer
-		if err := Write(format, &buf, sample(), Options{}); err != nil {
+		if err := Write(format, &buf, withSink(sample()), Options{}); err != nil {
 			t.Fatal(err)
 		}
 		path := filepath.Join("testdata", "golden", "report."+format)

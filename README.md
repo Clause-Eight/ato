@@ -146,6 +146,22 @@ first_name,patients,name,,sql,db/migrations/001_patients.sql,3
 diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
 ```
 
+### Personal data in logs, error trackers and analytics
+
+`pii-eu scan` also reads source code in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP for log, print, error-tracker (Sentry, Bugsnag, Rollbar, Crashlytics and others) and analytics (Segment, Mixpanel, Amplitude, PostHog, Google tag and others) calls. A call is a `log-sink` finding when it is passed:
+
+- a field whose name says it holds personal data, such as `user.email`, `customer.getIban()` or `{"phone": ...}`: medium confidence, with the data category;
+- a whole request body, such as `req.body`, `request.json`, `$request->all()` or `$_POST`: medium confidence;
+- a whole user-like object, such as `user` or `currentUser`: low confidence.
+
+The finding names the sink (`log`, `error-tracker` or `analytics`) and shows the expression passed, never a value. Names that are about a value rather than the value (`isEmail`, `emailTemplate`, `len(user.email)`, `hash(user.phone)`) are left alone, and ambiguous words such as `address` count only on a person (`customer.address`, not `server.address`). Switch these findings off with `log-sink = false` under `[detectors]`.
+
+```text
+app/signup.py
+  42:30  medium  Personal data written to a log  user.email
+          the name contains "email"; passed to logger.info, which writes to a log
+```
+
 ### Fixing test fixtures
 
 `pii-eu fix [path]` replaces the values a scan reports in test, fixture and example paths with synthetic ones from the same generators the test suite uses. It takes the scan flags (`--min-confidence`, `--include`, `--countries` and so on), and:
