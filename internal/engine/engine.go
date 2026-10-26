@@ -9,6 +9,7 @@ import (
 	"io"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
@@ -20,8 +21,9 @@ import (
 // maxLine caps how much of one line is read; the rest of a very long line is skipped.
 const maxLine = 1 << 20
 
-// Request describes one scan of a folder or file. SpecialCategories reports schema fields holding GDPR Art. 9
-// data as findings; Inventory collects every personal-data field from schemas and models.
+// Request describes one scan of a folder, file or saved container image. SpecialCategories reports schema
+// fields holding GDPR Art. 9 data as findings; Inventory collects every personal-data field from schemas,
+// models and data file headers. MaxRows caps the rows read from each data file; 0 reads them all.
 type Request struct {
 	Root              string
 	Walk              walk.Options
@@ -29,6 +31,7 @@ type Request struct {
 	Workers           int
 	SpecialCategories bool
 	Inventory         bool
+	MaxRows           int
 }
 
 // Result is what a scan found, sorted by path, line and column.
@@ -38,59 +41,138 @@ type Result struct {
 	Summary   domain.Summary
 }
 
+// fileResult is one scanned file or archive entry. Layer and name place an image entry for Shadowed.
+type fileResult struct {
+	findings []domain.Finding
+	entries  []domain.InventoryEntry
+	sampled  *domain.Skipped
+	layer    int
+	name     string
+}
+
+// batch is what one job scanned: a file, every entry of an archive, or an image layer.
+type batch struct {
+	files      []fileResult
+	skipped    []domain.Skipped
+	unreadable []domain.Skipped
+}
+
+// add records the outcome of scanning one file. A file stopped by an archive limit keeps what was found.
+func (b *batch) add(rel string, fr fileResult, skip *domain.Skipped, err error) {
+	switch {
+	case err != nil && !walk.IsLimit(err):
+		b.unreadable = append(b.unreadable, domain.Skipped{Path: rel, Reason: err.Error()})
+	case skip != nil:
+		b.skipped = append(b.skipped, *skip)
+	default:
+		b.files = append(b.files, fr)
+	}
+}
+
 // Scan lists files, scans them in parallel and returns sorted findings.
 func Scan(req Request) (Result, error) {
 	files, skipped, err := walk.Files(req.Root, req.Walk)
 	if err != nil {
 		return Result{}, err
 	}
-	workers := req.Workers
+	batches := parallel(len(files), req.Workers, func(i int) batch { return scanFile(files[i], req) })
+	batches = append(batches, batch{skipped: skipped})
+	return fold(batches, req), nil
+}
+
+// ScanImage scans a container image saved with `docker save`, layer by layer in parallel. A file deleted or
+// replaced by a later layer is still reported, since it is still in the image, and the finding says so.
+func ScanImage(req Request) (Result, error) {
+	img, err := walk.OpenImage(req.Root, req.Walk)
+	if err != nil {
+		return Result{}, err
+	}
+	defer img.Close()
+	batches := parallel(len(img.Layers)+len(img.Configs), req.Workers, func(i int) batch {
+		if i >= len(img.Layers) {
+			return scanImageConfig(img, img.Configs[i-len(img.Layers)], req)
+		}
+		return scanLayer(img, i, req)
+	})
+	for _, b := range batches {
+		for _, fr := range b.files {
+			if fr.layer < 0 {
+				continue
+			}
+			if why := img.Shadowed(fr.layer, fr.name); why != "" {
+				for k := range fr.findings {
+					fr.findings[k].Reasons = append(fr.findings[k].Reasons, why)
+				}
+			}
+		}
+	}
+	return fold(batches, req), nil
+}
+
+func scanImageConfig(img *walk.Image, name string, req Request) batch {
+	var b batch
+	_ = img.VisitConfig(name, func(e walk.Entry, r io.Reader) error {
+		fr, skip, err := scanContent(e.Rel, r, req)
+		fr.layer = -1
+		b.add(e.Rel, fr, skip, err)
+		return nil
+	})
+	return b
+}
+
+func scanLayer(img *walk.Image, i int, req Request) batch {
+	var b batch
+	prefix := img.Rel + "!/" + img.Layers[i].ID + "/"
+	out := img.VisitLayer(i, func(e walk.Entry, r io.Reader) error {
+		fr, skip, err := scanContent(e.Rel, r, req)
+		fr.layer = i
+		fr.name, _, _ = strings.Cut(strings.TrimPrefix(e.Rel, prefix), "!/")
+		b.add(e.Rel, fr, skip, err)
+		return err
+	})
+	b.skipped = append(b.skipped, out.Skipped...)
+	b.unreadable = append(b.unreadable, out.Unreadable...)
+	return b
+}
+
+// parallel runs n jobs on the workers and returns their batches in job order.
+func parallel(n, workers int, job func(int) batch) []batch {
 	if workers <= 0 {
 		workers = runtime.NumCPU()
 	}
-	type out struct {
-		findings []domain.Finding
-		entries  []domain.InventoryEntry
-		skip     *domain.Skipped
-		bad      *domain.Skipped
-	}
-	jobs := make(chan walk.File)
-	results := make(chan out)
+	out := make([]batch, n)
+	next := make(chan int)
 	var wg sync.WaitGroup
-	for range workers {
+	for range min(workers, max(n, 1)) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for f := range jobs {
-				fs, entries, skip, err := scanFile(f, req)
-				o := out{findings: fs, entries: entries, skip: skip}
-				if err != nil {
-					o.bad = &domain.Skipped{Path: f.Rel, Reason: err.Error()}
-				}
-				results <- o
+			for i := range next {
+				out[i] = job(i)
 			}
 		}()
 	}
-	go func() {
-		for _, f := range files {
-			jobs <- f
-		}
-		close(jobs)
-		wg.Wait()
-		close(results)
-	}()
-	res := Result{Summary: domain.Summary{FilesSkipped: skipped}}
-	for o := range results {
-		switch {
-		case o.bad != nil:
-			res.Summary.Unreadable = append(res.Summary.Unreadable, *o.bad)
-		case o.skip != nil:
-			res.Summary.FilesSkipped = append(res.Summary.FilesSkipped, *o.skip)
-		default:
+	for i := range n {
+		next <- i
+	}
+	close(next)
+	wg.Wait()
+	return out
+}
+
+func fold(batches []batch, req Request) Result {
+	var res Result
+	for _, b := range batches {
+		res.Summary.FilesSkipped = append(res.Summary.FilesSkipped, b.skipped...)
+		res.Summary.Unreadable = append(res.Summary.Unreadable, b.unreadable...)
+		for _, fr := range b.files {
 			res.Summary.FilesScanned++
-			res.Findings = append(res.Findings, o.findings...)
+			res.Findings = append(res.Findings, fr.findings...)
 			if req.Inventory {
-				res.Inventory = append(res.Inventory, o.entries...)
+				res.Inventory = append(res.Inventory, fr.entries...)
+			}
+			if fr.sampled != nil {
+				res.Summary.Sampled = append(res.Summary.Sampled, *fr.sampled)
 			}
 		}
 	}
@@ -98,58 +180,132 @@ func Scan(req Request) (Result, error) {
 	sortInventory(res.Inventory)
 	sortSkipped(res.Summary.FilesSkipped)
 	sortSkipped(res.Summary.Unreadable)
-	return res, nil
+	sortSkipped(res.Summary.Sampled)
+	return res
 }
 
-func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEntry, *domain.Skipped, error) {
+// scanFile scans one listed file, or every entry of an archive.
+func scanFile(f walk.File, req Request) batch {
+	var b batch
 	fh, err := walk.Open(f)
 	if err != nil {
-		return nil, nil, nil, err
+		b.add(f.Rel, fileResult{}, nil, err)
+		return b
 	}
 	defer fh.Close()
-	r := bufio.NewReaderSize(fh, 64<<10)
+	if !walk.IsArchive(f.Rel) {
+		fr, skip, err := scanContent(f.Rel, fh, req)
+		b.add(f.Rel, fr, skip, err)
+		return b
+	}
+	out, err := walk.VisitArchive(f.Rel, fh, req.Walk, func(e walk.Entry, r io.Reader) error {
+		fr, skip, err := scanContent(e.Rel, r, req)
+		b.add(e.Rel, fr, skip, err)
+		return err
+	})
+	if err != nil {
+		b.add(f.Rel, fileResult{}, nil, err)
+	}
+	b.skipped = append(b.skipped, out.Skipped...)
+	b.unreadable = append(b.unreadable, out.Unreadable...)
+	return b
+}
+
+// scanContent scans one file's content: data files by column, schemas and models also for their fields, other
+// text line by line. Binary content is skipped.
+func scanContent(rel string, content io.Reader, req Request) (fileResult, *domain.Skipped, error) {
+	r := bufio.NewReaderSize(content, 64<<10)
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
-		return nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
+		return fileResult{}, &domain.Skipped{Path: rel, Reason: "binary"}, nil
 	}
-	if !(req.SpecialCategories || req.Inventory) || !schema.Candidate(f.Rel) {
-		fs, err := ScanReader(f.Rel, r, req.Detectors)
-		return fs, nil, nil, err
+	wantFields := req.SpecialCategories || req.Inventory
+	if walk.DataKind(rel) != "" {
+		tr, err := scanText(rel, r, req.Detectors, req.MaxRows)
+		fr := fileResult{findings: tr.findings}
+		if tr.sampled {
+			fr.sampled = &domain.Skipped{Path: rel, Reason: fmt.Sprintf("only the first %d rows were read (max_rows)", req.MaxRows)}
+		}
+		if wantFields {
+			fr.entries = classifyFields(tr.fields)
+			if req.SpecialCategories {
+				fr.findings = append(fr.findings, specialFindings(fr.entries, nil)...)
+			}
+		}
+		return fr, nil, err
+	}
+	if !wantFields || !schema.Candidate(rel) {
+		tr, err := scanText(rel, r, req.Detectors, 0)
+		return fileResult{findings: tr.findings}, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("read error: %w", err)
+		return fileResult{}, nil, fmt.Errorf("read error: %w", err)
 	}
-	fs, err := ScanReader(f.Rel, bytes.NewReader(data), req.Detectors)
-	entries := inventory(f.Rel, data)
+	tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, 0)
+	fr := fileResult{findings: tr.findings, entries: inventory(rel, data)}
 	if req.SpecialCategories {
-		fs = append(fs, specialFindings(entries, splitLines(data))...)
+		fr.findings = append(fr.findings, specialFindings(fr.entries, splitLines(data))...)
 	}
-	return fs, entries, nil, err
+	return fr, nil, err
 }
 
-// ScanReader scans text line by line. path is used for locations and for recognising test folders.
+// ScanReader scans text line by line. path is used for locations, for recognising test folders and for
+// reading data files and SQL dumps by column.
 func ScanReader(path string, r io.Reader, dets []detectors.Detector) ([]domain.Finding, error) {
+	tr, err := scanText(path, r, dets, 0)
+	return tr.findings, err
+}
+
+type textResult struct {
+	findings []domain.Finding
+	fields   []domain.Field
+	sampled  bool
+}
+
+// scanText scans lines, split into columns where the format has them. With maxRows above zero it stops after
+// that many data rows and reports the file as sampled when more followed.
+func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int) (textResult, error) {
 	br, ok := r.(*bufio.Reader)
 	if !ok {
 		br = bufio.NewReaderSize(r, 64<<10)
 	}
-	var findings []domain.Finding
+	var res textResult
+	sp := splitterFor(path)
 	ctx := lineContext{path: path, testPath: IsTestPath(path)}
+	rows := 0
 	for lineNo := 1; ; lineNo++ {
 		line, err := readLine(br)
 		if len(line) > 0 || err == nil {
-			ctx.line, ctx.number = line, lineNo
-			findings = append(findings, scanLine(ctx, dets)...)
+			if maxRows > 0 && rows >= maxRows && strings.TrimSpace(line) != "" {
+				res.sampled = true
+				break
+			}
+			ctx.line, ctx.number, ctx.segments = line, lineNo, nil
+			if sp != nil {
+				var row bool
+				ctx.segments, row = sp.split(line, lineNo)
+				if row {
+					rows++
+				}
+			}
+			res.findings = append(res.findings, scanLine(ctx, dets)...)
 			ctx.previous = line
 		}
 		if errors.Is(err, io.EOF) {
-			return findings, nil
+			break
 		}
 		if err != nil {
-			return findings, fmt.Errorf("read error at line %d: %w", lineNo, err)
+			if sp != nil {
+				res.fields = sp.fields()
+			}
+			return res, fmt.Errorf("read error at line %d: %w", lineNo, err)
 		}
 	}
+	if sp != nil {
+		res.fields = sp.fields()
+	}
+	return res, nil
 }
 
 func readLine(r *bufio.Reader) (string, error) {

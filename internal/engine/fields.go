@@ -28,8 +28,13 @@ var specialLabels = map[domain.SpecialCategory]string{
 
 // inventory classifies the fields declared in one file; fields that hold no personal data are left out.
 func inventory(path string, data []byte) []domain.InventoryEntry {
+	return classifyFields(schema.Fields(path, data))
+}
+
+// classifyFields keeps the fields whose names say they hold personal data.
+func classifyFields(fields []domain.Field) []domain.InventoryEntry {
 	var out []domain.InventoryEntry
-	for _, f := range schema.Fields(path, data) {
+	for _, f := range fields {
 		if c, ok := classify.Field(f.Name); ok {
 			out = append(out, domain.InventoryEntry{Field: f, Classification: c})
 		}
@@ -59,9 +64,12 @@ func specialFindings(entries []domain.InventoryEntry, text []string) []domain.Fi
 			Location:    f.Location,
 			Masked:      name,
 			Confidence:  domain.Medium,
-			Reasons:     []string{fmt.Sprintf("the name contains %q", e.Classification.Matched), "declared in a " + f.Format + " schema or model"},
+			Reasons:     []string{fmt.Sprintf("the name contains %q", e.Classification.Matched), declaredIn(f.Format)},
 			TestPath:    IsTestPath(f.Location.Path),
 			Fingerprint: fingerprint(SpecialCategoryDetector, f.Location.Path, name, 0),
+		}
+		if dataFormats[f.Format] {
+			finding.ColumnName = f.Name
 		}
 		if finding.TestPath {
 			finding.Confidence = lower1(finding.Confidence)
@@ -79,6 +87,18 @@ func specialFindings(entries []domain.InventoryEntry, text []string) []domain.Fi
 		out = append(out, one[0])
 	}
 	return out
+}
+
+var dataFormats = map[string]bool{"csv": true, "tsv": true, "jsonl": true}
+
+func declaredIn(format string) string {
+	switch format {
+	case "csv", "tsv":
+		return "a column of a " + strings.ToUpper(format) + " file"
+	case "jsonl":
+		return "a key in a JSON Lines file"
+	}
+	return "declared in a " + format + " schema or model"
 }
 
 func sortInventory(es []domain.InventoryEntry) {

@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.1",
-      "description": "1.1 added kind and special_category to findings; 1.0 reports are 1.1 reports without them."
+      "const": "1.5",
+      "description": "1.5 added column_name to findings and sampled and columns to the summary; 1.1 added kind and special_category to findings. Older reports are 1.5 reports without those fields."
     },
     "tool": {
       "type": "object",
@@ -69,6 +69,59 @@
           "type": "integer",
           "minimum": 0,
           "description": "Findings left out because they are in the baseline."
+        },
+        "sampled": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/skipped"
+          },
+          "description": "Data files of which only the first rows were read (`--max-rows`, `max_rows`). Absent when none were sampled."
+        },
+        "columns": {
+          "type": "array",
+          "description": "Findings grouped by file and column, for findings that have a column_name, in order of first appearance. Counts follow the reported findings. Absent when no finding has a column.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "column_name",
+              "findings",
+              "detectors"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "column_name": {
+                "type": "string"
+              },
+              "findings": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "detectors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "detector",
+                    "findings"
+                  ],
+                  "properties": {
+                    "detector": {
+                      "type": "string"
+                    },
+                    "findings": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -126,7 +179,7 @@
           },
           "path": {
             "type": "string",
-            "description": "Path relative to the scanned folder, with forward slashes."
+            "description": "Path relative to the scanned folder, with forward slashes. Inside an archive or image, `!/` separates the archive from the path within it, as in dump.tar.gz!/data/users.csv or image.tar!/<layer>/etc/app/config.yml."
           },
           "line": {
             "type": "integer",
@@ -135,6 +188,10 @@
           "column": {
             "type": "integer",
             "minimum": 1
+          },
+          "column_name": {
+            "type": "string",
+            "description": "The data column the value was found in: a CSV or TSV header (#N when the file has no header), a JSON Lines key path such as customer.cnp, or a SQL column. Absent for text without columns."
           },
           "confidence": {
             "enum": [

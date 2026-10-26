@@ -6,4 +6,8 @@ tests/fixtures/users.json
   14:12  low     Romanian personal number (CNP)  •••••••••••••
           date, county code and check digit are valid; in a test, fixture or example path
 
-2 findings in 2 files · 42 files scanned · 1 skipped
+exports/users.csv.gz!/users.csv
+  2:7  medium  Romanian personal number (CNP)  •••••••••••••  in column "cnp"
+          date, county code and check digit are valid; the word "cnp" is nearby
+
+3 findings in 3 files · 42 files scanned · 1 skipped · 1 sampled

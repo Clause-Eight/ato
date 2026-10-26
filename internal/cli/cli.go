@@ -76,6 +76,7 @@ const usage = `pii-eu finds EU personal data in code, fixtures and logs.
 
 Usage:
   pii-eu scan [flags] [path]   scan a folder or file (default: current folder); "-" reads stdin
+  pii-eu scan --image FILE     scan a container image saved with ` + "`docker save`" + `, layer by layer
   pii-eu baseline [path]       accept current findings so only new ones are reported
   pii-eu inventory [flags] [path]  list the personal-data fields declared in schemas and models
   pii-eu detectors [--markdown]  list what can be detected
@@ -94,6 +95,13 @@ Scan flags:
   --staged                 scan the staged version of staged files (for pre-commit hooks)
   --baseline FILE          baseline file (default: <path>/.pii-eu-baseline.json)
   --show-values            print found values in full in text output (never in files)
+  --max-rows N             read at most N rows of each CSV, TSV or JSON Lines file; 0 reads every row
+                           (default: 100000)
+  --image FILE             scan a saved container image (docker save or OCI layout tar) instead of a path
+
+Archives (.gz, .tar, .tar.gz, .tgz) are scanned inside; findings name the entry, as in
+dump.tar.gz!/data/users.csv. Limits against archive bombs are settings: max_archive_bytes,
+max_archive_entries and max_archive_depth.
 
 Inventory flags: --config, --include, --exclude, --no-git, --output as for scan, and
   --format FORMAT          json or csv (default: csv)
@@ -132,6 +140,8 @@ type scanFlags struct {
 	staged        bool
 	baselinePath  string
 	inventory     bool
+	maxRows       int
+	image         string
 }
 
 func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) {
@@ -149,15 +159,24 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 	fs.BoolVar(&f.showValues, "show-values", false, "")
 	fs.BoolVar(&f.staged, "staged", false, "")
 	fs.StringVar(&f.baselinePath, "baseline", "", "")
+	fs.IntVar(&f.maxRows, "max-rows", -1, "")
+	fs.StringVar(&f.image, "image", "", "")
 	fs.Usage = func() { fmt.Fprint(stderr, usage) }
 	warnDeprecated(args, stderr)
 	if err := fs.Parse(reorder(args)); err != nil {
 		return f, "", err
 	}
-	switch fs.NArg() {
-	case 0:
+	if f.maxRows < -1 {
+		return f, "", usageError{"--max-rows must be zero (every row) or more"}
+	}
+	switch {
+	case f.image != "" && fs.NArg() > 0:
+		return f, "", usageError{"give either a path or --image, not both"}
+	case f.image != "":
+		return f, f.image, nil
+	case fs.NArg() == 0:
 		return f, ".", nil
-	case 1:
+	case fs.NArg() == 1:
 		return f, fs.Arg(0), nil
 	}
 	return f, "", usageError{"scan takes one path"}
@@ -222,6 +241,9 @@ func loadConfig(f scanFlags, root string) (config.Config, error) {
 			return cfg, usageError{err.Error()}
 		}
 		cfg.Countries = countries
+	}
+	if f.maxRows >= 0 {
+		cfg.MaxRows = f.maxRows
 	}
 	return cfg, nil
 }
@@ -288,14 +310,25 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		fs, err := engine.ScanReader("<stdin>", Stdin, dets)
 		return engine.Result{Findings: fs, Summary: domain.Summary{FilesScanned: 1}}, cfg, err
 	}
-	res, err := engine.Scan(engine.Request{
-		Root:              root,
-		Walk:              walk.Options{Include: cfg.Include, Exclude: cfg.Exclude, MaxFileSize: cfg.MaxFileSize, NoGit: f.noGit, Staged: f.staged},
+	req := engine.Request{
+		Root: root,
+		Walk: walk.Options{Include: cfg.Include, Exclude: cfg.Exclude, MaxFileSize: cfg.MaxFileSize, NoGit: f.noGit, Staged: f.staged,
+			Limits:       walk.Limits{MaxBytes: cfg.MaxArchiveBytes, MaxEntries: cfg.MaxArchiveEntries, MaxDepth: cfg.MaxArchiveDepth},
+			ImageExclude: cfg.ImageExclude},
 		Detectors:         dets,
 		SpecialCategories: cfg.Enabled(engine.SpecialCategoryDetector, []string{domain.CrossBorder}, true),
 		Inventory:         f.inventory,
-	})
-	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) {
+		MaxRows:           cfg.MaxRows,
+	}
+	scan := engine.Scan
+	if f.image != "" {
+		if f.staged {
+			return engine.Result{}, cfg, usageError{"--staged does not apply to --image"}
+		}
+		scan = engine.ScanImage
+	}
+	res, err := scan(req)
+	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) || errors.Is(err, walk.ErrNotImage) {
 		return res, cfg, usageError{err.Error()}
 	}
 	return res, cfg, err
