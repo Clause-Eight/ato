@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "1.5"
+const SchemaVersion = "1.2"
 
 func init() { register("json", writeJSON) }
 
@@ -56,6 +56,8 @@ type jsonSkipped struct {
 type jsonFinding struct {
 	Kind            string     `json:"kind"`
 	SpecialCategory string     `json:"special_category,omitempty"`
+	Sink            string     `json:"sink,omitempty"`
+	DataCategory    string     `json:"data_category,omitempty"`
 	Detector        string     `json:"detector"`
 	Label           string     `json:"label"`
 	Country         string     `json:"country"`
@@ -111,7 +113,7 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 			kind = domain.KindValue
 		}
 		out.Findings = append(out.Findings, jsonFinding{
-			Kind: string(kind), SpecialCategory: string(f.Special),
+			Kind: string(kind), SpecialCategory: string(f.Special), Sink: string(f.Sink), DataCategory: string(f.Category),
 			Detector: f.Detector, Label: f.Label, Country: f.Country,
 			Path: f.Location.Path, Line: f.Location.Line, Column: f.Location.Column, ColumnName: f.ColumnName,
 			Confidence: f.Confidence.String(), Masked: f.Masked, Reasons: nonNilStrings(f.Reasons),

@@ -10,4 +10,8 @@ exports/users.csv.gz!/users.csv
   2:7  medium  Romanian personal number (CNP)  •••••••••••••  in column "cnp"
           date, county code and check digit are valid; the word "cnp" is nearby
 
-3 findings in 3 files · 42 files scanned · 1 skipped · 1 sampled
+app/handler.go
+  12:30  medium  Personal data written to a log  user.Email
+          the name contains "email"; passed to log.Printf, which writes to a log
+
+4 findings in 4 files · 42 files scanned · 1 skipped · 1 sampled

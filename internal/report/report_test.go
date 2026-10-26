@@ -49,7 +49,7 @@ func TestNoFormatLeaksValues(t *testing.T) {
 }
 
 func TestGolden(t *testing.T) {
-	golden(t, "report", sample())
+	golden(t, "report", withSink(sample()))
 	golden(t, "infra", withStore(Report{Tool: "pii-eu", Version: "test", Summary: domain.Summary{FilesScanned: 3}}))
 }
 

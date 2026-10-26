@@ -7,17 +7,18 @@ change is announced before it breaks anything.
 
 | Interface | Promise |
 |---|---|
-| Commands | `scan`, `baseline`, `inventory`, `map`, `detectors` and `version` keep their names and meaning. |
+| Commands | `scan`, `baseline`, `inventory`, `map`, `fix`, `detectors` and `version` keep their names and meaning. |
 | Flags | Every flag listed by `pii-eu help` keeps its name, its meaning and its default. |
-| Exit codes | `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read. |
+| Exit codes | `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read. `pii-eu fix` exits `0` when it changed files or had nothing to do. |
 | Settings file | `.pii-eu.toml` keys keep their names and meaning. An unknown key stays an error. |
 | JSON report | `schemas/findings.schema.json`: fields listed there are never removed, renamed or given a new type. `schema_version` stays `1.x`. |
 | Inventory | `schemas/inventory.schema.json` and the CSV columns, under the same rule. |
 | Data map | `schemas/map.schema.json`, under the same rule; `map --diff` exits `1` when something is new. |
-| SARIF | Rule IDs (`<detector>`, `special-category/<category>`, the Terraform checks `tf-unencrypted`, `tf-no-retention`, `tf-non-eea-region`, `tf-public`, and `no-erasure-path`, `no-retention`) and the `piiEu/v1` partial fingerprint. |
-| Detector names | A detector's name never changes and is never reused for a different identifier. The same holds for `special-category`, the `tf-*` checks, `no-erasure-path` and `no-retention`. |
+| SARIF | Rule IDs (`<detector>`, `special-category/<category>`, `log-sink/<sink>`, the Terraform checks `tf-unencrypted`, `tf-no-retention`, `tf-non-eea-region`, `tf-public`, and `no-erasure-path`, `no-retention`) and the `piiEu/v1` partial fingerprint. |
+| Detector names | A detector's name never changes and is never reused for a different identifier. The same holds for `special-category`, `log-sink`, the `tf-*` checks, `no-erasure-path` and `no-retention`. |
 | Fingerprints and baselines | A finding's fingerprint stays the same for the same detector, path and line text, so a committed baseline keeps working. |
-| Masking | No output format ever prints a found value, except text output with `--show-values` on screen. |
+| Masking | No output format ever prints a found value, except text output with `--show-values` on screen. `pii-eu fix --dry-run` masks found values and shows only the synthetic replacements. |
+| Synthetic mark | A value written by `pii-eu fix` keeps being recognised as synthetic by every later 1.x release. |
 
 `TestReportsMatchThePublishedSchemas` and `TestFrozenFieldsAreStillWritten` check the JSON promises on every
 pull request, and the golden files under `internal/report/testdata` pin the exact output of each format.
@@ -27,9 +28,9 @@ pull request, and the golden files under `internal/report/testdata` pin the exac
 | Release | Findings report | Inventory |
 |---|---|---|
 | 1.0 | `1.1`: `kind` and `special_category` | `1.0` |
-| 1.3 | `1.3`: kind `infra` and the `store` object, for data stores declared in Terraform | `1.1`: the `stores` array; the CSV columns are unchanged |
+| next | `1.2`: kinds `sink`, `infra` and `lifecycle`; `sink`, `data_category`, `column_name` and the `store` object on findings; `sampled` and `columns` in the summary | `1.1`: the `stores` array; the CSV columns are unchanged |
 
-Each version only adds optional fields, so a reader written for an earlier `1.x` keeps working.
+Each version only adds optional fields, so a reader written for an earlier `1.x` keeps working: it ignores the new fields, and a finding of an unknown `kind` can be read like a `field` finding.
 
 ## What a minor release may change
 
