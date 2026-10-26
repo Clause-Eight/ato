@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "1.1"
+const SchemaVersion = "1.4"
 
 func init() { register("json", writeJSON) }
 

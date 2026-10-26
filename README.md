@@ -148,6 +148,14 @@ diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
 
 `pii-eu map` drafts a data map from the code: per component (a folder under `services/`, `apps/`, `packages/` and similar, or a top-level folder), the tables and models holding personal data and their categories, where personal data is written to logs or telemetry, and the third-party services the code names in dependency files, imports and API host names (payments, email, analytics, error tracking, support, AI providers and more; `established_in_eea` says whether the provider is established in the EEA). Every line cites its source file and line. Formats: `markdown` (default), `json` ([schemas/map.schema.json](schemas/map.schema.json)) and `html`.
 
+For each store the map also shows whether the code can erase a person's data (GDPR Art. 17: a delete, an anonymising update, or a cascade from a parent that can be erased) and whether old data is removed (Art. 5(1)(e): a time-based delete, a TTL index or a partition drop), in SQL and the supported ORMs. To report stores without either as findings, switch them on:
+
+```toml
+[detectors]
+no-erasure-path = true
+no-retention = true
+```
+
 The map is a draft for the record of processing activities (GDPR Art. 30). Purposes, legal bases and retention periods need a person; naming a recipient in code does not prove personal data goes to it.
 
 ```bash

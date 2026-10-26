@@ -10,6 +10,8 @@ const (
 	KindField Kind = "field"
 	// KindSink is a call that writes personal data to a log, an error tracker or analytics.
 	KindSink Kind = "sink"
+	// KindStore is a table, model or collection holding personal data that the code never erases or expires.
+	KindStore Kind = "store"
 )
 
 // Field is a named place in a schema or model that holds data: a table column, a model attribute, an API or
@@ -76,4 +78,19 @@ type RecipientUse struct {
 	EEA      bool
 	Evidence string
 	Location Location
+}
+
+// Removal is a place in the code that removes data from a store: How names the mechanism ("SQL DELETE",
+// "TTL index", "ON DELETE CASCADE").
+type Removal struct {
+	How      string
+	Location Location
+}
+
+// StoreLifecycle says how the code removes data from one store: erasure of a person's data (GDPR Art. 17) and
+// removal after a retention period (Art. 5(1)(e)). Empty slices mean nothing was found, not that nothing exists.
+type StoreLifecycle struct {
+	Store     string
+	Erasure   []Removal
+	Retention []Removal
 }

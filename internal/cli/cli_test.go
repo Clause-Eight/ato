@@ -292,3 +292,41 @@ func TestMapAndDiff(t *testing.T) {
 		t.Errorf("missing diff file: exit %d", code)
 	}
 }
+
+func TestErasureAndRetentionFindings(t *testing.T) {
+	dir := t.TempDir()
+	files := map[string]string{
+		"db/001.sql":  "CREATE TABLE customers (\n  first_name text\n);\nCREATE TABLE orders (\n  customer_id bigint REFERENCES customers(id) ON DELETE CASCADE,\n  contact_email text\n);\nCREATE TABLE leads (\n  email text\n);\n",
+		"app/repo.py": "def forget(pid):\n    db.execute(\"DELETE FROM customers WHERE id = %s\", pid)\n",
+		"app/jobs.py": "def purge_old_leads():\n    pass\n",
+	}
+	for rel, text := range files {
+		p := filepath.Join(dir, rel)
+		_ = os.MkdirAll(filepath.Dir(p), 0o755)
+		if err := os.WriteFile(p, []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if code, out, _ := run("scan", "--no-git", dir); code != ExitClean {
+		t.Fatalf("off by default: exit %d\n%s", code, out)
+	}
+	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("[detectors]\nno-erasure-path = true\nno-retention = true\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	code, out, _ := run("scan", "--no-git", "--format", "json", dir)
+	if code != ExitFindings {
+		t.Fatalf("exit %d\n%s", code, out)
+	}
+	for _, want := range []string{`"masked": "leads"`, `"no-erasure-path"`, `"no-retention"`, `"kind": "store"`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("missing %s in\n%s", want, out)
+		}
+	}
+	if strings.Count(out, `"detector": "no-erasure-path"`) != 1 {
+		t.Errorf("only leads lacks an erasure path (orders cascade from customers):\n%s", out)
+	}
+	code, out, _ = run("map", "--no-git", dir)
+	if code != ExitClean || !strings.Contains(out, "anonymising routine") && !strings.Contains(out, "SQL DELETE") || !strings.Contains(out, "ON DELETE CASCADE") {
+		t.Errorf("map should show erasure paths: exit %d\n%s", code, out)
+	}
+}
