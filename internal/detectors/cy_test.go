@@ -38,3 +38,26 @@ func TestCyprusIDCard(t *testing.T) {
 		}
 	}
 }
+
+func TestCYTIC(t *testing.T) {
+	d, _ := Get("cy-tic")
+	cases := map[string]bool{
+		"05780357D": true,
+		"00704143O": true,
+		"66456382W": true, // the range issued since 2023
+		"95434894C": true,
+		"05780357F": false, // wrong check letter
+		"12321542B": false, // a company's code
+		"34062429P": false,
+		"05780357d": false, // lower case
+		"0578035D":  false, // too short
+	}
+	for v, want := range cases {
+		if got := d.Validate(v); got != want {
+			t.Errorf("case %d characters, valid=%v: got %v", len(v), want, got)
+		}
+	}
+	if !d.Needs.Admits("tic: 05780357D", 8) || d.Needs.Admits("tic: 05780357", 8) || d.Needs.Admits("05780357 d", 8) {
+		t.Error("the prefilter must look for a digit followed by a capital")
+	}
+}
