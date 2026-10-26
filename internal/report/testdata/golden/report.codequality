@@ -34,5 +34,17 @@
         "begin": 2
       }
     }
+  },
+  {
+    "description": "Personal data written to a log user.Email (medium confidence): the name contains \"email\"; passed to log.Printf, which writes to a log",
+    "check_name": "pii-eu/log-sink",
+    "fingerprint": "ffeeddccbbaa99887766554433221100",
+    "severity": "major",
+    "location": {
+      "path": "app/handler.go",
+      "lines": {
+        "begin": 12
+      }
+    }
   }
 ]

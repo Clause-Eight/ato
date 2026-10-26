@@ -30,6 +30,27 @@
               }
             },
             {
+              "id": "log-sink/log",
+              "name": "PersonalDataWrittenToALog",
+              "shortDescription": {
+                "text": "Personal data written to a log"
+              },
+              "fullDescription": {
+                "text": "Personal data written to a log. Personal data in logs, error reports and analytics is copied to systems with wider access and longer retention than the data itself."
+              },
+              "help": {
+                "text": "Log an identifier or a masked value instead, or remove the field from what is sent."
+              },
+              "properties": {
+                "tags": [
+                  "privacy",
+                  "gdpr",
+                  "logging",
+                  "log"
+                ]
+              }
+            },
+            {
               "id": "ro-cnp",
               "name": "RomanianPersonalNumberCNP",
               "shortDescription": {
@@ -136,6 +157,35 @@
           },
           "properties": {
             "columnName": "cnp",
+            "confidence": "medium",
+            "sample": false,
+            "testPath": false
+          }
+        },
+        {
+          "ruleId": "log-sink/log",
+          "level": "warning",
+          "message": {
+            "text": "Personal data written to a log user.Email (medium confidence): the name contains \"email\"; passed to log.Printf, which writes to a log"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/handler.go",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 30
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "piiEu/v1": "ffeeddccbbaa99887766554433221100"
+          },
+          "properties": {
             "confidence": "medium",
             "sample": false,
             "testPath": false
