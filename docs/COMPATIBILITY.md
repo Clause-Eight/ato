@@ -31,6 +31,19 @@ pull request, and the golden files under `internal/report/testdata` pin the exac
 - Turning an off-by-default detector on by default happens only in a minor release and is named in the release
   notes.
 
+## Added in 1.5
+
+- Flags: `--max-rows N` (default 100000; `0` reads every row) and `--image FILE`.
+- Settings: `max_rows`, `max_archive_bytes`, `max_archive_entries`, `max_archive_depth` and `image_exclude`.
+- JSON report, schema version `1.5`: optional `column_name` on findings, optional `summary.sampled` and
+  `summary.columns`. A finding's `path` may hold `!/` to name a file inside an archive or image.
+- SARIF results carry `columnName` in their properties when the finding has a column.
+- Behaviour, as a minor release may change it: `.gz`, `.tar`, `.tar.gz` and `.tgz` files are scanned inside
+  instead of being skipped as binary; CSV, TSV and JSON Lines files and archives are no longer skipped by
+  `max_file_size` (data files read their first `max_rows` rows instead); values in files with columns take their
+  keywords from their column name instead of the line, so the confidence of such findings may change; fingerprints
+  keep their rule (detector, path and line with values replaced).
+
 ## Deprecation
 
 - A flag, setting, command, output field or detector to be removed is first marked deprecated in a minor release.
