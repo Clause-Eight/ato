@@ -40,8 +40,8 @@ footer{margin-top:40px;color:var(--muted);font-size:12px}
 <div class="meta">pii-eu test · . · values are masked</div>
 </header>
 <div class="tiles">
-<div class="tile"><b>2</b><span>findings</span></div>
-<div class="tile"><b>2</b><span>files with findings</span></div>
+<div class="tile"><b>3</b><span>findings</span></div>
+<div class="tile"><b>3</b><span>files with findings</span></div>
 <div class="tile"><b>42</b><span>files scanned</span></div>
 <div class="tile"><b>1</b><span>high confidence</span></div>
 </div>
@@ -49,14 +49,15 @@ footer{margin-top:40px;color:var(--muted);font-size:12px}
 <h2>By kind of data</h2>
 <div class="wrap"><table>
 <tr><th>Kind of data</th><th>Country</th><th>Findings</th></tr>
+<tr><td>Romanian personal number (CNP)</td><td>RO</td><td>2</td></tr>
 <tr><td>Payment card number</td><td>EU</td><td>1</td></tr>
-<tr><td>Romanian personal number (CNP)</td><td>RO</td><td>1</td></tr>
 </table></div>
 <h2>Findings</h2>
 <div class="wrap"><table>
 <tr><th>Where</th><th>What</th><th>Value</th><th>Confidence</th></tr>
 <tr><td class="mono">app/config.yml:3</td><td>Payment card number<div class="why">brand prefix, length and Luhn check are valid; the word &#34;card&#34; is nearby</div></td><td class="mono">••••••••••••0006</td><td><span class="conf high">high</span></td></tr>
 <tr><td class="mono">tests/fixtures/users.json:14</td><td>Romanian personal number (CNP)<div class="why">date, county code and check digit are valid; in a test, fixture or example path</div></td><td class="mono">•••••••••••••</td><td><span class="conf low">low</span></td></tr>
+<tr><td class="mono">exports/users.csv.gz!/users.csv:2</td><td>Romanian personal number (CNP)<div class="why">date, county code and check digit are valid; the word &#34;cnp&#34; is nearby</div></td><td class="mono">•••••••••••••</td><td><span class="conf medium">medium</span></td></tr>
 </table></div>
 
 

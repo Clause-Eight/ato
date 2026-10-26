@@ -16,13 +16,17 @@ const (
 	NoRetentionDetector = "no-retention"
 )
 
+// dataFileFormat marks fields read from data files (CSV headers, JSON Lines keys): an export is a copy of
+// data, not a store the application erases from.
+var dataFileFormat = map[string]bool{"csv": true, "tsv": true, "jsonl": true}
+
 // storeNames lists the tables and models that hold personal data, outside test paths, in a stable order.
 func storeNames(entries []domain.InventoryEntry) ([]string, map[string]domain.InventoryEntry) {
 	first := map[string]domain.InventoryEntry{}
 	var names []string
 	for _, e := range entries {
 		name := e.Field.Container
-		if name == "" || IsTestPath(e.Field.Location.Path) {
+		if name == "" || IsTestPath(e.Field.Location.Path) || dataFileFormat[e.Field.Format] {
 			continue
 		}
 		if _, ok := first[name]; !ok {

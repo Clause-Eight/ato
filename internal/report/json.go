@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "1.4"
+const SchemaVersion = "1.5"
 
 func init() { register("json", writeJSON) }
 
@@ -31,6 +31,21 @@ type jsonSummary struct {
 	Unreadable   []jsonSkipped `json:"unreadable"`
 	Ignored      int           `json:"ignored"`
 	Baselined    int           `json:"baselined"`
+	Sampled      []jsonSkipped `json:"sampled,omitempty"`
+	Columns      []jsonColumn  `json:"columns,omitempty"`
+}
+
+// jsonColumn counts the findings in one column of one data file or SQL table.
+type jsonColumn struct {
+	Path       string         `json:"path"`
+	ColumnName string         `json:"column_name"`
+	Findings   int            `json:"findings"`
+	Detectors  []jsonDetector `json:"detectors"`
+}
+
+type jsonDetector struct {
+	Detector string `json:"detector"`
+	Findings int    `json:"findings"`
 }
 
 type jsonSkipped struct {
@@ -47,6 +62,7 @@ type jsonFinding struct {
 	Path            string     `json:"path"`
 	Line            int        `json:"line"`
 	Column          int        `json:"column"`
+	ColumnName      string     `json:"column_name,omitempty"`
 	Confidence      string     `json:"confidence"`
 	Masked          string     `json:"masked"`
 	Reasons         []string   `json:"reasons"`
@@ -84,6 +100,8 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 			Unreadable:   nonNil(r.Summary.Unreadable),
 			Ignored:      r.Summary.Ignored,
 			Baselined:    r.Summary.Baselined,
+			Sampled:      optional(r.Summary.Sampled),
+			Columns:      columns(r.Findings),
 		},
 		Findings: make([]jsonFinding, 0, len(r.Findings)),
 	}
@@ -95,7 +113,7 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 		out.Findings = append(out.Findings, jsonFinding{
 			Kind: string(kind), SpecialCategory: string(f.Special),
 			Detector: f.Detector, Label: f.Label, Country: f.Country,
-			Path: f.Location.Path, Line: f.Location.Line, Column: f.Location.Column,
+			Path: f.Location.Path, Line: f.Location.Line, Column: f.Location.Column, ColumnName: f.ColumnName,
 			Confidence: f.Confidence.String(), Masked: f.Masked, Reasons: nonNilStrings(f.Reasons),
 			Sample: f.Sample, TestPath: f.TestPath, Fingerprint: f.Fingerprint, Store: storeRef(f.Store),
 		})
@@ -104,6 +122,44 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 	enc.SetIndent("", "  ")
 	enc.SetEscapeHTML(false)
 	return enc.Encode(out)
+}
+
+// columns groups the findings that have a column by file and column, in order of appearance.
+func columns(fs []domain.Finding) []jsonColumn {
+	var out []jsonColumn
+	index := map[[2]string]int{}
+	for _, f := range fs {
+		if f.ColumnName == "" {
+			continue
+		}
+		key := [2]string{f.Location.Path, f.ColumnName}
+		i, ok := index[key]
+		if !ok {
+			i = len(out)
+			index[key] = i
+			out = append(out, jsonColumn{Path: f.Location.Path, ColumnName: f.ColumnName})
+		}
+		c := &out[i]
+		c.Findings++
+		found := false
+		for k := range c.Detectors {
+			if c.Detectors[k].Detector == f.Detector {
+				c.Detectors[k].Findings++
+				found = true
+			}
+		}
+		if !found {
+			c.Detectors = append(c.Detectors, jsonDetector{Detector: f.Detector, Findings: 1})
+		}
+	}
+	return out
+}
+
+func optional(s []domain.Skipped) []jsonSkipped {
+	if len(s) == 0 {
+		return nil
+	}
+	return nonNil(s)
 }
 
 func nonNil(s []domain.Skipped) []jsonSkipped {
