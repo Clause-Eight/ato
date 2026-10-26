@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.1",
-      "description": "1.1 added kind and special_category to findings; 1.0 reports are 1.1 reports without them."
+      "const": "1.4",
+      "description": "1.1 added kind and special_category to findings; 1.4 added kind store (a table or model holding personal data with no erasure path or retention limit; masked then holds the store's name). Older reports are valid 1.4 reports."
     },
     "tool": {
       "type": "object",
@@ -96,9 +96,10 @@
           "kind": {
             "enum": [
               "value",
-              "field"
+              "field",
+              "store"
             ],
-            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9); masked then holds the field name."
+            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9); masked then holds the field name. store: a table or model holding personal data with no erasure path or no retention limit in the code; masked then holds the store's name."
           },
           "special_category": {
             "enum": [

@@ -8,6 +8,8 @@ Keywords are the identifier's own names. Concepts add the shared words for that 
 
 Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.
 
+Tables and models holding personal data can also be checked for an erasure path (GDPR Art. 17: a delete, an anonymising update or a cascade from an erasable parent) and a retention limit (Art. 5(1)(e): a time-based delete, a TTL or a partition drop). Switch the `no-erasure-path` and `no-retention` findings on under `[detectors]`; they are off by default because data can be removed in ways the code does not show. `pii-eu map` always shows both.
+
 | Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |
 |---|---|---|---|---|---|---|
 | `advertising-id` | EU | Mobile advertising ID (IDFA, GAID) (off by default) (only with a keyword) | a UUID that is not the all-zero opt-out value | low | `idfa`, `gaid`, `advertising id`, `advertisingid`, `advertising identifier`, `advertisingidentifier`, `adid`, `aaid`, `ifa` |  |

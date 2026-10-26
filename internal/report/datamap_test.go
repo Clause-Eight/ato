@@ -24,6 +24,7 @@ func sampleMap() DataMap {
 			{Name: "Stripe", Purpose: "payments", Evidence: "dependency", Location: domain.Location{Path: "services/billing/requirements.txt", Line: 2}},
 			{Name: "Mistral AI", Purpose: "AI model provider", EEA: true, Evidence: "import", Location: domain.Location{Path: "services/clinic/notes.py", Line: 1}},
 		},
+		Lifecycle: []domain.StoreLifecycle{{Store: "patients", Erasure: []domain.Removal{{How: "SQL DELETE", Location: domain.Location{Path: "services/clinic/repo.sql", Line: 7}}}, Retention: []domain.Removal{}}},
 	})}
 }
 

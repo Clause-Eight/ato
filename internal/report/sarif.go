@@ -127,6 +127,16 @@ func ruleFor(f domain.Finding) sarifRule {
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
 		}
 	}
+	if f.Kind == domain.KindStore {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". The code has no path that removes this data, so it may be kept for ever or be impossible to erase on request."},
+			Help:             sarifText{"Add a delete or anonymising update, a retention job or a TTL for this store, or record where it happens outside the code."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "data-lifecycle"}},
+		}
+	}
 	return sarifRule{
 		ID:               f.Detector,
 		Name:             ruleName(f.Label),

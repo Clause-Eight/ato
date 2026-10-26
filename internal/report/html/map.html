@@ -22,8 +22,8 @@
 {{range .Map.Components}}
 <h2>{{.Name}}</h2>
 {{if .Stores}}<div class="wrap"><table>
-<tr><th>Store</th><th>Categories of personal data</th><th>Special categories (Art. 9)</th><th>Fields</th></tr>
-{{range .Stores}}<tr><td class="mono">{{.Name}}</td><td>{{join .Categories ", "}}</td><td>{{join .Special ", "}}</td><td>{{len .Fields}}</td></tr>
+<tr><th>Store</th><th>Categories of personal data</th><th>Special categories (Art. 9)</th><th>Erasure (Art. 17)</th><th>Retention</th><th>Fields</th></tr>
+{{range .Stores}}<tr><td class="mono">{{.Name}}</td><td>{{join .Categories ", "}}</td><td>{{join .Special ", "}}</td><td>{{template "removal" (pair .Assessed .Erasure)}}</td><td>{{template "removal" (pair .Assessed .Retention)}}</td><td>{{len .Fields}}</td></tr>
 {{end}}</table></div>{{end}}
 {{if .Recipients}}<div class="wrap gap"><table>
 <tr><th>Recipient</th><th>Purpose</th><th>Established in the EEA</th><th>Named in</th></tr>
@@ -40,3 +40,4 @@
 </main>
 </body>
 </html>
+{{define "removal"}}{{if not .A}}–{{else if .R}}{{(index .R 0).How}}<div class="why mono">{{(index .R 0).Location.Path}}:{{(index .R 0).Location.Line}}</div>{{else}}<span class="conf medium">none found</span>{{end}}{{end}}
