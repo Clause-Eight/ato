@@ -31,6 +31,11 @@ type Store struct {
 	Categories []string
 	Special    []string
 	Fields     []Field
+	// Assessed says whether erasure and retention were looked for; Erasure and Retention are where the code
+	// removes the store's data.
+	Assessed  bool
+	Erasure   []domain.Removal
+	Retention []domain.Removal
 }
 
 // Field is one personal-data field of a store.
@@ -61,6 +66,7 @@ type Input struct {
 	Inventory  []domain.InventoryEntry
 	Findings   []domain.Finding
 	Recipients []domain.RecipientUse
+	Lifecycle  []domain.StoreLifecycle
 }
 
 // Build groups the input by component.
@@ -117,9 +123,16 @@ func Build(in Input) Map {
 		}
 		r.Evidence = append(r.Evidence, u.Location)
 	}
+	life := map[string]domain.StoreLifecycle{}
+	for _, l := range in.Lifecycle {
+		life[l.Store] = l
+	}
 	var out Map
 	for name, c := range comps {
 		for _, s := range stores[name] {
+			if l, ok := life[s.Name]; ok {
+				s.Assessed, s.Erasure, s.Retention = true, l.Erasure, l.Retention
+			}
 			sort.Strings(s.Categories)
 			sort.Strings(s.Special)
 			c.Stores = append(c.Stores, *s)

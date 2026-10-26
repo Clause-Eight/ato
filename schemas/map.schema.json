@@ -149,6 +149,20 @@
               }
             }
           }
+        },
+        "erasure": {
+          "description": "Where the code can erase a person's data from this store (GDPR Art. 17). Absent when not assessed; empty when none was found.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/removal"
+          }
+        },
+        "retention": {
+          "description": "Where the code removes old data from this store: time-based deletes, TTLs, partition drops. Absent when not assessed; empty when none was found.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/removal"
+          }
         }
       }
     },
@@ -201,6 +215,27 @@
           "items": {
             "$ref": "#/$defs/place"
           }
+        }
+      }
+    },
+    "removal": {
+      "type": "object",
+      "required": [
+        "how",
+        "path",
+        "line"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "how": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 0
         }
       }
     }

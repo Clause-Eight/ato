@@ -38,10 +38,18 @@ type jsonComponent struct {
 }
 
 type jsonStore struct {
-	Name       string      `json:"name"`
-	Categories []string    `json:"categories"`
-	Special    []string    `json:"special_categories"`
-	Fields     []jsonField `json:"fields"`
+	Name       string        `json:"name"`
+	Categories []string      `json:"categories"`
+	Special    []string      `json:"special_categories"`
+	Fields     []jsonField   `json:"fields"`
+	Erasure    *[]jsonRemove `json:"erasure,omitempty"`
+	Retention  *[]jsonRemove `json:"retention,omitempty"`
+}
+
+type jsonRemove struct {
+	How  string `json:"how"`
+	Path string `json:"path"`
+	Line int    `json:"line"`
 }
 
 type jsonField struct {
@@ -101,7 +109,8 @@ func ReadMap(r io.Reader) (datamap.Map, error) {
 	for _, c := range jm.Components {
 		comp := datamap.Component{Name: c.Name}
 		for _, s := range c.Stores {
-			store := datamap.Store{Name: s.Name, Categories: s.Categories, Special: s.Special}
+			store := datamap.Store{Name: s.Name, Categories: s.Categories, Special: s.Special, Assessed: s.Erasure != nil || s.Retention != nil}
+			store.Erasure, store.Retention = fromJSONRemovals(s.Erasure), fromJSONRemovals(s.Retention)
 			for _, f := range s.Fields {
 				store.Fields = append(store.Fields, datamap.Field{Name: f.Name, Category: f.Category, Special: f.Special, Location: domain.Location{Path: f.Path, Line: f.Line}})
 			}
@@ -131,6 +140,9 @@ func toJSONMap(m DataMap) jsonMap {
 			for _, f := range s.Fields {
 				js.Fields = append(js.Fields, jsonField{Name: f.Name, Category: f.Category, Special: f.Special, Path: f.Location.Path, Line: f.Location.Line})
 			}
+			if s.Assessed {
+				js.Erasure, js.Retention = toJSONRemovals(s.Erasure), toJSONRemovals(s.Retention)
+			}
 			jc.Stores = append(jc.Stores, js)
 		}
 		for _, s := range c.Sinks {
@@ -146,6 +158,40 @@ func toJSONMap(m DataMap) jsonMap {
 		out.Components = append(out.Components, jc)
 	}
 	return out
+}
+
+func toJSONRemovals(rs []domain.Removal) *[]jsonRemove {
+	out := make([]jsonRemove, 0, len(rs))
+	for _, r := range rs {
+		out = append(out, jsonRemove{How: r.How, Path: r.Location.Path, Line: r.Location.Line})
+	}
+	return &out
+}
+
+func fromJSONRemovals(rs *[]jsonRemove) []domain.Removal {
+	if rs == nil {
+		return nil
+	}
+	out := make([]domain.Removal, 0, len(*rs))
+	for _, r := range *rs {
+		out = append(out, domain.Removal{How: r.How, Location: domain.Location{Path: r.Path, Line: r.Line}})
+	}
+	return out
+}
+
+// removalText says how a store's data is removed, for people: the first mechanism and where it is.
+func removalText(assessed bool, rs []domain.Removal) string {
+	switch {
+	case !assessed:
+		return "–"
+	case len(rs) == 0:
+		return "none found"
+	}
+	text := fmt.Sprintf("%s (`%s:%d`)", rs[0].How, rs[0].Location.Path, rs[0].Location.Line)
+	if len(rs) > 1 {
+		text += fmt.Sprintf(" and %d more", len(rs)-1)
+	}
+	return text
 }
 
 func strs(xs []string) []string {
@@ -165,7 +211,7 @@ func eeaText(eea bool) string {
 func markdownMap(m DataMap) string {
 	var b strings.Builder
 	b.WriteString("# Data map\n\n")
-	fmt.Fprintf(&b, "Drafted by %s %s from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention, which code cannot show.\n\n", m.Tool, m.Version)
+	fmt.Fprintf(&b, "Drafted by %s %s from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention periods, which code cannot show. Erasure and retention show whether the code has a path that removes the data, not that it runs.\n\n", m.Tool, m.Version)
 	if len(m.Map.Components) == 0 {
 		b.WriteString("No personal data, logging of personal data or third-party recipients found.\n")
 		return b.String()
@@ -176,13 +222,13 @@ func markdownMap(m DataMap) string {
 	for _, c := range m.Map.Components {
 		fmt.Fprintf(&b, "## %s\n\n", c.Name)
 		if len(c.Stores) > 0 {
-			b.WriteString("| Store | Categories of personal data | Special categories (Art. 9) | Source |\n|---|---|---|---|\n")
+			b.WriteString("| Store | Categories of personal data | Special categories (Art. 9) | Erasure (Art. 17) | Retention (Art. 5(1)(e)) | Source |\n|---|---|---|---|---|---|\n")
 			for _, s := range c.Stores {
 				src := ""
 				if len(s.Fields) > 0 {
 					src = fmt.Sprintf("`%s:%d`", s.Fields[0].Location.Path, s.Fields[0].Location.Line)
 				}
-				fmt.Fprintf(&b, "| `%s` | %s | %s | %s |\n", s.Name, strings.Join(s.Categories, ", "), dash(strings.Join(s.Special, ", ")), src)
+				fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s |\n", s.Name, dash(strings.Join(s.Categories, ", ")), dash(strings.Join(s.Special, ", ")), removalText(s.Assessed, s.Erasure), removalText(s.Assessed, s.Retention), src)
 			}
 			b.WriteString("\n")
 		}

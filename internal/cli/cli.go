@@ -141,6 +141,7 @@ type scanFlags struct {
 	baselinePath  string
 	inventory     bool
 	recipients    bool
+	lifecycle     bool
 	diff          string
 }
 
@@ -289,12 +290,14 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 	}
 	for _, names := range []map[string]bool{cfg.Detectors, keys(cfg.DetectorMinConfidence)} {
 		for name := range names {
-			if _, ok := detectors.Get(name); !ok && name != engine.SpecialCategoryDetector {
+			if _, ok := detectors.Get(name); !ok && !engineDetector[name] {
 				return engine.Result{}, cfg, usageError{fmt.Sprintf("unknown detector %q in settings: run `pii-eu detectors`", name)}
 			}
 		}
 	}
 	dets := enabledDetectors(cfg)
+	erasure := cfg.Enabled(engine.NoErasureDetector, []string{domain.CrossBorder}, false)
+	retention := cfg.Enabled(engine.NoRetentionDetector, []string{domain.CrossBorder}, false)
 	if root == "-" {
 		fs, err := engine.ScanReader("<stdin>", Stdin, dets)
 		return engine.Result{Findings: fs, Summary: domain.Summary{FilesScanned: 1}}, cfg, err
@@ -306,12 +309,19 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		SpecialCategories: cfg.Enabled(engine.SpecialCategoryDetector, []string{domain.CrossBorder}, true),
 		Inventory:         f.inventory,
 		Recipients:        f.recipients,
+		Lifecycle:         f.lifecycle || erasure || retention,
+		ErasureFindings:   erasure,
+		RetentionFindings: retention,
 	})
 	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) {
 		return res, cfg, usageError{err.Error()}
 	}
 	return res, cfg, err
 }
+
+// engineDetector names the findings made by the engine rather than by a registered detector. Settings may switch
+// them on or off like a detector.
+var engineDetector = map[string]bool{engine.SpecialCategoryDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
 
 // Stdin is read by `pii-eu scan -`. Tests replace it.
 var Stdin io.Reader = os.Stdin
@@ -500,6 +510,7 @@ func DetectorTable() string {
 	b.WriteString("Base confidence is what a valid match gets on its own. A keyword on the same line or the line before raises it one step; a test or fixture path lowers it one step; a published sample value is always low. The default `--min-confidence` is medium.\n\n")
 	b.WriteString("Keywords are the identifier's own names. Concepts add the shared words for that kind of data in all 24 EU languages, from `internal/detectors/keywords/`. Detectors marked off by default run when switched on in `[detectors]` or when their country is selected with `--countries`.\n\n")
 	b.WriteString("Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.\n\n")
+	b.WriteString("Tables and models holding personal data can also be checked for an erasure path (GDPR Art. 17: a delete, an anonymising update or a cascade from an erasable parent) and a retention limit (Art. 5(1)(e): a time-based delete, a TTL or a partition drop). Switch the `no-erasure-path` and `no-retention` findings on under `[detectors]`; they are off by default because data can be removed in ways the code does not show. `pii-eu map` always shows both.\n\n")
 	b.WriteString("| Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |\n|---|---|---|---|---|---|---|\n")
 	for _, d := range detectors.All() {
 		kws := make([]string, 0, len(d.Keywords))
@@ -596,13 +607,13 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 		}
 		previous = &m
 	}
-	f.inventory, f.recipients = true, true
+	f.inventory, f.recipients, f.lifecycle = true, true, true
 	res, _, err := collect(f, root)
 	if err != nil {
 		return 0, err
 	}
 	findings, _ := withoutIgnored(res.Findings)
-	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients})
+	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle})
 	if previous != nil {
 		if f.output != "" {
 			if err := writeMapFile(f, m); err != nil {

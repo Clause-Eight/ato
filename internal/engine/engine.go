@@ -13,6 +13,7 @@ import (
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/pii-eu/internal/lifecycle"
 	"github.com/Clause-Eight/pii-eu/internal/recipients"
 	"github.com/Clause-Eight/pii-eu/internal/schema"
 	"github.com/Clause-Eight/pii-eu/internal/walk"
@@ -31,6 +32,11 @@ type Request struct {
 	SpecialCategories bool
 	Inventory         bool
 	Recipients        bool
+	// Lifecycle collects how each store of personal data is erased and expired; ErasureFindings and
+	// RetentionFindings report stores without either.
+	Lifecycle         bool
+	ErasureFindings   bool
+	RetentionFindings bool
 }
 
 // Result is what a scan found, sorted by path, line and column.
@@ -38,6 +44,7 @@ type Result struct {
 	Findings   []domain.Finding
 	Inventory  []domain.InventoryEntry
 	Recipients []domain.RecipientUse
+	Lifecycle  []domain.StoreLifecycle
 	Summary    domain.Summary
 }
 
@@ -55,6 +62,7 @@ func Scan(req Request) (Result, error) {
 		findings []domain.Finding
 		entries  []domain.InventoryEntry
 		uses     []domain.RecipientUse
+		evidence []lifecycle.Evidence
 		skip     *domain.Skipped
 		bad      *domain.Skipped
 	}
@@ -66,8 +74,8 @@ func Scan(req Request) (Result, error) {
 		go func() {
 			defer wg.Done()
 			for f := range jobs {
-				fs, entries, uses, skip, err := scanFile(f, req)
-				o := out{findings: fs, entries: entries, uses: uses, skip: skip}
+				fs, sf, skip, err := scanFile(f, req)
+				o := out{findings: fs, entries: sf.entries, uses: sf.uses, evidence: sf.evidence, skip: skip}
 				if err != nil {
 					o.bad = &domain.Skipped{Path: f.Rel, Reason: err.Error()}
 				}
@@ -84,6 +92,8 @@ func Scan(req Request) (Result, error) {
 		close(results)
 	}()
 	res := Result{Summary: domain.Summary{FilesSkipped: skipped}}
+	var entries []domain.InventoryEntry
+	var evidence []lifecycle.Evidence
 	for o := range results {
 		switch {
 		case o.bad != nil:
@@ -93,54 +103,70 @@ func Scan(req Request) (Result, error) {
 		default:
 			res.Summary.FilesScanned++
 			res.Findings = append(res.Findings, o.findings...)
-			if req.Inventory {
-				res.Inventory = append(res.Inventory, o.entries...)
-			}
+			entries = append(entries, o.entries...)
 			res.Recipients = append(res.Recipients, o.uses...)
+			evidence = append(evidence, o.evidence...)
 		}
 	}
+	sortInventory(entries)
+	if req.Inventory {
+		res.Inventory = entries
+	}
+	if req.Lifecycle {
+		res.Lifecycle = assessLifecycle(entries, evidence)
+		res.Findings = append(res.Findings, lifecycleFindings(entries, res.Lifecycle, req)...)
+	}
 	sortFindings(res.Findings)
-	sortInventory(res.Inventory)
 	sortRecipients(res.Recipients)
 	sortSkipped(res.Summary.FilesSkipped)
 	sortSkipped(res.Summary.Unreadable)
 	return res, nil
 }
 
-func scanFile(f walk.File, req Request) ([]domain.Finding, []domain.InventoryEntry, []domain.RecipientUse, *domain.Skipped, error) {
+// fileFacts is what one file adds besides findings.
+type fileFacts struct {
+	entries  []domain.InventoryEntry
+	uses     []domain.RecipientUse
+	evidence []lifecycle.Evidence
+}
+
+func scanFile(f walk.File, req Request) ([]domain.Finding, fileFacts, *domain.Skipped, error) {
+	var facts fileFacts
 	fh, err := walk.Open(f)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, facts, nil, err
 	}
 	defer fh.Close()
 	r := bufio.NewReaderSize(fh, 64<<10)
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
-		return nil, nil, nil, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
+		return nil, facts, &domain.Skipped{Path: f.Rel, Reason: "binary"}, nil
 	}
-	wantSchema := (req.SpecialCategories || req.Inventory) && schema.Candidate(f.Rel)
+	wantSchema := (req.SpecialCategories || req.Inventory || req.Lifecycle) && schema.Candidate(f.Rel)
 	wantRecipients := req.Recipients && recipients.Candidate(f.Rel)
-	if !wantSchema && !wantRecipients {
+	wantLifecycle := req.Lifecycle && lifecycle.Candidate(f.Rel)
+	if !wantSchema && !wantRecipients && !wantLifecycle {
 		fs, err := ScanReader(f.Rel, r, req.Detectors)
-		return fs, nil, nil, nil, err
+		return fs, facts, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("read error: %w", err)
+		return nil, facts, nil, fmt.Errorf("read error: %w", err)
 	}
 	fs, err := ScanReader(f.Rel, bytes.NewReader(data), req.Detectors)
-	var entries []domain.InventoryEntry
 	if wantSchema {
-		entries = inventory(f.Rel, data)
+		facts.entries = inventory(f.Rel, data)
 		if req.SpecialCategories {
-			fs = append(fs, specialFindings(entries, splitLines(data))...)
+			fs = append(fs, specialFindings(facts.entries, splitLines(data))...)
 		}
 	}
-	var uses []domain.RecipientUse
 	if wantRecipients {
-		uses = recipients.Find(f.Rel, data)
+		facts.uses = recipients.Find(f.Rel, data)
 	}
-	return fs, entries, uses, nil, err
+	if wantLifecycle {
+		facts.evidence = lifecycle.Find(f.Rel, data)
+	}
+	return fs, facts, nil, err
 }
 
 // ScanReader scans text line by line. path is used for locations and for recognising test folders.
