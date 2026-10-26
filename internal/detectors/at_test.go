@@ -39,3 +39,36 @@ func TestATSocialInsurance(t *testing.T) {
 		t.Errorf("the usual format is a group of four and a group of six")
 	}
 }
+
+func TestATTaxNumber(t *testing.T) {
+	d, ok := Get("at-tax-number")
+	if !ok {
+		t.Fatal("not registered")
+	}
+	cases := []struct {
+		why   string
+		value string
+		want  bool
+	}{
+		{"valid", "465780351", true},
+		{"valid as printed", "46-578/0351", true},
+		{"valid with a space", "46 578/0351", true},
+		{"wrong check digit", "465780358", false},
+		{"all zeros", "000000000", false},
+		{"too short", "46578035", false},
+		{"too long", "4657803510", false},
+	}
+	for _, c := range cases {
+		if got := d.Validate(d.Normalize(c.value)); got != c.want {
+			t.Errorf("%s: got %v, want %v", c.why, got, c.want)
+		}
+	}
+	for _, v := range []string{"46-578/0351", "46 578/0351", "465780351"} {
+		if d.Pattern.FindString(v) != v {
+			t.Errorf("a %d-character form is not found whole", len(v))
+		}
+	}
+	if !d.Formatted.MatchString("46-578/0351") || d.Formatted.MatchString("465780351") {
+		t.Error("only the printed form counts as the usual format")
+	}
+}
