@@ -22,8 +22,11 @@ func sample() Report {
 				Value: sentinel, Masked: "••••••••••••0006", Confidence: domain.High, Reasons: []string{"brand prefix, length and Luhn check are valid", `the word "card" is nearby`}, Fingerprint: "0123456789abcdef0123456789abcdef"},
 			{Detector: "ro-cnp", Label: "Romanian personal number (CNP)", Country: "RO", Location: domain.Location{Path: "tests/fixtures/users.json", Line: 14, Column: 12},
 				Value: sentinel, Masked: "•••••••••••••", Confidence: domain.Low, Reasons: []string{"date, county code and check digit are valid", "in a test, fixture or example path"}, TestPath: true, Fingerprint: "fedcba9876543210fedcba9876543210"},
+			{Detector: "ro-cnp", Label: "Romanian personal number (CNP)", Country: "RO", Location: domain.Location{Path: "exports/users.csv.gz!/users.csv", Line: 2, Column: 7},
+				ColumnName: "cnp", Value: sentinel, Masked: "•••••••••••••", Confidence: domain.Medium, Reasons: []string{"date, county code and check digit are valid", `the word "cnp" is nearby`}, Fingerprint: "00ff00ff00ff00ff00ff00ff00ff00ff"},
 		},
-		Summary: domain.Summary{FilesScanned: 42, FilesSkipped: []domain.Skipped{{Path: "logo.png", Reason: "binary"}}},
+		Summary: domain.Summary{FilesScanned: 42, FilesSkipped: []domain.Skipped{{Path: "logo.png", Reason: "binary"}},
+			Sampled: []domain.Skipped{{Path: "exports/users.csv.gz!/users.csv", Reason: "only the first 100000 rows were read (max_rows)"}}},
 	}
 }
 
@@ -132,7 +135,7 @@ func TestSARIFLevels(t *testing.T) {
 		t.Fatal(err)
 	}
 	res := log.Runs[0].Results
-	if log.Version != "2.1.0" || len(res) != 2 || res[0].Level != "error" || res[1].Level != "note" || len(log.Runs[0].Tool.Driver.Rules) != 2 {
+	if log.Version != "2.1.0" || len(res) != 3 || res[0].Level != "error" || res[1].Level != "note" || res[2].Level != "warning" || len(log.Runs[0].Tool.Driver.Rules) != 2 {
 		t.Fatalf("unexpected SARIF: %+v", log)
 	}
 }

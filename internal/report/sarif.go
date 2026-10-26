@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/Clause-Eight/pii-eu/internal/domain"
@@ -102,10 +103,18 @@ func writeSARIF(w io.Writer, r Report, _ Options) error {
 				Region:           sarifRegion{StartLine: f.Location.Line, StartColumn: f.Location.Column},
 			}}},
 			PartialFingerprints: map[string]string{"piiEu/v1": f.Fingerprint},
-			Properties:          map[string]any{"confidence": f.Confidence.String(), "sample": f.Sample, "testPath": f.TestPath},
+			Properties:          properties(f),
 		})
 	}
 	return writeLog(w, r, rules, results)
+}
+
+func properties(f domain.Finding) map[string]any {
+	p := map[string]any{"confidence": f.Confidence.String(), "sample": f.Sample, "testPath": f.TestPath}
+	if f.ColumnName != "" {
+		p["columnName"] = f.ColumnName
+	}
+	return p
 }
 
 // ruleID is the detector name, with the Art. 9 category for special-category fields. Checks on data stores use
@@ -176,7 +185,11 @@ func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarif
 }
 
 func message(f domain.Finding) string {
-	msg := f.Label + " " + f.Masked + " (" + f.Confidence.String() + " confidence)"
+	msg := f.Label + " " + f.Masked
+	if f.ColumnName != "" {
+		msg += " in column " + strconv.Quote(f.ColumnName)
+	}
+	msg += " (" + f.Confidence.String() + " confidence)"
 	if len(f.Reasons) > 0 {
 		msg += ": " + strings.Join(f.Reasons, "; ")
 	}

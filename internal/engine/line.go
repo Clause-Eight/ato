@@ -20,8 +20,16 @@ type lineContext struct {
 	number   int
 	line     string
 	previous string
-	digits   int
+	segments []segment
 	folded   *string
+}
+
+// segment is one value of a line in a file with columns: a CSV cell, a JSON Lines value or a SQL value. Its
+// column name, not the rest of the line, is the keyword context. A line without segments is scanned whole.
+type segment struct {
+	start, end int
+	column     string
+	keywords   string
 }
 
 // keywordText is the previous and current line folded for keyword matching, computed once per line on first use.
@@ -41,6 +49,7 @@ type match struct {
 	reasons    []string
 	sample     bool
 	ownWord    bool
+	column     string
 }
 
 var longNumber = regexp.MustCompile(`\d{10,}`)
@@ -61,19 +70,31 @@ func scanLine(ctx lineContext, dets []detectors.Detector) []domain.Finding {
 	if ctx.line == "" {
 		return nil
 	}
-	ctx.digits = countDigits(ctx.line)
 	var matches []match
-	for _, d := range candidates(ctx.line, ctx.digits, dets) {
-		for _, loc := range d.Pattern.FindAllStringIndex(ctx.line, -1) {
-			if m, ok := evaluate(&ctx, d, loc[0], loc[1]); ok {
-				matches = append(matches, m)
-			}
-		}
+	if ctx.segments == nil {
+		matches = scanSegment(&ctx, nil, 0, len(ctx.line), dets, matches)
+	}
+	for i := range ctx.segments {
+		s := &ctx.segments[i]
+		matches = scanSegment(&ctx, s, s.start, s.end, dets, matches)
 	}
 	matches = dedupe(matches)
 	findings := toFindings(ctx, matches)
 	applyIgnore(findings, ctx)
 	return findings
+}
+
+// scanSegment runs the detectors whose prefilter passes over line[start:end]; seg is nil for a whole line.
+func scanSegment(ctx *lineContext, seg *segment, start, end int, dets []detectors.Detector, matches []match) []match {
+	text := ctx.line[start:end]
+	for _, d := range candidates(text, countDigits(text), dets) {
+		for _, loc := range d.Pattern.FindAllStringIndex(text, -1) {
+			if m, ok := evaluate(ctx, seg, d, start+loc[0], start+loc[1]); ok {
+				matches = append(matches, m)
+			}
+		}
+	}
+	return matches
 }
 
 // candidates are the detectors whose prefilter the line passes; only their patterns run.
@@ -134,8 +155,10 @@ func ignoreReason(line string) (bool, string) {
 	return true, strings.TrimSpace(strings.TrimLeft(rest, " :\t-"))
 }
 
-func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bool) {
-	if !bounded(ctx.line, start, end) {
+// evaluate checks one candidate. In a segment the column name gives the keywords and the segment is the text
+// judged as a table of numbers; otherwise the line and the line before do.
+func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end int) (match, bool) {
+	if seg != nil && !bounded(ctx.line[seg.start:seg.end], start-seg.start, end-seg.start) || seg == nil && !bounded(ctx.line, start, end) {
 		return match{}, false
 	}
 	end, ok := validEnd(ctx.line, d, start, end)
@@ -155,7 +178,13 @@ func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bo
 	if words == nil {
 		words = d.Keywords
 	}
-	kw := keyword(ctx.keywordText(), words)
+	context, text := "", ctx.line
+	if seg != nil {
+		context, text, m.column = seg.keywords, ctx.line[seg.start:seg.end], seg.column
+	} else {
+		context = ctx.keywordText()
+	}
+	kw := keyword(context, words)
 	if kw == "" && d.NeedsKeyword {
 		return match{}, false
 	}
@@ -163,7 +192,7 @@ func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bo
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby", kw))
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
-	} else if w := keyword(ctx.keywordText(), d.Unlikely); w != "" {
+	} else if w := keyword(context, d.Unlikely); w != "" {
 		m.confidence = lower1(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
 	}
@@ -172,7 +201,7 @@ func evaluate(ctx *lineContext, d detectors.Detector, start, end int) (match, bo
 		m.confidence = domain.Low
 		m.reasons = append(m.reasons, "a published sample value")
 	}
-	if !m.sample && numberTable(ctx.line) {
+	if !m.sample && numberTable(text) {
 		m.confidence = lower1(m.confidence)
 		m.reasons = append(m.reasons, "in a line of long numbers, which is usually data such as seeds or constants")
 	}
@@ -329,6 +358,7 @@ func toFindings(ctx lineContext, ms []match) []domain.Finding {
 			Label:       m.det.Label,
 			Country:     m.det.Country,
 			Location:    domain.Location{Path: ctx.path, Line: ctx.number, Column: utf8.RuneCountInString(ctx.line[:m.start]) + 1},
+			ColumnName:  m.column,
 			Value:       m.value,
 			Masked:      m.det.Mask(m.value),
 			Confidence:  m.confidence,

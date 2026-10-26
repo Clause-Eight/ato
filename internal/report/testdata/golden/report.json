@@ -1,11 +1,11 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "tool": {
     "name": "pii-eu",
     "version": "test"
   },
   "summary": {
-    "findings": 2,
+    "findings": 3,
     "files_scanned": 42,
     "files_skipped": [
       {
@@ -15,7 +15,26 @@
     ],
     "unreadable": [],
     "ignored": 0,
-    "baselined": 0
+    "baselined": 0,
+    "sampled": [
+      {
+        "path": "exports/users.csv.gz!/users.csv",
+        "reason": "only the first 100000 rows were read (max_rows)"
+      }
+    ],
+    "columns": [
+      {
+        "path": "exports/users.csv.gz!/users.csv",
+        "column_name": "cnp",
+        "findings": 1,
+        "detectors": [
+          {
+            "detector": "ro-cnp",
+            "findings": 1
+          }
+        ]
+      }
+    ]
   },
   "findings": [
     {
@@ -53,6 +72,25 @@
       "sample": false,
       "test_path": true,
       "fingerprint": "fedcba9876543210fedcba9876543210"
+    },
+    {
+      "kind": "value",
+      "detector": "ro-cnp",
+      "label": "Romanian personal number (CNP)",
+      "country": "RO",
+      "path": "exports/users.csv.gz!/users.csv",
+      "line": 2,
+      "column": 7,
+      "column_name": "cnp",
+      "confidence": "medium",
+      "masked": "•••••••••••••",
+      "reasons": [
+        "date, county code and check digit are valid",
+        "the word \"cnp\" is nearby"
+      ],
+      "sample": false,
+      "test_path": false,
+      "fingerprint": "00ff00ff00ff00ff00ff00ff00ff00ff"
     }
   ]
 }
