@@ -23,3 +23,4 @@ code,.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;fon
 .empty{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}
 footer{margin-top:40px;color:var(--muted);font-size:12px}
 @media print{body{background:#fff}.tile,table{break-inside:avoid}}
+.gap{margin-top:12px}

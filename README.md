@@ -144,6 +144,17 @@ first_name,patients,name,,sql,db/migrations/001_patients.sql,3
 diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
 ```
 
+### A data map for the record of processing
+
+`pii-eu map` drafts a data map from the code: per component (a folder under `services/`, `apps/`, `packages/` and similar, or a top-level folder), the tables and models holding personal data and their categories, where personal data is written to logs or telemetry, and the third-party services the code names in dependency files, imports and API host names (payments, email, analytics, error tracking, support, AI providers and more; `established_in_eea` says whether the provider is established in the EEA). Every line cites its source file and line. Formats: `markdown` (default), `json` ([schemas/map.schema.json](schemas/map.schema.json)) and `html`.
+
+The map is a draft for the record of processing activities (GDPR Art. 30). Purposes, legal bases and retention periods need a person; naming a recipient in code does not prove personal data goes to it.
+
+```bash
+pii-eu map --format json --output pii-eu-map.json   # save the map, e.g. on the main branch
+pii-eu map --diff pii-eu-map.json                   # in a pull request: exit 1 if a category, store, recipient or log of personal data is new
+```
+
 ### Keeping a deliberate value
 
 Put `pii-eu:ignore` and a reason on the same line or the line before. Without a reason the comment does not apply.
