@@ -167,3 +167,22 @@ func TestFixEveryGenerator(t *testing.T) {
 		t.Fatalf("only %d detectors have generators", len(names))
 	}
 }
+
+// TestFixReplacesKeywordValuesBelowTheReportLevel: a value next to its own keyword is real data in a fixture,
+// even when a table of numbers and the test path lowered it below the level a scan reports.
+func TestFixReplacesKeywordValuesBelowTheReportLevel(t *testing.T) {
+	dir := t.TempDir()
+	egn := generate(t, "bg-egn", 7)
+	writeFile(t, dir, "tests/fixtures/people.json", `{"egn": "`+egn+`", "ref": "1234567890123", "n": "9876543210"}`+"\n")
+	for _, f := range fixScanJSON(t, dir).Findings {
+		if f.Detector == "bg-egn" {
+			t.Fatalf("the EGN should be below the default report level for this test: %+v", f)
+		}
+	}
+	if code, out, errOut := run("fix", "--no-git", dir); code != ExitClean || !strings.Contains(out, "replaced 1 value") {
+		t.Fatalf("fix: exit %d out %q err %q", code, out, errOut)
+	}
+	if strings.Contains(readFile(t, dir, "tests/fixtures/people.json"), egn) {
+		t.Fatal("the EGN next to its keyword was left in place")
+	}
+}
