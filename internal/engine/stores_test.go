@@ -57,7 +57,7 @@ resource "aws_ebs_volume" "scratch" {
   }
 }
 
-# pii-eu:ignore metrics are aggregated and hold no personal data
+# ato:ignore metrics are aggregated and hold no personal data
 resource "aws_cloudwatch_log_group" "metrics" {
   name = "metrics"
 }

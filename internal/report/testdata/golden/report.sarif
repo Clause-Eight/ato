@@ -5,7 +5,7 @@
     {
       "tool": {
         "driver": {
-          "name": "pii-eu",
+          "name": "ATO",
           "version": "test",
           "informationUri": "https://github.com/Clause-Eight/ato",
           "rules": [
@@ -95,6 +95,7 @@
             }
           ],
           "partialFingerprints": {
+            "ato/v1": "0123456789abcdef0123456789abcdef",
             "piiEu/v1": "0123456789abcdef0123456789abcdef"
           },
           "properties": {
@@ -124,6 +125,7 @@
             }
           ],
           "partialFingerprints": {
+            "ato/v1": "fedcba9876543210fedcba9876543210",
             "piiEu/v1": "fedcba9876543210fedcba9876543210"
           },
           "properties": {
@@ -153,6 +155,7 @@
             }
           ],
           "partialFingerprints": {
+            "ato/v1": "00ff00ff00ff00ff00ff00ff00ff00ff",
             "piiEu/v1": "00ff00ff00ff00ff00ff00ff00ff00ff"
           },
           "properties": {
@@ -183,6 +186,7 @@
             }
           ],
           "partialFingerprints": {
+            "ato/v1": "ffeeddccbbaa99887766554433221100",
             "piiEu/v1": "ffeeddccbbaa99887766554433221100"
           },
           "properties": {

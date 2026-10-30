@@ -57,7 +57,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	case "fix":
 		code, err = runFix(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
-		fmt.Fprintf(stdout, "pii-eu %s\n", Version)
+		fmt.Fprintf(stdout, "ato %s\n", Version)
 	case "help", "--help", "-h":
 		fmt.Fprint(stdout, usage)
 	default:
@@ -69,29 +69,29 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	if errors.Is(err, flag.ErrHelp) {
 		return ExitClean
 	}
-	fmt.Fprintf(stderr, "pii-eu: %s\n", err)
+	fmt.Fprintf(stderr, "ato: %s\n", err)
 	var ue usageError
 	if errors.As(err, &ue) {
-		fmt.Fprintln(stderr, "Run `pii-eu help` for usage.")
+		fmt.Fprintln(stderr, "Run `ato help` for usage.")
 	}
 	return ExitUsage
 }
 
-const usage = `pii-eu finds EU personal data in code, fixtures and logs.
+const usage = `ATO, a Clause Eight tool, finds EU personal data in code, fixtures and logs.
 
 Usage:
-  pii-eu scan [flags] [path]   scan a folder or file (default: current folder); "-" reads stdin
-  pii-eu scan --image FILE     scan a container image saved with ` + "`docker save`" + `, layer by layer
-  pii-eu baseline [path]       accept current findings so only new ones are reported
-  pii-eu inventory [flags] [path]  list the personal-data fields in schemas and models, and the
+  ato scan [flags] [path]      scan a folder or file (default: current folder); "-" reads stdin
+  ato scan --image FILE        scan a container image saved with ` + "`docker save`" + `, layer by layer
+  ato baseline [path]          accept current findings so only new ones are reported
+  ato inventory [flags] [path]  list the personal-data fields in schemas and models, and the
                                data stores declared in Terraform
-  pii-eu map [flags] [path]    draft a data map: stores, logged personal data and third-party recipients
-  pii-eu fix [flags] [path]    replace found values in test, fixture and example files with synthetic ones
-  pii-eu detectors [--markdown]  list what can be detected
-  pii-eu version               print the version
+  ato map [flags] [path]       draft a data map: stores, logged personal data and third-party recipients
+  ato fix [flags] [path]       replace found values in test, fixture and example files with synthetic ones
+  ato detectors [--markdown]   list what can be detected
+  ato version                  print the version
 
 Scan flags:
-  --config FILE            settings file (default: <path>/.pii-eu.toml)
+  --config FILE            settings file (default: <path>/.ato.toml)
   --include GLOB           only scan matching paths (repeatable)
   --exclude GLOB           skip matching paths (repeatable)
   --min-confidence LEVEL   report low, medium or high and above (default: medium)
@@ -101,11 +101,11 @@ Scan flags:
   --output FILE            write the report to a file instead of stdout
   --no-git                 walk the folder instead of asking git for the file list
   --staged                 scan the staged version of staged files (for pre-commit hooks)
-  --baseline FILE          baseline file (default: <path>/.pii-eu-baseline.json)
+  --baseline FILE          baseline file (default: <path>/.ato-baseline.json)
   --show-values            print found values in full in text output (never in files)
   --max-rows N             read at most N rows of each CSV, TSV or JSON Lines file; 0 reads every row
   --allow-partial          exit 0 or 1 even when a file was not read in full (cut at max_rows, over a
-                           size limit, or a document format pii-eu does not open); see exit codes
+                           size limit, or a document format ATO does not open); see exit codes
                            (default: 100000)
   --image FILE             scan a saved container image (docker save or OCI layout tar) instead of a path
 
@@ -135,7 +135,7 @@ func warnDeprecated(args []string, stderr io.Writer) {
 	for _, a := range args {
 		name := strings.TrimLeft(strings.SplitN(a, "=", 2)[0], "-")
 		if repl, ok := deprecatedFlags[name]; ok && strings.HasPrefix(a, "-") {
-			fmt.Fprintf(stderr, "pii-eu: --%s is deprecated and will be removed in the next major version; use %s\n", name, repl)
+			fmt.Fprintf(stderr, "ato: --%s is deprecated and will be removed in the next major version; use %s\n", name, repl)
 		}
 	}
 }
@@ -166,6 +166,8 @@ type scanFlags struct {
 	image         string
 	dryRun        bool
 	all           bool
+	// stderr receives deprecation warnings.
+	stderr io.Writer
 }
 
 func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) {
@@ -174,7 +176,7 @@ func parseScanFlags(args []string, stderr io.Writer) (scanFlags, string, error) 
 
 // parseFlags reads the scan flags, plus any that extra adds for one command.
 func parseFlags(command string, args []string, stderr io.Writer, extra func(*flag.FlagSet, *scanFlags)) (scanFlags, string, error) {
-	var f scanFlags
+	f := scanFlags{stderr: stderr}
 	fs := flag.NewFlagSet(command, flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.StringVar(&f.configPath, "config", "", "")
@@ -216,7 +218,7 @@ func parseFlags(command string, args []string, stderr io.Writer, extra func(*fla
 	return f, "", usageError{command + " takes one path"}
 }
 
-// reorder moves flags in front of the path so `pii-eu scan . --format json` works.
+// reorder moves flags in front of the path so `ato scan . --format json` works.
 func reorder(args []string) []string {
 	var flags, rest []string
 	for i := 0; i < len(args); i++ {
@@ -246,11 +248,7 @@ func loadConfig(f scanFlags, root string) (config.Config, error) {
 	path, explicit := f.configPath, true
 	if path == "" {
 		explicit = false
-		dir := root
-		if st, err := os.Stat(root); err == nil && !st.IsDir() {
-			dir = filepath.Dir(root)
-		}
-		path = filepath.Join(dir, config.FileName)
+		path = defaultFile(scanDir(root), config.FileName, config.LegacyFileName, f.stderr)
 	}
 	cfg, err := config.Load(path, explicit)
 	if err != nil {
@@ -322,7 +320,7 @@ func runScan(args []string, stdout, stderr io.Writer) (int, error) {
 		findings, res.Summary.Baselined = b.Filter(findings)
 	}
 	findings = atLeast(findings, cfg)
-	if err := writeReport(f, report.Report{Tool: "pii-eu", Version: Version, Root: root, Findings: findings, Summary: res.Summary}, stdout); err != nil {
+	if err := writeReport(f, report.Report{Tool: "ato", Version: Version, Root: root, Findings: findings, Summary: res.Summary}, stdout); err != nil {
 		return 0, err
 	}
 	switch {
@@ -346,7 +344,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 	for _, names := range []map[string]bool{cfg.Detectors, keys(cfg.DetectorMinConfidence)} {
 		for name := range names {
 			if _, ok := detectors.Get(name); !ok && !engineDetector[name] {
-				return engine.Result{}, cfg, usageError{fmt.Sprintf("unknown detector %q in settings: run `pii-eu detectors`", name)}
+				return engine.Result{}, cfg, usageError{fmt.Sprintf("unknown detector %q in settings: run `ato detectors`", name)}
 			}
 		}
 	}
@@ -355,6 +353,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 	retention := cfg.Enabled(engine.NoRetentionDetector, []string{domain.CrossBorder}, false)
 	if root == "-" {
 		fs, err := engine.ScanReader("<stdin>", Stdin, dets)
+		warnLegacyIgnore(fs, f.stderr)
 		return engine.Result{Findings: fs, Summary: domain.Summary{FilesScanned: 1}}, cfg, err
 	}
 	req := engine.Request{
@@ -381,6 +380,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		scan = engine.ScanImage
 	}
 	res, err := scan(req)
+	warnLegacyIgnore(res.Findings, f.stderr)
 	if errors.Is(err, walk.ErrBadGlob) || errors.Is(err, walk.ErrNotGit) || errors.Is(err, walk.ErrNotImage) {
 		return res, cfg, usageError{err.Error()}
 	}
@@ -397,18 +397,57 @@ var engineDetector = func() map[string]bool {
 	return m
 }()
 
-// Stdin is read by `pii-eu scan -`. Tests replace it.
+// Stdin is read by `ato scan -`. Tests replace it.
 var Stdin io.Reader = os.Stdin
 
 func baselinePath(f scanFlags, root string) string {
 	if f.baselinePath != "" {
 		return f.baselinePath
 	}
-	dir := root
-	if st, err := os.Stat(root); err == nil && !st.IsDir() {
-		dir = filepath.Dir(root)
+	return defaultFile(scanDir(root), baseline.FileName, baseline.LegacyFileName, f.stderr)
+}
+
+// defaultFile is name in dir, or the deprecated legacy name when only that file exists, with a warning. The
+// legacy names are read in 2.x and dropped in the next major version (docs/COMPATIBILITY.md).
+func defaultFile(dir, name, legacy string, stderr io.Writer) string {
+	path := filepath.Join(dir, name)
+	old := filepath.Join(dir, legacy)
+	if exists(path) || !exists(old) {
+		return path
 	}
-	return filepath.Join(dir, baseline.FileName)
+	if stderr != nil {
+		fmt.Fprintf(stderr, "ato: reading %s; the name %s is deprecated, rename it to %s\n", old, legacy, name)
+	}
+	return old
+}
+
+// scanDir is the folder that holds the settings and baseline files for a scan of root.
+func scanDir(root string) string {
+	if st, err := os.Stat(root); err == nil && !st.IsDir() {
+		return filepath.Dir(root)
+	}
+	return root
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+// warnLegacyIgnore prints one warning when ignore comments use the deprecated pii-eu:ignore form.
+func warnLegacyIgnore(fs []domain.Finding, stderr io.Writer) {
+	n, first := 0, ""
+	for _, f := range fs {
+		if f.LegacyIgnore {
+			if n == 0 {
+				first = f.Location.Path
+			}
+			n++
+		}
+	}
+	if n > 0 && stderr != nil {
+		fmt.Fprintf(stderr, "ato: %d %s use the deprecated pii-eu:ignore comment (first in %s); write ato:ignore instead\n", n, plural(n, "finding", "findings"), first)
+	}
 }
 
 func withoutIgnored(fs []domain.Finding) ([]domain.Finding, int) {
@@ -437,7 +476,13 @@ func runBaseline(args []string, stdout, stderr io.Writer) (int, error) {
 		return 0, err
 	}
 	findings, _ := withoutIgnored(res.Findings)
-	path := baselinePath(f, root)
+	path := f.baselinePath
+	if path == "" {
+		path = filepath.Join(scanDir(root), baseline.FileName)
+		if old := filepath.Join(scanDir(root), baseline.LegacyFileName); exists(old) {
+			fmt.Fprintf(stderr, "ato: writing %s; delete the deprecated %s, which is read only when %s is absent\n", path, old, baseline.FileName)
+		}
+	}
 	if err := baseline.Save(path, findings); err != nil {
 		return 0, fmt.Errorf("cannot write %s: %w", path, err)
 	}
@@ -583,11 +628,11 @@ func columnOf(c detectors.Concept) int {
 // DetectorTable is the Markdown reference in docs/DETECTORS.md, generated from the registry.
 func DetectorTable() string {
 	var b strings.Builder
-	b.WriteString("# Detectors\n\nGenerated by `pii-eu detectors --markdown`; a test fails when this file is out of date.\n\n")
+	b.WriteString("# Detectors\n\nGenerated by `ato detectors --markdown`; a test fails when this file is out of date.\n\n")
 	b.WriteString("Base confidence is what a valid match gets on its own. A keyword on the same line or the line before raises it one step; a test or fixture path lowers it one step; a published sample value is always low. The default `--min-confidence` is medium.\n\n")
 	b.WriteString("Keywords are the identifier's own names. Concepts add the shared words for that kind of data in all 24 EU languages, from `internal/detectors/keywords/`. Detectors marked off by default run when switched on in `[detectors]` or when their country is selected with `--countries`.\n\n")
 	b.WriteString("Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.\n\n")
-	b.WriteString("Tables and models holding personal data can also be checked for an erasure path (GDPR Art. 17: a delete, an anonymising update or a cascade from an erasable parent) and a retention limit (Art. 5(1)(e): a time-based delete, a TTL or a partition drop). Switch the `no-erasure-path` and `no-retention` findings on under `[detectors]`; they are off by default because data can be removed in ways the code does not show. `pii-eu map` always shows both.\n\n")
+	b.WriteString("Tables and models holding personal data can also be checked for an erasure path (GDPR Art. 17: a delete, an anonymising update or a cascade from an erasable parent) and a retention limit (Art. 5(1)(e): a time-based delete, a TTL or a partition drop). Switch the `no-erasure-path` and `no-retention` findings on under `[detectors]`; they are off by default because data can be removed in ways the code does not show. `ato map` always shows both.\n\n")
 	b.WriteString("Log, print, error-tracker and analytics calls in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP that are passed a field whose name says it holds personal data (`user.email`), a whole request body (`req.body`) or a user-like object (`currentUser`) are reported as `log-sink` findings, with the sink (log, error-tracker or analytics) and the data category: medium confidence for a named field or a request body, low for a whole object or an online identifier. Switch them off with `log-sink = false` under `[detectors]`.\n\n")
 	b.WriteString("| Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |\n|---|---|---|---|---|---|---|\n")
 	for _, d := range detectors.All() {
@@ -616,7 +661,7 @@ func DetectorTable() string {
 func storeTable() string {
 	var b strings.Builder
 	b.WriteString("\n## Terraform data stores\n\n")
-	b.WriteString("`pii-eu scan` reads the data stores declared in `.tf` files, without running Terraform, and reports these checks as `infra` findings. A finding is high when the store is linked to personal data (a tag such as `data_classification = \"pii\"` or `pii = true`, or a name that matches a table or model in the inventory) and medium otherwise. A setting that comes from something the code does not show, such as a variable without a default, is never read as a failure: it is reported at low confidence, and only for linked stores. Switch a check off under `[detectors]`, for example `tf-no-retention = false`.\n\n")
+	b.WriteString("`ato scan` reads the data stores declared in `.tf` files, without running Terraform, and reports these checks as `infra` findings. A finding is high when the store is linked to personal data (a tag such as `data_classification = \"pii\"` or `pii = true`, or a name that matches a table or model in the inventory) and medium otherwise. A setting that comes from something the code does not show, such as a variable without a default, is never read as a failure: it is reported at low confidence, and only for linked stores. Switch a check off under `[detectors]`, for example `tf-no-retention = false`.\n\n")
 	b.WriteString("| Name | Finding | Reported when | Supports |\n|---|---|---|---|\n")
 	for _, c := range domain.InfraChecks {
 		fmt.Fprintf(&b, "| `%s` | %s | %s | %s |\n", c.Detector, c.Label, c.When, c.Rule)
@@ -653,7 +698,7 @@ func runInventory(args []string, stdout, stderr io.Writer) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	inv := report.Inventory{Tool: "pii-eu", Version: Version, Entries: res.Inventory, Stores: res.Stores, Files: res.Summary.FilesScanned}
+	inv := report.Inventory{Tool: "ato", Version: Version, Entries: res.Inventory, Stores: res.Stores, Files: res.Summary.FilesScanned}
 	w := stdout
 	if f.output != "" {
 		file, err := os.Create(f.output)
@@ -717,7 +762,7 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle, Infra: res.Stores})
 	if previous != nil {
 		changes := datamap.Diff(*previous, m)
-		dm := report.DataMap{Tool: "pii-eu", Version: Version, Map: m, Previous: previous, PreviousName: filepath.Base(f.diff)}
+		dm := report.DataMap{Tool: "ato", Version: Version, Map: m, Previous: previous, PreviousName: filepath.Base(f.diff)}
 		switch {
 		case f.output != "":
 			if err := writeMapFile(f, dm); err != nil {
@@ -743,7 +788,7 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 		}
 		return ExitFindings, nil
 	}
-	dm := report.DataMap{Tool: "pii-eu", Version: Version, Map: m}
+	dm := report.DataMap{Tool: "ato", Version: Version, Map: m}
 	if f.output != "" {
 		if err := writeMapFile(f, dm); err != nil {
 			return 0, err

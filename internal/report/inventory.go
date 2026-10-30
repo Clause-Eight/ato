@@ -10,7 +10,7 @@ import (
 )
 
 // InventorySchemaVersion is the version of the JSON inventory, versioned like the findings report.
-const InventorySchemaVersion = "1.2"
+const InventorySchemaVersion = "2.0"
 
 // Inventory is a draft record of the personal data a code base declares: field names and where they are, and the
 // data stores its Terraform deploys. Never values.
@@ -22,7 +22,7 @@ type Inventory struct {
 	Files   int
 }
 
-// InventoryFormats are the formats `pii-eu inventory` writes.
+// InventoryFormats are the formats `ato inventory` writes.
 var InventoryFormats = []string{"json", "csv", "html"}
 
 type jsonInventory struct {
@@ -54,7 +54,7 @@ type jsonStoreE struct {
 	Line         int         `json:"line"`
 }
 
-// jsonModule is a module call that pii-eu does not read inside: its source and the arguments that look like
+// jsonModule is a module call that ATO does not read inside: its source and the arguments that look like
 // store settings, by name.
 type jsonModule struct {
 	Source   string   `json:"source"`

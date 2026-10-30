@@ -11,9 +11,9 @@ import (
 )
 
 // MapSchemaVersion is the version of the JSON data map, versioned like the findings report.
-const MapSchemaVersion = "1.1"
+const MapSchemaVersion = "2.0"
 
-// MapFormats are the formats `pii-eu map` writes.
+// MapFormats are the formats `ato map` writes.
 var MapFormats = []string{"json", "markdown", "html"}
 
 // DataMap is a data map with the tool that made it.
@@ -118,9 +118,9 @@ func WriteMap(format string, w io.Writer, m DataMap) error {
 func ReadMap(r io.Reader) (datamap.Map, error) {
 	var jm jsonMap
 	if err := json.NewDecoder(r).Decode(&jm); err != nil {
-		return datamap.Map{}, fmt.Errorf("not a pii-eu data map: %w", err)
+		return datamap.Map{}, fmt.Errorf("not an ATO data map: %w", err)
 	}
-	if !strings.HasPrefix(jm.SchemaVersion, "1.") {
+	if !strings.HasPrefix(jm.SchemaVersion, "1.") && !strings.HasPrefix(jm.SchemaVersion, "2.") {
 		return datamap.Map{}, fmt.Errorf("data map schema version %q is not supported", jm.SchemaVersion)
 	}
 	var m datamap.Map
@@ -235,7 +235,7 @@ func eeaText(eea bool) string {
 func markdownMap(m DataMap) string {
 	var b strings.Builder
 	b.WriteString("# Data map\n\n")
-	fmt.Fprintf(&b, "Drafted by %s %s from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention periods, which code cannot show. Erasure and retention show whether the code has a path that removes the data, not that it runs.\n\n", m.Tool, m.Version)
+	fmt.Fprintf(&b, "Drafted by %s %s from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention periods, which code cannot show. Erasure and retention show whether the code has a path that removes the data, not that it runs.\n\n", Product, m.Version)
 	if len(m.Map.Components) == 0 {
 		b.WriteString("No personal data, logging of personal data or third-party recipients found.\n")
 		return b.String()

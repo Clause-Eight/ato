@@ -29,7 +29,7 @@ func TestUsageErrors(t *testing.T) {
 }
 
 func TestVersionAndHelp(t *testing.T) {
-	if code, out, _ := run("version"); code != 0 || !strings.HasPrefix(out, "pii-eu ") {
+	if code, out, _ := run("version"); code != 0 || !strings.HasPrefix(out, "ato ") {
 		t.Fatalf("version: %d %q", code, out)
 	}
 	if code, out, _ := run("help"); code != 0 || !strings.Contains(out, "Exit codes") {
@@ -50,7 +50,7 @@ func TestCleanFolderExitsZero(t *testing.T) {
 
 func TestUnknownDetectorInSettings(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("[detectors]\nnot-a-detector = true\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".ato.toml"), []byte("[detectors]\nnot-a-detector = true\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	code, _, errOut := run("scan", dir)
@@ -111,7 +111,7 @@ func TestBaselineReportsOnlyNewFindings(t *testing.T) {
 	if code, out, errOut := run("baseline", "--no-git", dir); code != ExitClean || !strings.Contains(out, "1 finding") {
 		t.Fatalf("baseline: %d %q %q", code, out, errOut)
 	}
-	data, _ := os.ReadFile(filepath.Join(dir, ".pii-eu-baseline.json"))
+	data, _ := os.ReadFile(filepath.Join(dir, ".ato-baseline.json"))
 	if strings.Contains(string(data), card) {
 		t.Fatal("baseline contains the value")
 	}
@@ -159,7 +159,7 @@ func TestStagedScansTheStagedVersion(t *testing.T) {
 
 func TestDetectorReferenceIsUpToDate(t *testing.T) {
 	path := filepath.Join("..", "..", "docs", "DETECTORS.md")
-	if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+	if os.Getenv("ATO_UPDATE_GOLDEN") == "1" {
 		if err := os.WriteFile(path, []byte(DetectorTable()), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -169,7 +169,7 @@ func TestDetectorReferenceIsUpToDate(t *testing.T) {
 		t.Fatal(err)
 	}
 	if strings.ReplaceAll(string(want), "\r\n", "\n") != DetectorTable() {
-		t.Fatal("docs/DETECTORS.md is out of date: run PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli")
+		t.Fatal("docs/DETECTORS.md is out of date: run ATO_UPDATE_GOLDEN=1 go test ./internal/cli")
 	}
 }
 
@@ -186,14 +186,14 @@ func TestCoverageMatrixInReadmeIsUpToDate(t *testing.T) {
 		t.Fatal("README.md has no coverage markers")
 	}
 	want := text[:i+len(start)] + CoverageMatrix() + text[j:]
-	if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+	if os.Getenv("ATO_UPDATE_GOLDEN") == "1" {
 		if err := os.WriteFile(path, []byte(want), 0o644); err != nil {
 			t.Fatal(err)
 		}
 		return
 	}
 	if text != want {
-		t.Fatal("the coverage matrix in README.md is out of date: run PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli")
+		t.Fatal("the coverage matrix in README.md is out of date: run ATO_UPDATE_GOLDEN=1 go test ./internal/cli")
 	}
 }
 
@@ -228,7 +228,7 @@ func TestSpecialCategoryFieldsAndInventory(t *testing.T) {
 	if strings.Contains(out, "first_name") {
 		t.Error("only special-category fields are scan findings")
 	}
-	cfg := filepath.Join(dir, ".pii-eu.toml")
+	cfg := filepath.Join(dir, ".ato.toml")
 	if err := os.WriteFile(cfg, []byte("[detectors]\nspecial-category = false\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -276,7 +276,7 @@ resource "aws_s3_bucket" "site" {
 	if !strings.Contains(out, `"masked": "aws_s3_bucket.site"`) {
 		t.Errorf("a bucket kept forever is a medium finding:\n%s", out)
 	}
-	write(".pii-eu.toml", "[detectors]\ntf-unencrypted = false\ntf-no-retention = false\n")
+	write(".ato.toml", "[detectors]\ntf-unencrypted = false\ntf-no-retention = false\n")
 	if code, out, errOut := run("scan", "--no-git", dir); code != ExitClean {
 		t.Errorf("checks switched off: exit %d %s %s", code, out, errOut)
 	}
@@ -367,7 +367,7 @@ func TestErasureAndRetentionFindings(t *testing.T) {
 	if code, out, _ := run("scan", "--no-git", dir); code != ExitClean {
 		t.Fatalf("off by default: exit %d\n%s", code, out)
 	}
-	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("[detectors]\nno-erasure-path = true\nno-retention = true\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".ato.toml"), []byte("[detectors]\nno-erasure-path = true\nno-retention = true\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	code, out, _ := run("scan", "--no-git", "--format", "json", dir)

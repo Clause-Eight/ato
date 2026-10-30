@@ -5,7 +5,7 @@
     {
       "tool": {
         "driver": {
-          "name": "pii-eu",
+          "name": "ATO",
           "version": "test",
           "informationUri": "https://github.com/Clause-Eight/ato",
           "rules": [
@@ -55,6 +55,7 @@
             }
           ],
           "partialFingerprints": {
+            "ato/v1": "ffeeddccbbaa99887766554433221100",
             "piiEu/v1": "ffeeddccbbaa99887766554433221100"
           },
           "properties": {

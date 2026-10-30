@@ -266,7 +266,7 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
 		if walk.Unopened(rel) {
-			return fileResult{}, &domain.Skipped{Path: rel, Reason: "a document format pii-eu does not open", NotRead: true}, nil
+			return fileResult{}, &domain.Skipped{Path: rel, Reason: "a document format ATO does not open", NotRead: true}, nil
 		}
 		return fileResult{}, &domain.Skipped{Path: rel, Reason: "binary"}, nil
 	}

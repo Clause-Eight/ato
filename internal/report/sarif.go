@@ -102,7 +102,7 @@ func writeSARIF(w io.Writer, r Report, _ Options) error {
 				ArtifactLocation: sarifArtifact{URI: f.Location.Path, URIBaseID: "%SRCROOT%"},
 				Region:           sarifRegion{StartLine: f.Location.Line, StartColumn: f.Location.Column},
 			}}},
-			PartialFingerprints: map[string]string{"piiEu/v1": f.Fingerprint},
+			PartialFingerprints: fingerprints(f.Fingerprint),
 			Properties:          properties(f),
 		})
 	}
@@ -186,7 +186,7 @@ func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarif
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
-	driver := sarifDriver{Name: r.Tool, Version: r.Version, InformationURI: "https://github.com/Clause-Eight/ato", Rules: make([]sarifRule, 0, len(ids))}
+	driver := sarifDriver{Name: Product, Version: r.Version, InformationURI: "https://github.com/Clause-Eight/ato", Rules: make([]sarifRule, 0, len(ids))}
 	for _, id := range ids {
 		driver.Rules = append(driver.Rules, rules[id])
 	}
@@ -217,4 +217,10 @@ func ruleName(label string) string {
 		b.WriteString(strings.ToUpper(string(r[0])) + string(r[1:]))
 	}
 	return b.String()
+}
+
+// fingerprints are the partial fingerprints of one result. ato/v1 is the key from 2.0; piiEu/v1 carries the same
+// value so that GitHub code scanning keeps matching alerts opened by 1.x. piiEu/v1 is deprecated.
+func fingerprints(fp string) map[string]string {
+	return map[string]string{"ato/v1": fp, "piiEu/v1": fp}
 }

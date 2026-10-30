@@ -62,7 +62,7 @@ type Store struct {
 	PersonalData bool
 	PersonalWhy  string
 
-	// Module is the source of a module call that may create a store pii-eu does not read inside, such as a
+	// Module is the source of a module call that may create a store ATO does not read inside, such as a
 	// registry module; Type is then "module" and every setting is unknown. ModuleSettings are the arguments of
 	// the call that look like store settings (storage_encrypted, retention_in_days), by name.
 	Module         string

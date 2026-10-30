@@ -165,7 +165,7 @@ func gitFiles(root string) ([]string, bool) {
 }
 
 // untrusted turns off every setting a repository's own config could use to make git run a command while
-// pii-eu lists or reads files, so scanning a folder from a client or an archive never runs its code (ADR 0007).
+// ATO lists or reads files, so scanning a folder from a client or an archive never runs its code (ADR 0007).
 // Values given with -c override the repository's config.
 var untrusted = []string{
 	"-c", "core.fsmonitor=false",
