@@ -36,6 +36,13 @@ const shapeTries = 64
 // fifty has.
 const shapeBudget = 8 * maxTries
 
+// unmarkable are detectors whose generated values cannot carry the synthetic mark (names from a list, dates of
+// birth, street addresses); a search for one would run to maxTries without finding a marked value, so theirs
+// stop after unmarkedTries.
+var unmarkable = map[string]bool{"person-name": true, "birth-date": true, "street-address": true}
+
+const unmarkedTries = 1 << 12
+
 // Replacement is the synthetic value written in place of a found one. Marked says it carries the synthetic
 // mark; SameShape says it keeps the original's separators, case, length and the positions of its letters and
 // digits.
@@ -58,18 +65,22 @@ func Replace(d detectors.Detector, raw string) (Replacement, bool) {
 		return Replacement{}, false
 	}
 	original := detectors.Canonical(raw)
+	tries, triesLike := maxTries, likeTries
+	if unmarkable[d.Name] {
+		tries, triesLike = unmarkedTries, unmarkedTries
+	}
 	if like, ok := synth.Like(d.Name, raw); ok {
 		r := rand.New(rand.NewSource(seed(d.Name, original)))
-		if best, found := search(d, raw, original, like, r, likeTries); found && best.Marked {
+		if best, found := search(d, raw, original, like, r, triesLike); found && best.Marked {
 			return best, true
 		}
 	}
-	plain, found := search(d, raw, original, gen, rand.New(rand.NewSource(seed(d.Name, original))), maxTries)
+	plain, found := search(d, raw, original, gen, rand.New(rand.NewSource(seed(d.Name, original))), tries)
 	if !found || plain.SameShape || !plain.Marked {
 		// Values that never carry the mark (names from a list) are not worth a longer search.
 		return plain, found
 	}
-	if best, ok := search(d, raw, original, shaped(gen, raw), rand.New(rand.NewSource(seed(d.Name, original))), maxTries); ok && best.Marked {
+	if best, ok := search(d, raw, original, shaped(gen, raw), rand.New(rand.NewSource(seed(d.Name, original))), tries); ok && best.Marked {
 		return best, true
 	}
 	return plain, true
