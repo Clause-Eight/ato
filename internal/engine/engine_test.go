@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -174,4 +175,52 @@ func TestNumberTablesAreLowered(t *testing.T) {
 	if len(fs) != 1 || fs[0].Confidence != domain.Low {
 		t.Fatalf("got %+v", fs)
 	}
+}
+
+func TestContextLowersAtMostOneStep(t *testing.T) {
+	fs := scan(t, "tests/fixtures/users.json", `{"secret": 1234567, "a": 9876543210, "b": 1234567890123, "c": 5555555555}`+"\n")
+	if len(fs) != 1 {
+		t.Fatalf("got %+v", fs)
+	}
+	f := fs[0]
+	if f.Confidence != domain.Medium || !f.Keyword {
+		t.Fatalf("a keyword-confirmed value in a fixture table should stay at medium: %+v", f)
+	}
+	reasons := strings.Join(f.Reasons, "; ")
+	if !strings.Contains(reasons, "line of long numbers") || !strings.Contains(reasons, "test, fixture or example path") {
+		t.Fatalf("every lowering signal should still be listed: %q", reasons)
+	}
+}
+
+func TestMillisecondTimestampsUnderTimeNamesAreLowered(t *testing.T) {
+	cnp, ok := detectors.Get("ro-cnp")
+	if !ok {
+		t.Fatal("no ro-cnp detector")
+	}
+	for v := int64(1710706100000); v < 1710706200000; v++ {
+		s := strconv.FormatInt(v, 10)
+		if !cnp.Validate(s) {
+			continue
+		}
+		for _, line := range []string{"created_at: " + s, `{"updatedAt": ` + s + `}`, "ts=" + s} {
+			fs, err := ScanReader("events.yaml", strings.NewReader(line+"\n"), []detectors.Detector{cnp})
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, f := range fs {
+				if f.Confidence > domain.Low {
+					t.Fatalf("%q reported at %s: %v", line, f.Confidence, f.Reasons)
+				}
+			}
+		}
+		fs, err := ScanReader("people.yaml", strings.NewReader("cnp: "+s+"\n"), []detectors.Detector{cnp})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(fs) != 1 || fs[0].Confidence < domain.Medium {
+			t.Fatalf("a value labelled cnp must not be lowered as a time: %+v", fs)
+		}
+		return
+	}
+	t.Fatal("no millisecond timestamp in the range passes the CNP check")
 }
