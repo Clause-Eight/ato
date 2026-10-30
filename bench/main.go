@@ -28,7 +28,7 @@ type line struct {
 func main() {
 	n := flag.Int("lines", 20000, "lines in the corpus")
 	seed := flag.Int64("seed", 1, "random seed")
-	export := flag.String("export", "", "also write the corpus and its labels to this folder (for bench/presidio_compare.py)")
+	export := flag.String("export", "", "also write the corpus and its labels to this folder (for bench/compare)")
 	flag.Parse()
 	corpus, body := corpusText(*seed, *n)
 	if *export != "" {
@@ -206,10 +206,15 @@ func valid(r *rand.Rand, name string) string {
 
 var words = []string{"order", "invoice", "build", "user", "session", "retry", "timeout", "version", "count", "id", "ref", "port"}
 
-// noise is the kind of text that fills real repositories: IDs, timestamps, hashes, versions and amounts.
+// noise is the kind of text that fills real repositories: IDs, timestamps in seconds and milliseconds, hashes,
+// versions, amounts and minified JSON with several long numbers on one line.
 func noise(r *rand.Rand) string {
 	w := words[r.Intn(len(words))]
-	switch r.Intn(9) {
+	switch r.Intn(11) {
+	case 9:
+		return fmt.Sprintf("  updated_at: %d", 1_600_000_000_000+r.Int63n(200_000_000_000))
+	case 10:
+		return fmt.Sprintf(`{"id":%d,"%s_id":%s,"ts":%d,"amount":%d.%02d}`, r.Intn(1_000_000), w, digits(r, 13), 1_600_000_000_000+r.Int63n(200_000_000_000), r.Intn(10000), r.Intn(100))
 	case 0:
 		return fmt.Sprintf("  %s_id: %s", w, digits(r, 9+r.Intn(8)))
 	case 1:
