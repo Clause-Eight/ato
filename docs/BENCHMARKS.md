@@ -15,14 +15,14 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 
 | Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |
 |---|---|---|---|---|---|---|---|
-| `advertising-id` | 136 | 40.4% | 100.0% | 0 | 40.4% | 100.0% | 100.0% |
+| `advertising-id` | 136 | 0.0% | n/a | 0 | 0.0% | n/a | n/a |
 | `at-social-insurance` | 133 | 69.9% | 100.0% | 0 | 100.0% | 91.1% | 5.2% |
 | `at-tax-number` | 146 | 82.9% | 100.0% | 0 | 100.0% | 69.9% | 21.7% |
 | `be-national-register` | 162 | 75.3% | 100.0% | 0 | 100.0% | 98.8% | 16.9% |
 | `bg-egn` | 169 | 51.5% | 100.0% | 0 | 99.4% | 85.7% | 64.2% |
 | `bg-lnch` | 159 | 50.3% | 95.2% | 4 | 97.5% | 40.6% | 88.8% |
 | `birth-date` | 156 | 55.8% | 100.0% | 0 | 55.8% | 100.0% | 100.0% |
-| `card` | 162 | 87.7% | 97.9% | 3 | 100.0% | 49.8% | 2.3% |
+| `card` | 162 | 100.0% | 98.2% | 3 | 100.0% | 49.8% | 2.1% |
 | `ch-ahv` | 163 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 99.3% |
 | `crypto-wallet` | 156 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `cy-id-card` | 158 | 55.1% | 100.0% | 0 | 55.1% | 100.0% | 100.0% |
@@ -40,7 +40,7 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | `es-nie` | 147 | 46.3% | 100.0% | 0 | 99.3% | 100.0% | 100.0% |
 | `es-nss` | 143 | 84.6% | 100.0% | 0 | 100.0% | 98.6% | 34.8% |
 | `eu-phone` | 138 | 79.7% | 99.1% | 1 | 100.0% | 83.6% | 84.8% |
-| `eu-vat` | 142 | 51.4% | 100.0% | 0 | 100.0% | 100.0% | 91.9% |
+| `eu-vat` | 142 | 51.4% | 100.0% | 0 | 100.0% | 100.0% | 93.4% |
 | `fi-hetu` | 147 | 100.0% | 91.9% | 13 | 100.0% | 91.9% | 57.6% |
 | `fr-nir` | 142 | 70.4% | 100.0% | 0 | 100.0% | 98.6% | 99.1% |
 | `fr-spi` | 161 | 81.4% | 100.0% | 0 | 100.0% | 97.0% | 93.5% |
@@ -52,15 +52,15 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | `hr-oib` | 137 | 46.0% | 98.4% | 1 | 97.1% | 75.1% | 98.4% |
 | `hu-taj` | 154 | 51.9% | 98.8% | 1 | 90.3% | 85.3% | 76.0% |
 | `hu-tax-id` | 151 | 54.3% | 100.0% | 0 | 92.7% | 99.3% | 100.0% |
-| `iban` | 131 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 38.1% |
-| `ie-ppsn` | 139 | 54.0% | 98.7% | 1 | 100.0% | 97.2% | 61.8% |
+| `iban` | 131 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 42.7% |
+| `ie-ppsn` | 139 | 54.0% | 98.7% | 1 | 100.0% | 97.2% | 62.1% |
 | `imei` | 140 | 83.6% | 100.0% | 0 | 100.0% | 97.2% | 97.5% |
 | `ip-address` | 145 | 46.2% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `is-kennitala` | 127 | 77.2% | 99.0% | 1 | 92.1% | 95.9% | 92.2% |
 | `it-fiscal-code` | 142 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `licence-plate` | 149 | 50.3% | 100.0% | 0 | 50.3% | 100.0% | 96.2% |
 | `lt-asmens-kodas` | 150 | 44.7% | 100.0% | 0 | 44.7% | 100.0% | 100.0% |
-| `lu-national-id` | 153 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 92.8% |
+| `lu-national-id` | 153 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 95.1% |
 | `lv-personal-code` | 168 | 84.5% | 100.0% | 0 | 98.2% | 100.0% | 54.9% |
 | `lv-personal-code-new` | 151 | 49.0% | 100.0% | 0 | 49.0% | 100.0% | n/a |
 | `mac-address` | 149 | 62.4% | 100.0% | 0 | 62.4% | 100.0% | 100.0% |
@@ -76,23 +76,23 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | `postcode` | 141 | 46.8% | 98.5% | 1 | 46.8% | 98.5% | 75.0% |
 | `pt-citizen-card` | 163 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `pt-nif` | 149 | 49.7% | 100.0% | 0 | 82.6% | 96.9% | 98.6% |
-| `ro-cnp` | 138 | 98.6% | 99.3% | 1 | 98.6% | 92.5% | 5.4% |
+| `ro-cnp` | 138 | 98.6% | 99.3% | 1 | 98.6% | 92.5% | 5.7% |
 | `ro-id-card` | 138 | 58.7% | 100.0% | 0 | 58.7% | 100.0% | 100.0% |
 | `se-personnummer` | 140 | 70.7% | 91.7% | 9 | 92.9% | 89.0% | 90.2% |
-| `si-emso` | 146 | 100.0% | 100.0% | 0 | 100.0% | 98.6% | 25.6% |
-| `si-tax-number` | 148 | 52.0% | 100.0% | 0 | 100.0% | 99.3% | 98.0% |
+| `si-emso` | 146 | 100.0% | 100.0% | 0 | 100.0% | 98.6% | 27.9% |
+| `si-tax-number` | 148 | 52.0% | 100.0% | 0 | 100.0% | 100.0% | 99.3% |
 | `street-address` | 128 | 54.7% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| **All** | 9877 | 67.3% | 99.3% | 46 | 87.8% | 88.8% | 34.7% |
+| **All** | 9877 | 66.9% | 99.3% | 46 | 87.2% | 88.7% | 34.4% |
 <!-- bench:end -->
 
 What the numbers say:
 
-- **Validation is what keeps the output usable.** With every detector on, precision is 99.4% at the default level against 34.7% for pattern-only matching.
+- **Validation is what keeps the output usable.** With every detector on, precision is 99.3% at the default level against 34.4% for pattern-only matching.
 - **Low-base detectors trade recall for quiet output.** Bare numbers with one check digit (EGN, LNCh, PESEL, OIB, BSN, the Nordic and Baltic codes), VAT numbers and contact data start at low confidence, so at the default `--min-confidence medium` they are reported only with a nearby keyword or in their usual printed format. Detectors marked "only with a keyword" are never reported without one.
 - **Many national numbers share a shape.** An eleven-digit number can be a valid PESEL, OIB, German tax ID and Estonian code at once. Each value is reported once, preferring the detector whose own name is nearby, so at `--min-confidence low` some values are counted under another country and precision there is lower.
 - **Personal data without a check digit stays quiet.** Dates of birth, postcodes, licence and plate numbers, health-card numbers and names in name fields are off by default and reported only next to a keyword; each has 100% precision at the default level here. Names were also checked on about 157,000 public files in Go's module cache: every reported name was in a name field.
 - **Danish and Swedish personal numbers look alike.** A Danish CPR number (DDMMYY-SSSS) is often a valid Swedish personnummer too. The Danish detector is off by default, so those values are counted under Sweden, which is why `se-personnummer` is at about 94% here.
-- **Cards are the noisiest identifier.** A random 16-digit number with a Visa or Mastercard prefix passes the Luhn check one time in ten, so long trace and order numbers look like cards. A nearby word that usually labels other numbers (trace, order, invoice, transaction) lowers a card one step unless a card keyword is also there, which keeps card precision at the default level near 95%.
+- **Cards are the noisiest identifier.** A random 16-digit number with a Visa or Mastercard prefix passes the Luhn check one time in ten, so long trace and order numbers look like cards. A word on the same line that usually labels other numbers (trace, order, invoice, transaction) lowers a card one step unless a card keyword is also there, which keeps card precision at the default level near 95%. The same words lower the thirteen-digit Romanian CNP and Slovenian EMŠO, which random thirteen-digit order and request IDs sometimes pass (the CNP about one time in a thousand).
 
 ## Real repository: speed and false positives
 
