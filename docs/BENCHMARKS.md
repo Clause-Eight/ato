@@ -120,7 +120,7 @@ The first run on this repository found 34. The run led to three engine fixes in 
 
 ## Compared with other scanners
 
-Measured on 31 October 2026 with `bench/compare/compare.py` (the 30 October run, before #269, is kept in `bench/compare/results/2026-10-30.json`); the method, settings and how to rerun it are in
+Measured on 31 October 2026 with `bench/compare/compare.py` (`bench/compare/results/2026-10-31b.json`; earlier runs: `2026-10-30.json` before #269, `2026-10-31.json` before #274); the method, settings and how to rerun it are in
 [bench/compare/README.md](../bench/compare/README.md) and [ADR 9](adr/0009-benchmark-method.md). Every tool runs at
 its defaults; Presidio's EU recognisers are enabled for English and its prose recognisers (names, places, dates,
 URLs) are left out, since on code they flag identifiers and call sites. Means over seeds 1, 2 and 3; the
@@ -130,9 +130,9 @@ largest difference between seeds for any figure was 4.6 points, and `results.jso
 
 | | Lines with personal data caught | Alarms on noise lines | Warnings that were real | Time |
 |---|---|---|---|---|
-| pii-eu (defaults) | 50.6% | 10 | 99.8% | 0.6 s |
-| Presidio 2.2.366 | 35.4% | 3,329 | 51.7% | 44.2 s |
-| scrubadub 2.0.1 | 9.9% | 822 | 54.8% | 1.3 s |
+| pii-eu (defaults) | 57.7% | 10 | 99.8% | 0.6 s |
+| Presidio 2.2.366 | 35.4% | 3,329 | 51.7% | 42.5 s |
+| scrubadub 2.0.1 | 9.9% | 822 | 54.8% | 1.2 s |
 
 **Open-source application code** (96,365 lines from 644 fixture, migration, seeder and spec files of Saleor
 `cc4aea7`, Bagisto `8cdaffc` and Solidus `f41bf95`, plus a 20,000-line generated application log; 3,000 generated
@@ -140,13 +140,13 @@ values for 15 identifiers inserted on new lines):
 
 | | Values caught | Alarms on original lines | Warnings that were real | Time |
 |---|---|---|---|---|
-| pii-eu (defaults) | 71.9% | 17 | 99.2% | 2.8 s |
-| Presidio 2.2.366 | 54.1% | 6,826 | 19.2% | 141.9 s |
+| pii-eu (defaults) | 88.7% | 17 | 99.4% | 2.5 s |
+| Presidio 2.2.366 | 54.1% | 6,826 | 19.2% | 143.8 s |
 | scrubadub 2.0.1 | 16.3% | 792 | 38.2% | 3.8 s |
 
-Per identifier on open-source code, pii-eu / Presidio: IBAN 100% / 100%, CNP 100% / 40%, Czech birth number 100% /
-8%, Italian fiscal code 100% / 50%, phone 87% / 38%, card 81% / 87%, French NIR 78% / 10%, German tax ID 75% / 67%,
-Dutch BSN 61% / 14%, TAJ 54% / 15%, EGN 51% / 22%, DNI 49% / 78%, OIB 49% / 84%, PESEL 48% / 100%, email 47% / 100%.
+Per identifier on open-source code, pii-eu / Presidio: CNP 100% / 40%, EGN 100% / 22%, Czech birth number 100% /
+8%, German tax ID 100% / 67%, DNI 100% / 78%, NIR 100% / 10%, OIB 100% / 84%, Italian fiscal code 100% / 50%, IBAN
+100% / 100%, PESEL 100% / 100%, phone 86% / 38%, BSN 61% / 14%, TAJ 54% / 14%, card 80% / 86%, email 46% / 100%.
 
 **Personal data passed to log calls** (320 generated functions in eight languages; 120 pass a personal field
 directly, 40 through a local variable, 160 pass harmless fields):
@@ -156,20 +156,41 @@ directly, 40 through a local variable, 160 pass harmless fields):
 | pii-eu | 120 / 120 | 40 / 40 | 0 / 160 | none |
 | HoundDog.ai 4.0.0 (Docker image, offline) | 45 / 120 | 15 / 40 | 0 / 160 | Kotlin, PHP, Ruby, TypeScript |
 
+**Personal data passed to log calls, harder cases** (180 functions in Python, JavaScript and TypeScript; 15 of
+each pattern):
+
+| Pattern | pii-eu | HoundDog.ai 4.0.0 |
+|---|---|---|
+| Two-step variable (`a = user.email; b = a`) | 15 / 15 | 5 / 15 |
+| Wrapped (`str(user.email)`) | 15 / 15 | 5 / 15 |
+| String method on the field (`user.email.strip()`) | 15 / 15 | 0 / 15 |
+| Template string | 15 / 15 | 5 / 15 |
+| Default (`user.email or ""`) | 15 / 15 | 5 / 15 |
+| Structured log (`extra={"email": …}`) | 15 / 15 | 5 / 15 |
+| Error tracker (`sentry_sdk.capture_message`) | 15 / 15 | 15 / 15 |
+| Analytics event (`analytics.track`) | 15 / 15 | 0 / 15 |
+| **Caught** | **120 / 120** | **40 / 120** |
+| False alarms on length, verified flag, masked value, id | 0 / 60 | 0 / 60 |
+
 What the numbers say:
 
-- **pii-eu catches more and warns less.** On open-source application code it catches 71.9% of inserted values
-  with 99.2% of its warnings real; Presidio catches 54.1% with 19.2% real, scrubadub 16.3% with 38.2%.
+- **pii-eu catches more and warns less.** On open-source application code it catches 88.7% of inserted values
+  with 99.4% of its warnings real; Presidio catches 54.1% with 19.2% real, scrubadub 16.3% with 38.2%.
 - **What changed since 30 October (38.8% caught, 97.8% real):** a test path no longer lowers a value that
-  passes its own check, a value next to other personal fields is raised, a value whose own key names another kind
-  of number (phone, postcode, height) is lowered, and order and request words lower 13-digit national numbers
-  (ADR 10, #267, #269, #271).
-- **Where Presidio is still ahead:** emails, PESEL, OIB, Spanish DNI and cards without a label. pii-eu reports
-  low-confidence identifiers such as these only with their own keyword or next to other personal fields.
+  passes its own check (ADR 10); a value that is the whole of a quoted string is raised when the identifier has a
+  date and a check digit or a check letter (ADR 11); a value next to other personal fields is raised; a value whose
+  own key names another kind of number (phone, postcode, height) is lowered; order and request words lower
+  13-digit national numbers (#267, #269, #271, #274).
+- **Where Presidio is still ahead, by choice:** emails (Presidio reports every email; most emails in code and
+  tests are fake, so pii-eu reports one without its keyword only on a non-placeholder domain next to its keyword)
+  and cards written under names that usually label other numbers (`id`, `ref`, `order`), where a Luhn-valid
+  number is more often an ID. Presidio's 780 card alarms on the original code are the other side of that choice.
 - **pii-eu's own alarms** on the original code are 17 lines, mostly placeholder emails on real domains in
   fixtures.
-- **Log calls:** pii-eu now follows a value through one local variable (#265) and finds every case here in eight
-  languages; HoundDog follows variables too but its free image found nothing in Kotlin, PHP, Ruby or TypeScript.
+- **Log calls:** pii-eu follows a value through local variables and copies, string methods, wrappers,
+  templates, defaults, structured logs, error trackers and analytics events, and leaves lengths, flags, masked
+  values and IDs alone (#265, #275). HoundDog follows variables too, but its free image found nothing in Kotlin,
+  PHP, Ruby or TypeScript, or in analytics calls here.
 - **Scanning four more open-source applications** (Mastodon, OpenEMR, Medusa, ERPNext) found false alarms that
   are now fixed (#271): findings fell from 1,947 to 1,155, nearly all of the rest emails in documentation and
   tests.
