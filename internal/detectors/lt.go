@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Lithuanian personal code (asmens kodas): G YYMMDD SSS C, the same structure and check digit as the Estonian

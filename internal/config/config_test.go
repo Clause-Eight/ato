@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 func write(t *testing.T, body string) string {

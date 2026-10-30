@@ -6,9 +6,9 @@ import (
 	"testing"
 	"unicode"
 
-	"github.com/Clause-Eight/ato/internal/detectors"
-	"github.com/Clause-Eight/ato/internal/domain"
-	"github.com/Clause-Eight/ato/internal/synth"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/synth"
 )
 
 func generated(t *testing.T, detector string, seed int64) string {

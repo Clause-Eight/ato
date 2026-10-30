@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/ato/internal/detectors"
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // codeLike is the kind of text most scanned files hold: code, prose and the occasional number.

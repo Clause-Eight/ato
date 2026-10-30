@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // A module call can create stores that ATO cannot see: registry and git modules are not downloaded, and a

@@ -6,7 +6,7 @@ import (
 	"io"
 	"sort"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Product is the product name printed in reports for people and in the SARIF driver. Report.Tool is the

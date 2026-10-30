@@ -73,7 +73,7 @@ ATO is distributed to Clause Eight customers. With access to the repository:
 
 ```bash
 export GOPRIVATE=github.com/Clause-Eight/*
-go install github.com/Clause-Eight/ato/cmd/ato@latest
+go install github.com/Clause-Eight/ato/v2/cmd/ato@latest
 ```
 
 Binaries for Linux, macOS and Windows (amd64 and arm64) are attached to each release, with an SBOM per archive and a signed `checksums.txt`. To verify a download:

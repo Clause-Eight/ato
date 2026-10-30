@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Recipient is a service that commonly receives personal data.

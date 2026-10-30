@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Hungarian social security number (TAJ): nine digits; digits 1-8 weighted 3,7,3,7…, sum mod 10 is digit 9.

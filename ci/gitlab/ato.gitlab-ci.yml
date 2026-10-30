@@ -16,7 +16,7 @@ ato:
         ATO_MIN_CONFIDENCE="$PII_EU_MIN_CONFIDENCE"
       fi
       export ATO_VERSION="${ATO_VERSION:-main}" ATO_MIN_CONFIDENCE="${ATO_MIN_CONFIDENCE:-medium}"
-    - go install "github.com/Clause-Eight/ato/cmd/ato@${ATO_VERSION}"
+    - go install "github.com/Clause-Eight/ato/v2/cmd/ato@${ATO_VERSION}"
     - ato scan --format codequality --output gl-code-quality-report.json --min-confidence "$ATO_MIN_CONFIDENCE" . || true
     - ato scan --min-confidence "$ATO_MIN_CONFIDENCE" .
   artifacts:

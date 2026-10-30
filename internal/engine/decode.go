@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
 )
 
 // decoded is text after decoding, with at[i] the offset in the original text of decoded byte i (at has one

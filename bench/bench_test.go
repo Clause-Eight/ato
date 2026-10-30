@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/ato/internal/detectors"
-	"github.com/Clause-Eight/ato/internal/engine"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/engine"
 )
 
 // TestBenchmarkTableIsUpToDate regenerates the per-detector precision and recall in docs/BENCHMARKS.md, so the

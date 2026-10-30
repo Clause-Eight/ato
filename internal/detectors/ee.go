@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Estonian personal code (isikukood): G YYMMDD SSS C. G gives century and sex (1-2 1800s, 3-4 1900s, 5-6 2000s;

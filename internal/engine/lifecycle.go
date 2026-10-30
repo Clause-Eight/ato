@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
-	"github.com/Clause-Eight/ato/internal/lifecycle"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/lifecycle"
 )
 
 // Detectors for stores of personal data the code never erases or expires. Both are off by default: code can

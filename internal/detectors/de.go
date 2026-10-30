@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // German tax ID (steuerliche Identifikationsnummer, IdNr, § 139b AO): eleven digits, the first never 0. In the

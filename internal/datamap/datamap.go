@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Map is the data map of one code base. Every claim keeps the file and line it came from.

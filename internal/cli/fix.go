@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/baseline"
-	"github.com/Clause-Eight/ato/internal/config"
-	"github.com/Clause-Eight/ato/internal/domain"
-	"github.com/Clause-Eight/ato/internal/fix"
+	"github.com/Clause-Eight/ato/v2/internal/baseline"
+	"github.com/Clause-Eight/ato/v2/internal/config"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/fix"
 )
 
 // runFix replaces the values a scan would report with synthetic ones. Only test, fixture and example paths

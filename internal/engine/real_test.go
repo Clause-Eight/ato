@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/ato/internal/detectors"
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // withCheck finds the trailing digit(s) that make a synthetic value valid.

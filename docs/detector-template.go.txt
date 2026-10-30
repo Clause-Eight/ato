@@ -5,7 +5,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // <Country> <identifier> (<local name>): describe the structure and the check-digit rule in your own words,
