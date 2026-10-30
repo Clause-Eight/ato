@@ -30,8 +30,9 @@ real in a fixture as anywhere else, and more likely to cause harm there, since f
 
 ## Consequences
 
-- On the open-source corpus at the defaults: 71.8% of inserted values caught (was 38.8%), 97.4% of warnings
-  real (was 97.8%). The new alarms are mostly placeholder emails on real domains in fixtures.
+- On the open-source corpus at the defaults, with the other changes of the same milestone (#265, #267, #271): 71.9%
+  of inserted values caught (was 38.8%), 99.2% of warnings real (was 97.8%). The remaining alarms are mostly
+  placeholder emails on real domains in fixtures.
 - Test data generated with valid identifiers (for example by a faker that computes check digits) is now
   reported. That is the intended trade: pii-eu cannot tell a generated valid number from a real one, and
   `pii-eu fix` replaces both with values that carry the synthetic mark, which are then reported as samples.
