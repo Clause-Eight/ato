@@ -77,7 +77,7 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	return ExitUsage
 }
 
-const usage = `ATO, a Clause Eight tool, finds EU personal data in code, fixtures and logs.
+const usage = `ATO, Clause Eight's EU personal-data scanner: finds EU personal data in code, fixtures and logs.
 
 Usage:
   ato scan [flags] [path]      scan a folder or file (default: current folder); "-" reads stdin
