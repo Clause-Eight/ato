@@ -1,21 +1,23 @@
-# Example step for Bitbucket Pipelines. Set PII_EU_VERSION to a release tag or commit.
+# Example step for Bitbucket Pipelines that scans with ATO. Set ATO_VERSION to a release tag or commit
+# (default: main). PII_EU_VERSION is deprecated and still read when ATO_VERSION is not set.
 definitions:
   steps:
-    - step: &pii-eu
-        name: pii-eu
+    - step: &ato
+        name: ato
         image: golang:1.24
         script:
-          - export PII_EU_VERSION="${PII_EU_VERSION:-main}"
-          - go install "github.com/Clause-Eight/pii-eu/cmd/pii-eu@${PII_EU_VERSION}"
-          - pii-eu scan --format json --output pii-eu.json . || code=$?
-          - pii-eu scan .
+          - if [ -z "${ATO_VERSION:-}" ] && [ -n "${PII_EU_VERSION:-}" ]; then echo "ato: PII_EU_VERSION is deprecated; set ATO_VERSION" >&2; ATO_VERSION="$PII_EU_VERSION"; fi
+          - export ATO_VERSION="${ATO_VERSION:-main}"
+          - go install "github.com/Clause-Eight/ato/cmd/ato@${ATO_VERSION}"
+          - ato scan --format json --output ato.json . || code=$?
+          - ato scan .
         artifacts:
-          - pii-eu.json
+          - ato.json
 
 pipelines:
   pull-requests:
     "**":
-      - step: *pii-eu
+      - step: *ato
   branches:
     main:
-      - step: *pii-eu
+      - step: *ato

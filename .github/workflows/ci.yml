@@ -38,7 +38,7 @@ jobs:
         continue-on-error: true
         with:
           path: testdata/action
-          sarif: pii-eu.sarif
+          sarif: ato.sarif
       - name: Action outcome
         env:
           OUTCOME: ${{ steps.dirty.outcome }}
@@ -46,7 +46,7 @@ jobs:
         run: |
           test "$OUTCOME" = failure
           test "$FINDINGS" = 1
-          python3 -c 'import json; d=json.load(open("pii-eu.sarif")); assert d["version"] == "2.1.0" and len(d["runs"][0]["results"]) == 1'
+          python3 -c 'import json; d=json.load(open("ato.sarif")); assert d["version"] == "2.1.0" and len(d["runs"][0]["results"]) == 1'
       - id: clean
         name: Action passes a clean folder
         uses: ./
