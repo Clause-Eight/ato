@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Finnish personal identity code (henkilötunnus, HETU): DDMMYY C ZZZ Q. The separator C gives the century:

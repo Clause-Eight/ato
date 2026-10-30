@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // validate checks a document against the subset of JSON Schema the published schemas use: type, required,

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/infra"
+	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/internal/infra"
 )
 
 // InfraDetectors are the names of the checks on Terraform data stores. Each can be switched off in settings

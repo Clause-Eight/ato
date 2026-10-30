@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Limits protect against archive bombs. They apply to one archive or image with everything nested in it. A

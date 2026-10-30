@@ -8,7 +8,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Detector finds one kind of identifier. Pattern finds candidates; Validate confirms them with the

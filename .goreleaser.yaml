@@ -1,16 +1,16 @@
 version: 2
-project_name: pii-eu
+project_name: ato
 
 builds:
-  - main: ./cmd/pii-eu
-    binary: pii-eu
+  - main: ./cmd/ato
+    binary: ato
     env:
       - CGO_ENABLED=0
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
     flags: [-trimpath]
     ldflags:
-      - -s -w -X github.com/Clause-Eight/pii-eu/internal/cli.Version={{ .Version }}
+      - -s -w -X github.com/Clause-Eight/ato/internal/cli.Version={{ .Version }}
     mod_timestamp: "{{ .CommitTimestamp }}"
 
 archives:

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/internal/synth"
 )
 
 func syntheticCNPs(t *testing.T, n int) []string {

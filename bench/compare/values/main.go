@@ -10,8 +10,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/internal/detectors"
+	"github.com/Clause-Eight/ato/internal/synth"
 )
 
 func main() {

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 func init() { register("sarif", writeSARIF) }
@@ -186,7 +186,7 @@ func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarif
 		ids = append(ids, id)
 	}
 	sort.Strings(ids)
-	driver := sarifDriver{Name: r.Tool, Version: r.Version, InformationURI: "https://github.com/Clause-Eight/pii-eu", Rules: make([]sarifRule, 0, len(ids))}
+	driver := sarifDriver{Name: r.Tool, Version: r.Version, InformationURI: "https://github.com/Clause-Eight/ato", Rules: make([]sarifRule, 0, len(ids))}
 	for _, id := range ids {
 		driver.Rules = append(driver.Rules, rules[id])
 	}

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // sentinel is a synthetic value used only to prove that reports never print raw values.

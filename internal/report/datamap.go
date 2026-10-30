@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/datamap"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/datamap"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // MapSchemaVersion is the version of the JSON data map, versioned like the findings report.

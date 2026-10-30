@@ -8,9 +8,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/walk"
+	"github.com/Clause-Eight/ato/internal/detectors"
+	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/internal/walk"
 )
 
 // splitter cuts the lines of a file with columns into segments named by their column. It keeps state across

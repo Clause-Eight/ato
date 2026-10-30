@@ -11,8 +11,8 @@ import (
 	"math/rand"
 	"unicode"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/internal/detectors"
+	"github.com/Clause-Eight/ato/internal/synth"
 )
 
 // maxTries bounds the search for a marked value: about eight times the expected number of tries, so a detector

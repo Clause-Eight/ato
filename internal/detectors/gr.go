@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Greek social security number (AMKA, Αριθμός Μητρώου Κοινωνικής Ασφάλισης): eleven digits, DDMMYY birth

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/internal/synth"
 )
 
 // icao731 is a test-side ICAO 9303 check digit, written apart from the detector's.

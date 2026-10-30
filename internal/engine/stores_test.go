@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/walk"
+	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/internal/walk"
 )
 
 // The Terraform and SQL below are made up for these tests.

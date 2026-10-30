@@ -1,4 +1,4 @@
-module github.com/Clause-Eight/pii-eu
+module github.com/Clause-Eight/ato
 
 go 1.24
 
