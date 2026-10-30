@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/pii-eu/internal/synth"
 	"github.com/Clause-Eight/pii-eu/internal/walk"
 )
 
@@ -73,8 +75,8 @@ func TestSamplesAndTestPaths(t *testing.T) {
 		t.Fatalf("sample not marked: %+v", fs[0])
 	}
 	fs = scan(t, "tests/fixtures/users.json", "1234567\n")
-	if !fs[0].TestPath || fs[0].Confidence != domain.Low {
-		t.Fatalf("test path not lowered: %+v", fs[0])
+	if !fs[0].TestPath || fs[0].Confidence != domain.Medium || !strings.Contains(strings.Join(fs[0].Reasons, ";"), "test, fixture") {
+		t.Fatalf("a validated value in a test path keeps its confidence and says where it is: %+v", fs[0])
 	}
 }
 
@@ -223,4 +225,42 @@ func TestMillisecondTimestampsUnderTimeNamesAreLowered(t *testing.T) {
 		return
 	}
 	t.Fatal("no millisecond timestamp in the range passes the CNP check")
+}
+
+// TestRecallInRecordsAndTestPaths: a validated value in a test file is not lowered for its path, and a value next
+// to another personal field (a name, a birth date, an address) is raised as part of a record about a person (#269).
+func TestRecallInRecordsAndTestPaths(t *testing.T) {
+	pesel, ok := detectors.Get("pl-pesel")
+	if !ok {
+		t.Fatal("no pl-pesel detector")
+	}
+	gen, ok := synth.For("pl-pesel")
+	if !ok {
+		t.Fatal("no pl-pesel generator")
+	}
+	v := gen(rand.New(rand.NewSource(3)))
+	conf := func(path, text string) domain.Confidence {
+		t.Helper()
+		fs, err := ScanReader(path, strings.NewReader(text), []detectors.Detector{pesel})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(fs) != 1 {
+			t.Fatalf("%s %q: %d findings", path, text, len(fs))
+		}
+		return fs[0].Confidence
+	}
+	base := conf("app/data.json", `{"ref": "`+v+`"}`+"\n")
+	if got := conf("tests/fixtures/data.json", `{"ref": "`+v+`"}`+"\n"); got != base {
+		t.Fatalf("a test path changed the confidence: %s, outside tests %s", got, base)
+	}
+	if got := conf("tests/fixtures/people.json", `{"first_name": "Ana", "ref": "`+v+`"}`+"\n"); got <= base {
+		t.Fatalf("a first_name in the same record should raise the value: %s, alone %s", got, base)
+	}
+	if got := conf("app/people.yaml", "  last_name: Nowak\n  ref: "+v+"\n"); got <= base {
+		t.Fatalf("a last_name on the line before should raise the value: %s, alone %s", got, base)
+	}
+	if got := conf("app/data.json", `{"firstname_count": 3, "ref": "`+v+`"}`+"\n"); got != base {
+		t.Fatalf("a name-like word that is not a personal field must not raise: %s", got)
+	}
 }
