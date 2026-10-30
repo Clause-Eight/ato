@@ -235,6 +235,9 @@ func TestReplaceKeepsCountryBrandAndFormat(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			d := detector(t, name)
+			if raceDetector && len(values) > 1 {
+				values = values[:1] // the full set runs without -race; with it, the slowest searches exceed CI's limit
+			}
 			for i, v := range values {
 				r, ok := Replace(d, v)
 				if !ok {
