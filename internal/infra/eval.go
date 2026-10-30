@@ -13,6 +13,8 @@ type module struct {
 	resources map[string]*resource
 	order     []*resource
 	providers map[string]*block
+	// calls are the module blocks, kept as resources of type "module".
+	calls []*resource
 }
 
 type resource struct {
@@ -54,6 +56,8 @@ func newModule(files []*File) *module {
 				r := &resource{typ: b.labels[0], name: b.labels[1], body: b, file: f}
 				m.resources[r.address()] = r
 				m.order = append(m.order, r)
+			case b.typ == "module" && len(b.labels) == 1:
+				m.calls = append(m.calls, &resource{typ: "module", name: b.labels[0], body: b, file: f})
 			}
 		}
 	}
