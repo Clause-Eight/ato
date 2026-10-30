@@ -83,6 +83,9 @@ func (c *lineContext) inUUID(start, end int) bool {
 		c.uuids = &locs
 	}
 	for _, loc := range *c.uuids {
+		if start <= loc[0] && end >= loc[1] {
+			continue // the candidate is the whole UUID, as an advertising ID is
+		}
 		if start < loc[1] && loc[0] < end {
 			return true
 		}
