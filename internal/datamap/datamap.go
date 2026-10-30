@@ -35,7 +35,9 @@ type Infra struct {
 	Retention    string
 	Public       string
 	PersonalData bool
-	Location     domain.Location
+	// Module is the source of a module call that is not read inside; empty for resources.
+	Module   string
+	Location domain.Location
 }
 
 // Store is a table, model or message that holds personal data. Special lists the Art. 9 categories, which are
@@ -143,7 +145,7 @@ func Build(in Input) Map {
 		c.Infra = append(c.Infra, Infra{
 			Address: s.Type + "." + s.Name, Service: s.Service, Regions: s.Regions, InEEA: string(s.InEEA.State),
 			Encrypted: string(s.Encryption.State), Retention: string(s.Retention.State), Public: string(s.Public.State),
-			PersonalData: s.PersonalData, Location: s.Location,
+			PersonalData: s.PersonalData, Module: s.Module, Location: s.Location,
 		})
 	}
 	life := map[string]domain.StoreLifecycle{}

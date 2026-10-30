@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.1",
-      "description": "1.1 added stores; a 1.0 inventory is a 1.1 inventory without them."
+      "const": "1.2",
+      "description": "1.2 added the source formats typeorm, mongoose, doctrine, laravel, csv, tsv and jsonl, stores of type module with the module object, and unknown as a store's provider or service; 1.1 added stores. An older inventory is a 1.2 inventory without those."
     },
     "tool": {
       "type": "object",
@@ -99,7 +99,14 @@
               "prisma",
               "protobuf",
               "openapi",
-              "dbt"
+              "dbt",
+              "typeorm",
+              "mongoose",
+              "doctrine",
+              "laravel",
+              "csv",
+              "tsv",
+              "jsonl"
             ]
           },
           "path": {
@@ -140,7 +147,8 @@
         ],
         "properties": {
           "type": {
-            "type": "string"
+            "type": "string",
+            "description": "Terraform resource type, or module for a module call that is not read inside."
           },
           "name": {
             "type": "string"
@@ -149,8 +157,10 @@
             "enum": [
               "aws",
               "google",
-              "azurerm"
-            ]
+              "azurerm",
+              "unknown"
+            ],
+            "description": "unknown only for a module call whose provider the source and the folder do not show."
           },
           "service": {
             "enum": [
@@ -165,8 +175,10 @@
               "cache",
               "search",
               "block-storage",
-              "file-storage"
-            ]
+              "file-storage",
+              "unknown"
+            ],
+            "description": "unknown only for a module call whose arguments look like store settings but whose source does not say what it creates."
           },
           "names": {
             "type": "array",
@@ -235,6 +247,27 @@
           },
           "personal_data_reason": {
             "type": "string"
+          },
+          "module": {
+            "type": "object",
+            "description": "For type module: a module call that may create a store pii-eu does not read inside (a registry or git module, or a local folder that was not scanned). Every setting is unknown.",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "settings"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "settings": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Arguments of the call that look like store settings, such as storage_encrypted or retention_in_days, by name."
+              }
+            }
           },
           "path": {
             "type": "string"

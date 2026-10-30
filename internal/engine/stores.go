@@ -134,7 +134,8 @@ func samePlural(a, b string) bool {
 
 // storeFindings turns store settings into findings for the enabled checks. A definite answer is high when the
 // store is linked to personal data and medium otherwise; an unknown answer is reported, at low confidence,
-// only for linked stores.
+// only for linked stores. Module calls give no findings: nothing inside them is read, so they are listed in the
+// inventory only.
 func storeFindings(stores []domain.Store, enabled []string, files []*infra.File) []domain.Finding {
 	lines := map[string][]string{}
 	for _, f := range files {
@@ -143,6 +144,9 @@ func storeFindings(stores []domain.Store, enabled []string, files []*infra.File)
 	var out []domain.Finding
 	for i := range stores {
 		s := &stores[i]
+		if s.Module != "" {
+			continue
+		}
 		for _, name := range enabled {
 			c, ok := domain.InfraCheckFor(name)
 			if !ok {

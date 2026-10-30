@@ -10,7 +10,7 @@ import (
 )
 
 // InventorySchemaVersion is the version of the JSON inventory, versioned like the findings report.
-const InventorySchemaVersion = "1.1"
+const InventorySchemaVersion = "1.2"
 
 // Inventory is a draft record of the personal data a code base declares: field names and where they are, and the
 // data stores its Terraform deploys. Never values.
@@ -35,22 +35,37 @@ type jsonInventory struct {
 
 // jsonStoreE is a data store in the inventory. Tag values are left out: they are free text and may name people.
 type jsonStoreE struct {
-	Type         string   `json:"type"`
-	Name         string   `json:"name"`
-	Provider     string   `json:"provider"`
-	Service      string   `json:"service"`
-	Names        []string `json:"names"`
-	Regions      []string `json:"regions"`
-	InEEA        string   `json:"in_eea"`
-	Adequacy     string   `json:"adequacy,omitempty"`
-	Encrypted    string   `json:"encrypted"`
-	Retention    string   `json:"retention"`
-	Backup       string   `json:"backup"`
-	Public       string   `json:"public"`
-	PersonalData bool     `json:"personal_data"`
-	PersonalWhy  string   `json:"personal_data_reason,omitempty"`
-	Path         string   `json:"path"`
-	Line         int      `json:"line"`
+	Type         string      `json:"type"`
+	Name         string      `json:"name"`
+	Provider     string      `json:"provider"`
+	Service      string      `json:"service"`
+	Names        []string    `json:"names"`
+	Regions      []string    `json:"regions"`
+	InEEA        string      `json:"in_eea"`
+	Adequacy     string      `json:"adequacy,omitempty"`
+	Encrypted    string      `json:"encrypted"`
+	Retention    string      `json:"retention"`
+	Backup       string      `json:"backup"`
+	Public       string      `json:"public"`
+	PersonalData bool        `json:"personal_data"`
+	PersonalWhy  string      `json:"personal_data_reason,omitempty"`
+	Module       *jsonModule `json:"module,omitempty"`
+	Path         string      `json:"path"`
+	Line         int         `json:"line"`
+}
+
+// jsonModule is a module call that pii-eu does not read inside: its source and the arguments that look like
+// store settings, by name.
+type jsonModule struct {
+	Source   string   `json:"source"`
+	Settings []string `json:"settings"`
+}
+
+func moduleOf(s domain.Store) *jsonModule {
+	if s.Module == "" {
+		return nil
+	}
+	return &jsonModule{Source: s.Module, Settings: nonNilStrings(s.ModuleSettings)}
 }
 
 func storeEntry(s domain.Store) jsonStoreE {
@@ -58,7 +73,7 @@ func storeEntry(s domain.Store) jsonStoreE {
 		Type: s.Type, Name: s.Name, Provider: s.Provider, Service: s.Service, Names: nonNilStrings(s.Names), Regions: nonNilStrings(s.Regions),
 		InEEA: s.InEEA.State.String(), Adequacy: s.Adequacy, Encrypted: s.Encryption.State.String(), Retention: s.Retention.State.String(),
 		Backup: s.Backup.State.String(), Public: s.Public.State.String(), PersonalData: s.PersonalData, PersonalWhy: s.PersonalWhy,
-		Path: s.Location.Path, Line: s.Location.Line,
+		Module: moduleOf(s), Path: s.Location.Path, Line: s.Location.Line,
 	}
 }
 

@@ -1,5 +1,6 @@
-// Package schema reads the field names out of schemas and models: SQL migrations, ORM models, OpenAPI and
-// JSON Schema documents, protobuf definitions and dbt models. It never reads data values.
+// Package schema reads the field names out of schemas and models: SQL and Laravel migrations, ORM models and
+// Mongoose schemas, OpenAPI and JSON Schema documents, protobuf definitions and dbt models. It never reads
+// data values.
 package schema
 
 import (
@@ -35,7 +36,7 @@ func Formats() []string {
 // Candidate reports whether a file may hold a schema, from its extension alone.
 func Candidate(p string) bool {
 	switch strings.ToLower(path.Ext(p)) {
-	case ".sql", ".py", ".rb", ".go", ".java", ".kt", ".prisma", ".proto", ".json", ".yaml", ".yml":
+	case ".sql", ".py", ".rb", ".go", ".java", ".kt", ".ts", ".js", ".mjs", ".cjs", ".php", ".prisma", ".proto", ".json", ".yaml", ".yml":
 		return true
 	}
 	return false
