@@ -54,6 +54,19 @@ type match struct {
 	column     string
 }
 
+// personalField finds a field name that holds personal data in the same record: a name, an address, a birth
+// date or a contact detail, as a key in JSON, YAML, a dict, a hash or a column (#269).
+var personalField = regexp.MustCompile(`(?i)(?:^|[^a-z0-9_])(first_?name|last_?name|surname|given_?name|family_?name|full_?name|date_?of_?birth|birth_?date|dob|street|address_?line\d?|postal_?code|post_?code|zip_?code|nationality|gender)["']?\s*(?::|=>|=)`)
+
+// recordText is the raw text a value's record is read from: the line and the line before, or a segment's
+// column name in a file with columns.
+func recordText(ctx *lineContext, seg *segment) string {
+	if seg != nil {
+		return seg.column + ":"
+	}
+	return ctx.previous + "\n" + ctx.line
+}
+
 // timeLabel finds names that usually hold a time: created_at, updatedAt, ts, timestamp, time, date.
 var timeLabel = regexp.MustCompile(`(?i)(_at|At|_on|_ts)\b|\b(ts|time|timestamp|date|datetime|epoch|millis|ms)\b`)
 
@@ -219,6 +232,9 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
 	} else if w := keyword(context, d.Unlikely); w != "" {
 		demote(fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
+	} else if f := personalField.FindStringSubmatch(recordText(ctx, seg)); f != nil {
+		m.confidence = raise(m.confidence)
+		m.reasons = append(m.reasons, fmt.Sprintf("next to another personal field (%s), as in a record about a person", f[1]))
 	}
 	if d.Samples[value] {
 		m.sample = true
@@ -239,7 +255,15 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		demote("in a line of long numbers, which is usually data such as seeds or constants")
 	}
 	if ctx.testPath {
-		demote("in a test, fixture or example path")
+		// A test path is where real data copied from production does harm, so it is noted but does not lower a
+		// value that passed its own rules (#269). Data without a check digit (names, addresses, dates of birth,
+		// postcodes: the detectors that are off by default or need a keyword) is still lowered, since test data is
+		// full of made-up ones.
+		if d.NeedsKeyword || !d.OnByDefault {
+			demote("in a test, fixture or example path")
+		} else {
+			m.reasons = append(m.reasons, "in a test, fixture or example path")
+		}
 	}
 	return m, true
 }
