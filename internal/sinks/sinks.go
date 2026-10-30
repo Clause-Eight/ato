@@ -1,8 +1,8 @@
 // Package sinks finds calls that write personal data to logs, error trackers and analytics: a log, print,
 // error-tracker or analytics call in Go, Python, JavaScript or TypeScript, Java, Kotlin, Ruby or PHP that is
 // passed a field whose name says it holds personal data, a whole request body or a user-like object. It works
-// line by line with patterns, not a parser, and leans towards missing a call rather than reporting one that
-// is harmless.
+// line by line with patterns, not a parser, follows a value through one local variable in the same function,
+// and leans towards missing a call rather than reporting one that is harmless.
 package sinks
 
 import (
@@ -42,6 +42,7 @@ type Scanner struct {
 	lang language
 	ok   bool
 	open *call
+	vars map[string]binding
 }
 
 // call is a sink call whose arguments are being read.
@@ -89,6 +90,7 @@ func (s *Scanner) Line(number int, line string) []domain.Finding {
 	if commentLine(line, s.lang) {
 		return out
 	}
+	s.assignments(line, from, number)
 	for _, h := range s.heads(line, from) {
 		if s.open != nil {
 			break
@@ -284,6 +286,10 @@ func (s *Scanner) values(c *call, line string, toks []token, number int, out *[]
 			}
 			if v, ok := s.judge(p.segs); ok {
 				s.report(c, line, number, toks[p.first].start, toks[p.next-1].end, v, out)
+			} else if b, ok := s.through(p.segs[0], number, t.start); ok && len(p.segs) == 1 {
+				v := b.v
+				v.via = b.reason()
+				s.report(c, line, number, toks[p.first].start, toks[p.next-1].end, v, out)
 			}
 		}
 	}
@@ -295,6 +301,11 @@ func (s *Scanner) report(c *call, line string, number, start, end int, v verdict
 		return
 	}
 	c.seen[key] = true
+	reasons := []string{v.reason}
+	if v.via != "" {
+		reasons = append(reasons, v.via)
+	}
+	reasons = append(reasons, fmt.Sprintf("passed to %s, %s", c.head, sinkWords[c.sink]))
 	expr := strings.Join(strings.Fields(line[start:end]), " ")
 	if len(expr) > 80 {
 		expr = expr[:77] + "..."
@@ -310,7 +321,7 @@ func (s *Scanner) report(c *call, line string, number, start, end int, v verdict
 		Location:   domain.Location{Path: s.path, Line: number, Column: utf8.RuneCountInString(line[:start]) + 1},
 		Masked:     expr,
 		Confidence: v.confidence,
-		Reasons:    []string{v.reason, fmt.Sprintf("passed to %s, %s", c.head, sinkWords[c.sink])},
+		Reasons:    reasons,
 	})
 }
 
