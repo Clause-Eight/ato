@@ -97,10 +97,12 @@ func scanLine(ctx lineContext, dets []detectors.Detector) []domain.Finding {
 	var matches []match
 	if ctx.segments == nil {
 		matches = scanSegment(&ctx, nil, 0, len(ctx.line), dets, matches)
+		matches = decodedMatches(&ctx, nil, 0, len(ctx.line), dets, matches)
 	}
 	for i := range ctx.segments {
 		s := &ctx.segments[i]
 		matches = scanSegment(&ctx, s, s.start, s.end, dets, matches)
+		matches = decodedMatches(&ctx, s, s.start, s.end, dets, matches)
 	}
 	matches = dedupe(matches)
 	findings := toFindings(ctx, matches)
