@@ -2,6 +2,7 @@ package walk
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bufio"
 	"bytes"
 	"compress/gzip"
@@ -75,10 +76,26 @@ type Outcome struct {
 	Unreadable []domain.Skipped
 }
 
-// IsArchive reports whether a file name is a gzip or tar file, which is scanned inside.
+// IsArchive reports whether a file name is a gzip, tar or zip file, which is scanned inside.
 func IsArchive(name string) bool {
 	n := strings.ToLower(name)
-	return strings.HasSuffix(n, ".tar") || strings.HasSuffix(n, ".tgz") || strings.HasSuffix(n, ".gz")
+	return strings.HasSuffix(n, ".tar") || strings.HasSuffix(n, ".tgz") || strings.HasSuffix(n, ".gz") || strings.HasSuffix(n, ".zip")
+}
+
+// unopened are formats that often hold personal data and that pii-eu does not open: office documents, PDFs and
+// compression formats other than gzip, tar and zip. Skipping one makes a scan incomplete.
+var unopened = []string{".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".ppt", ".pptx", ".odt", ".ods", ".odp", ".rtf",
+	".7z", ".rar", ".bz2", ".xz", ".zst", ".lz4", ".sqlite", ".db", ".mdb", ".accdb", ".parquet", ".avro"}
+
+// Unopened reports whether a file is in a format pii-eu does not open but that often holds personal data.
+func Unopened(name string) bool {
+	n := strings.ToLower(name)
+	for _, ext := range unopened {
+		if strings.HasSuffix(n, ext) {
+			return true
+		}
+	}
+	return false
 }
 
 // VisitArchive reads the archive rel from r and calls fn for every regular file inside, opening nested
@@ -132,9 +149,12 @@ type visitor struct {
 	out     Outcome
 }
 
-// archive reads one gzip or tar file at the given depth.
+// archive reads one gzip, tar or zip file at the given depth.
 func (v *visitor) archive(rel, name string, r io.Reader, depth int) error {
 	lower := strings.ToLower(name)
+	if strings.HasSuffix(lower, ".zip") {
+		return v.zip(rel, r, depth)
+	}
 	if !strings.HasSuffix(lower, ".gz") && !strings.HasSuffix(lower, ".tgz") {
 		return v.tar(rel, r, depth)
 	}
@@ -185,11 +205,52 @@ func (v *visitor) tar(rel string, r io.Reader, depth int) error {
 	}
 }
 
+// zip reads a zip file. Zip needs random access, so the file is read into memory first, within the same byte
+// budget as everything an archive unpacks; entries count against the entry and byte limits like tar members.
+func (v *visitor) zip(rel string, r io.Reader, depth int) error {
+	data, err := io.ReadAll(counted{r, v.budget})
+	if err != nil {
+		if IsLimit(err) {
+			return err
+		}
+		return fmt.Errorf("read error: %w", err)
+	}
+	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return fmt.Errorf("not a valid zip file: %w", err)
+	}
+	for _, f := range zr.File {
+		if err := v.budget.entry(); err != nil {
+			return err
+		}
+		name := cleanName(f.Name)
+		if f.FileInfo().IsDir() || !f.Mode().IsRegular() || name == "" || matchAny(v.exc, name) {
+			continue
+		}
+		member := rel + "!/" + name
+		if f.Flags&0x1 != 0 {
+			v.out.Unreadable = append(v.out.Unreadable, domain.Skipped{Path: member, Reason: "encrypted zip entry"})
+			continue
+		}
+		rc, err := f.Open()
+		if err != nil {
+			v.out.Unreadable = append(v.out.Unreadable, domain.Skipped{Path: member, Reason: "cannot open: " + err.Error()})
+			continue
+		}
+		err = v.entry(member, name, counted{rc, v.budget}, int64(f.UncompressedSize64), depth)
+		rc.Close()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // entry hands one file to fn, or opens it when it is an archive itself. Only limit errors are returned.
 func (v *visitor) entry(rel, name string, r io.Reader, size int64, depth int) error {
 	if IsArchive(name) {
 		if depth >= v.budget.lim.MaxDepth {
-			v.out.Skipped = append(v.out.Skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("archive nested more than %d deep (max_archive_depth)", v.budget.lim.MaxDepth)})
+			v.out.Skipped = append(v.out.Skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("archive nested more than %d deep (max_archive_depth)", v.budget.lim.MaxDepth), NotRead: true})
 			return nil
 		}
 		err := v.archive(rel, path.Base(name), r, depth+1)
@@ -201,7 +262,7 @@ func (v *visitor) entry(rel, name string, r io.Reader, size int64, depth int) er
 	}
 	if v.maxFile > 0 && DataKind(name) == "" {
 		if size > v.maxFile {
-			v.out.Skipped = append(v.out.Skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", v.maxFile)})
+			v.out.Skipped = append(v.out.Skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", v.maxFile), NotRead: true})
 			return nil
 		}
 		if size < 0 {
@@ -210,7 +271,7 @@ func (v *visitor) entry(rel, name string, r io.Reader, size int64, depth int) er
 				return v.readError(rel, err)
 			}
 			if int64(len(data)) > v.maxFile {
-				v.out.Skipped = append(v.out.Skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", v.maxFile)})
+				v.out.Skipped = append(v.out.Skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", v.maxFile), NotRead: true})
 				return nil
 			}
 			r, size = bytes.NewReader(data), int64(len(data))

@@ -43,6 +43,8 @@ type Config struct {
 	MaxArchiveDepth   int
 	// ImageExclude is excluded inside container images, in addition to Exclude.
 	ImageExclude []string
+	// AllowPartial keeps the exit code at 0 or 1 when files were not read in full (ADR 8).
+	AllowPartial bool
 }
 
 type fileConfig struct {
@@ -59,6 +61,7 @@ type fileConfig struct {
 	MaxArchiveEntries     int64             `toml:"max_archive_entries"`
 	MaxArchiveDepth       int               `toml:"max_archive_depth"`
 	ImageExclude          *[]string         `toml:"image_exclude"`
+	AllowPartial          bool              `toml:"allow_partial"`
 }
 
 // Default is the configuration used when no file and no flags change it.
@@ -104,6 +107,7 @@ func apply(cfg Config, fc fileConfig) (Config, error) {
 	if fc.MaxFileSize > 0 {
 		cfg.MaxFileSize = fc.MaxFileSize
 	}
+	cfg.AllowPartial = fc.AllowPartial
 	if fc.MaxRows != nil {
 		if *fc.MaxRows < 0 {
 			return cfg, errors.New("max_rows must be zero (every row) or more")
