@@ -13,7 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.0"
+      "const": "1.1",
+      "description": "1.1 added module_source on infrastructure entries; a 1.0 map is a 1.1 map without it."
     },
     "tool": {
       "type": "object",
@@ -300,6 +301,10 @@
         },
         "personal_data": {
           "type": "boolean"
+        },
+        "module_source": {
+          "type": "string",
+          "description": "For a module call (address module.<name>) that pii-eu does not read inside: the module's source. Its settings are unknown."
         },
         "path": {
           "type": "string"

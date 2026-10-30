@@ -630,6 +630,7 @@ func storeTable() string {
 		}
 		fmt.Fprintf(&b, "- %s: %s\n", p.title, strings.Join(names, ", "))
 	}
+	b.WriteString("\nModule calls: a local module (`source = \"./db\"`) whose folder is scanned is read as its own folder. Any other `module` block (registry, git or a local folder outside the scan) is not read inside. When its source or label names a kind of store (`terraform-aws-modules/rds/aws`, `patients_db`) or it passes arguments that look like store settings (`storage_encrypted`, `retention_in_days`, `kms_key_id`, `publicly_accessible`), it is listed in the inventory's `stores` as type `module`, with its source, those arguments by name and every setting unknown. A module call gives no scan findings.\n")
 	return b.String()
 }
 

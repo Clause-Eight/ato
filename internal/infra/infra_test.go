@@ -493,11 +493,94 @@ func TestNotAStore(t *testing.T) {
 data "aws_s3_bucket" "existing" {
   bucket = "x"
 }
+module "network" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+  cidr    = "10.0.0.0/16"
+}
 module "db" {
   source = "./db"
-}`})
+}`, "m/db/main.tf": `resource "aws_iam_role" "inner" {}`})
 	if len(stores) != 0 {
 		t.Fatalf("got %v", stores)
+	}
+}
+
+func TestModuleCalls(t *testing.T) {
+	stores := storesOf(t, map[string]string{
+		"m/main.tf": euProvider + `
+module "patients_db" {
+  source            = "terraform-aws-modules/rds/aws"
+  version           = "6.0.0"
+  identifier        = "patients"
+  storage_encrypted = true
+  kms_key_id        = var.key
+  backup_retention_period = 7
+  publicly_accessible     = false
+  tags = {
+    data_classification = "pii"
+  }
+}
+
+module "exports" {
+  source = "git::https://example.com/acme/terraform-modules.git//storage?ref=v1.2.0"
+}
+
+module "archive" {
+  source            = "app.example.com/acme/thing/google"
+  retention_in_days = 30
+}
+
+module "shared" {
+  source = "../../shared/modules/audit-bucket"
+}
+
+module "local_read" {
+  source = "./bucket"
+}
+`,
+		"m/bucket/main.tf": `resource "aws_s3_bucket" "inner" {
+  bucket = "inner"
+}`,
+	})
+	db, ok := stores["m/main.tf:module.patients_db"]
+	if !ok {
+		t.Fatalf("the rds module is a store: %v", stores)
+	}
+	if db.Type != domain.ModuleType || db.Module != "terraform-aws-modules/rds/aws" || db.Provider != "aws" || db.Service != "database" {
+		t.Errorf("module call: %+v", db)
+	}
+	if strings.Join(db.ModuleSettings, ",") != "backup_retention_period,kms_key_id,publicly_accessible,storage_encrypted" {
+		t.Errorf("settings: %v", db.ModuleSettings)
+	}
+	if strings.Join(db.Names, ",") != "patients" || !db.PersonalData {
+		t.Errorf("names and tags: %v %v", db.Names, db.PersonalData)
+	}
+	for name, s := range map[string]domain.Setting{"encryption": db.Encryption, "retention": db.Retention, "backup": db.Backup, "public": db.Public, "in_eea": db.InEEA} {
+		if s.State != domain.Unknown || !strings.Contains(s.Why, "does not read") {
+			t.Errorf("%s: %+v", name, s)
+		}
+	}
+	if !strings.Contains(db.Encryption.Why, "storage_encrypted = true") || !strings.Contains(db.Encryption.Why, "kms_key_id") || db.Encryption.Line == 0 {
+		t.Errorf("passed settings: %+v", db.Encryption)
+	}
+	if !strings.Contains(db.Backup.Why, "backup_retention_period = 7") {
+		t.Errorf("backup retention is a backup setting: %+v", db.Backup)
+	}
+	if e := stores["m/main.tf:module.exports"]; e.Service != "object-storage" || e.Provider != "aws" {
+		t.Errorf("git source with a subfolder, provider from the folder: %+v", e)
+	}
+	if a := stores["m/main.tf:module.archive"]; a.Service != "unknown" || a.Provider != "google" || strings.Join(a.ModuleSettings, ",") != "retention_in_days" {
+		t.Errorf("settings without a known service: %+v", a)
+	}
+	if s := stores["m/main.tf:module.shared"]; s.Module != "../../shared/modules/audit-bucket" || s.Service != "object-storage" {
+		t.Errorf("a local module outside the scan is not read: %+v", s)
+	}
+	if _, ok := stores["m/main.tf:module.local_read"]; ok {
+		t.Error("a local module that was scanned is read as its own folder")
+	}
+	if _, ok := stores["m/bucket/main.tf:aws_s3_bucket.inner"]; !ok {
+		t.Error("the local module's own stores are read")
 	}
 }
 
