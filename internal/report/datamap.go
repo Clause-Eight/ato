@@ -21,6 +21,9 @@ type DataMap struct {
 	Tool    string
 	Version string
 	Map     datamap.Map
+	// Previous is the saved map this one is compared with, or nil. Only the HTML page uses it.
+	Previous     *datamap.Map
+	PreviousName string
 }
 
 type jsonMap struct {

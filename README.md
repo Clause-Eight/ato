@@ -195,7 +195,10 @@ The map is a draft for the record of processing activities (GDPR Art. 30). Purpo
 ```bash
 pii-eu map --format json --output pii-eu-map.json   # save the map, e.g. on the main branch
 pii-eu map --diff pii-eu-map.json                   # in a pull request: exit 1 if a category, store, recipient or log of personal data is new
+pii-eu map --diff pii-eu-map.json --format html --output map.html   # the same, as a page for the DPO
 ```
+
+The HTML page is written for a data protection officer. It opens with what changed since the saved map (new kinds of personal data, new special-category data, new outside companies, new stores and stores that lost encryption, a retention rule, an EU region or an erasure path, and what was removed), then lists what needs a decision, each with why it matters, what to decide and a link to its file and line. Without `--diff`, the decisions come from the whole map. The full map follows, grouped by store, with categories in words. The page is one file with no external resources, prints cleanly and follows the system's light or dark setting.
 
 ### Data stores in Terraform
 

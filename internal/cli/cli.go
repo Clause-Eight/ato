@@ -715,12 +715,23 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 	findings, _ := withoutIgnored(res.Findings)
 	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle, Infra: res.Stores})
 	if previous != nil {
-		if f.output != "" {
-			if err := writeMapFile(f, m); err != nil {
+		changes := datamap.Diff(*previous, m)
+		dm := report.DataMap{Tool: "pii-eu", Version: Version, Map: m, Previous: previous, PreviousName: filepath.Base(f.diff)}
+		switch {
+		case f.output != "":
+			if err := writeMapFile(f, dm); err != nil {
 				return 0, err
 			}
+		case f.format == "html":
+			// The page carries the comparison, so it replaces the text summary.
+			if err := report.WriteMap(f.format, stdout, dm); err != nil {
+				return 0, err
+			}
+			if len(changes) > 0 {
+				return ExitFindings, nil
+			}
+			return ExitClean, nil
 		}
-		changes := datamap.Diff(*previous, m)
 		if len(changes) == 0 {
 			fmt.Fprintln(stdout, "Nothing new since the previous map.")
 			return ExitClean, nil
@@ -731,11 +742,12 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 		}
 		return ExitFindings, nil
 	}
+	dm := report.DataMap{Tool: "pii-eu", Version: Version, Map: m}
 	if f.output != "" {
-		if err := writeMapFile(f, m); err != nil {
+		if err := writeMapFile(f, dm); err != nil {
 			return 0, err
 		}
-	} else if err := report.WriteMap(f.format, stdout, report.DataMap{Tool: "pii-eu", Version: Version, Map: m}); err != nil {
+	} else if err := report.WriteMap(f.format, stdout, dm); err != nil {
 		return 0, err
 	}
 	if incomplete(res.Summary, cfg) {
@@ -744,12 +756,12 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 	return ExitClean, nil
 }
 
-func writeMapFile(f scanFlags, m datamap.Map) error {
+func writeMapFile(f scanFlags, m report.DataMap) error {
 	file, err := os.Create(f.output)
 	if err != nil {
 		return fmt.Errorf("cannot write %s: %w", f.output, err)
 	}
-	if err := report.WriteMap(f.format, file, report.DataMap{Tool: "pii-eu", Version: Version, Map: m}); err != nil {
+	if err := report.WriteMap(f.format, file, m); err != nil {
 		file.Close()
 		return err
 	}
