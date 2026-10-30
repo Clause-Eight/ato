@@ -208,6 +208,9 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	} else {
 		context, own = ctx.keywordText(), ctx.lineText()
 	}
+	if r := d.Rival; r != nil && r.Valid(value) && keyword(own, r.Words) != "" {
+		return match{}, false
+	}
 	kw := keyword(context, words)
 	if kw == "" && d.NeedsKeyword {
 		return match{}, false
