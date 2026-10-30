@@ -120,7 +120,7 @@ The first run on this repository found 34. The run led to three engine fixes in 
 
 ## Compared with other scanners
 
-Measured on 30 October 2026 with `bench/compare/compare.py`; the method, settings and how to rerun it are in
+Measured on 31 October 2026 with `bench/compare/compare.py` (the 30 October run, before #269, is kept in `bench/compare/results/2026-10-30.json`); the method, settings and how to rerun it are in
 [bench/compare/README.md](../bench/compare/README.md) and [ADR 9](adr/0009-benchmark-method.md). Every tool runs at
 its defaults; Presidio's EU recognisers are enabled for English and its prose recognisers (names, places, dates,
 URLs) are left out, since on code they flag identifiers and call sites. Means over seeds 1, 2 and 3; the
@@ -130,8 +130,8 @@ largest difference between seeds for any figure was 4.6 points, and `results.jso
 
 | | Lines with personal data caught | Alarms on noise lines | Warnings that were real | Time |
 |---|---|---|---|---|
-| pii-eu (defaults) | 50.2% | 5 | 99.9% | 0.5 s |
-| Presidio 2.2.366 | 35.4% | 3,329 | 51.7% | 43.2 s |
+| pii-eu (defaults) | 50.6% | 10 | 99.8% | 0.6 s |
+| Presidio 2.2.366 | 35.4% | 3,329 | 51.7% | 44.2 s |
 | scrubadub 2.0.1 | 9.9% | 822 | 54.8% | 1.3 s |
 
 **Open-source application code** (96,365 lines from 644 fixture, migration, seeder and spec files of Saleor
@@ -140,39 +140,38 @@ values for 15 identifiers inserted on new lines):
 
 | | Values caught | Alarms on original lines | Warnings that were real | Time |
 |---|---|---|---|---|
-| pii-eu (defaults) | 38.8% | 26 | 97.8% | 2.4 s |
-| Presidio 2.2.366 | 54.1% | 6,826 | 19.2% | 147.7 s |
-| scrubadub 2.0.1 | 16.3% | 792 | 38.2% | 3.9 s |
+| pii-eu (defaults) | 71.9% | 17 | 99.2% | 2.8 s |
+| Presidio 2.2.366 | 54.1% | 6,826 | 19.2% | 141.9 s |
+| scrubadub 2.0.1 | 16.3% | 792 | 38.2% | 3.8 s |
 
-Per identifier on open-source code, pii-eu / Presidio: IBAN 100% / 100%, Czech birth number 65% / 8%, CNP 61% /
-40%, Italian fiscal code 61% / 50%, card 57% / 87%, phone 47% / 38%, French NIR 44% / 10%, German tax ID 36% / 67%,
-Dutch BSN 27% / 14%, Spanish DNI 14% / 78%, PESEL 14% / 100%, EGN 15% / 22%, TAJ 13% / 15%, OIB 12% / 84%, email 12%
-/ 100%.
+Per identifier on open-source code, pii-eu / Presidio: IBAN 100% / 100%, CNP 100% / 40%, Czech birth number 100% /
+8%, Italian fiscal code 100% / 50%, phone 87% / 38%, card 81% / 87%, French NIR 78% / 10%, German tax ID 75% / 67%,
+Dutch BSN 61% / 14%, TAJ 54% / 15%, EGN 51% / 22%, DNI 49% / 78%, OIB 49% / 84%, PESEL 48% / 100%, email 47% / 100%.
 
 **Personal data passed to log calls** (320 generated functions in eight languages; 120 pass a personal field
 directly, 40 through a local variable, 160 pass harmless fields):
 
 | | Direct | Through a variable | False alarms | Languages with no findings |
 |---|---|---|---|---|
-| pii-eu | 120 / 120 | 0 / 40 | 0 / 160 | none |
+| pii-eu | 120 / 120 | 40 / 40 | 0 / 160 | none |
 | HoundDog.ai 4.0.0 (Docker image, offline) | 45 / 120 | 15 / 40 | 0 / 160 | Kotlin, PHP, Ruby, TypeScript |
 
 What the numbers say:
 
-- **pii-eu is quiet; that is the trade.** Its warnings are real 98–100% of the time against 19–55% for the
-  others, and it raises tens of alarms where they raise thousands. It also misses more: at the defaults it catches
-  about half of the generated values and 39% of the values in open-source code.
-- **Test folders lower recall.** Most open-source files here are tests, fixtures and migrations. Context there
-  lowers a value one step, so identifiers that start at low confidence (PESEL, EGN, OIB, TAJ, BSN, DNI, emails) are
-  reported only with their own keyword. `--min-confidence low` catches more at the cost of more alarms; `pii-eu fix`
-  replaces keyword-confirmed values in test files even when they are not reported.
-- **Where Presidio is ahead:** emails, PESEL, OIB, Spanish DNI and cards without a keyword. Its alarms on real code
-  are mostly bare numbers read as Swedish organisation numbers, PESELs, German tax numbers and cards.
-- **Where pii-eu is ahead:** Romanian, Czech, French and Dutch numbers, phones, and the shapes Presidio has no
-  recogniser for. It is 60 times faster than Presidio on the open-source corpus.
-- **pii-eu's own false alarms** on open-source code are about 20 random 13-digit order IDs in the application log
-  that pass the CNP check, roughly 1 line in 1,000 (#267).
-- **Log calls:** pii-eu finds every direct case in eight languages and none that go through a local variable
-  (#265); HoundDog follows variables but its free image found nothing in Kotlin, PHP, Ruby or TypeScript here.
+- **pii-eu catches more and warns less.** On open-source application code it catches 71.9% of inserted values
+  with 99.2% of its warnings real; Presidio catches 54.1% with 19.2% real, scrubadub 16.3% with 38.2%.
+- **What changed since 30 October (38.8% caught, 97.8% real):** a test path no longer lowers a value that
+  passes its own check, a value next to other personal fields is raised, a value whose own key names another kind
+  of number (phone, postcode, height) is lowered, and order and request words lower 13-digit national numbers
+  (ADR 10, #267, #269, #271).
+- **Where Presidio is still ahead:** emails, PESEL, OIB, Spanish DNI and cards without a label. pii-eu reports
+  low-confidence identifiers such as these only with their own keyword or next to other personal fields.
+- **pii-eu's own alarms** on the original code are 17 lines, mostly placeholder emails on real domains in
+  fixtures.
+- **Log calls:** pii-eu now follows a value through one local variable (#265) and finds every case here in eight
+  languages; HoundDog follows variables too but its free image found nothing in Kotlin, PHP, Ruby or TypeScript.
+- **Scanning four more open-source applications** (Mastodon, OpenEMR, Medusa, ERPNext) found false alarms that
+  are now fixed (#271): findings fell from 1,947 to 1,155, nearly all of the rest emails in documentation and
+  tests.
 - **Not measured:** HoundDog's paid tier, Presidio with custom recognisers, and real personal data, which no
   benchmark here will ever use.
