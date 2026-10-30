@@ -1,7 +1,8 @@
 // Package fix replaces values found in files with synthetic ones from the same generator the tests use. Each
-// replacement passes the same detector, keeps the original's separators and length where the format allows,
-// and is the same for the same value everywhere. Replacements carry the synthetic mark (detectors.Synthetic),
-// so a later scan reports them at low confidence as samples.
+// replacement passes the same detector, keeps the original's separators, case and length where the format
+// allows, keeps the original's country, brand or class where the identifier has one, and is the same for the
+// same value everywhere. Replacements carry the synthetic mark (detectors.Synthetic), so a later scan reports
+// them at low confidence as samples.
 package fix
 
 import (
@@ -18,12 +19,26 @@ import (
 // with many possible values almost never runs out, and one with few gives up in well under a second.
 const maxTries = 1 << 19
 
+// likeTries bounds the search over values like the original, where only a few in ten may pass the detector (a
+// plate's letters, a phone number's plan).
+const likeTries = 4 * maxTries
+
 // enoughShaped is how many values of the original's shape a search that already has a marked value of another
-// shape tries before it stops looking: twice the expected number for one to carry the mark.
-const enoughShaped = 1 << 17
+// shape tries before it stops looking: four times the expected number for one to carry the mark, so a value
+// whose shape has room for the mark keeps its shape about 98 times in 100.
+const enoughShaped = 1 << 18
+
+// shapeTries is how many values a generator without a shaper draws, per candidate, looking for one with
+// letters and digits where the original has them.
+const shapeTries = 64
+
+// shapeBudget bounds the extra values those draws cost in one search: enough for a shape one generated value in
+// fifty has.
+const shapeBudget = 8 * maxTries
 
 // Replacement is the synthetic value written in place of a found one. Marked says it carries the synthetic
-// mark; SameShape says it keeps the original's separators, case and length.
+// mark; SameShape says it keeps the original's separators, case, length and the positions of its letters and
+// digits.
 type Replacement struct {
 	Text      string
 	Marked    bool
@@ -32,13 +47,37 @@ type Replacement struct {
 
 // Replace returns a synthetic value for raw, a value as written in text and found by d. The same detector and
 // value always give the same replacement. ok is false when d has no generator or no generated value fits.
+//
+// Where the identifier has a country, brand or class (an IBAN's country, a card's brand, a phone number's
+// country code, the sex and century of a personal number), candidates come from synth.Like and keep it. The
+// other detectors draw from their generator, preferring values with letters and digits in the original's
+// positions.
 func Replace(d detectors.Detector, raw string) (Replacement, bool) {
 	gen, ok := synth.For(d.Name)
 	if !ok {
 		return Replacement{}, false
 	}
 	original := detectors.Canonical(raw)
-	r := rand.New(rand.NewSource(seed(d.Name, original)))
+	if like, ok := synth.Like(d.Name, raw); ok {
+		r := rand.New(rand.NewSource(seed(d.Name, original)))
+		if best, found := search(d, raw, original, like, r, likeTries); found && best.Marked {
+			return best, true
+		}
+	}
+	plain, found := search(d, raw, original, gen, rand.New(rand.NewSource(seed(d.Name, original))), maxTries)
+	if !found || plain.SameShape || !plain.Marked {
+		// Values that never carry the mark (names from a list) are not worth a longer search.
+		return plain, found
+	}
+	if best, ok := search(d, raw, original, shaped(gen, raw), rand.New(rand.NewSource(seed(d.Name, original))), maxTries); ok && best.Marked {
+		return best, true
+	}
+	return plain, true
+}
+
+// search draws candidates from gen until one fits, carries the mark and keeps the shape of raw, or the tries
+// run out, and returns the best one found.
+func search(d detectors.Detector, raw, original string, gen synth.Generator, r *rand.Rand, tries int) (Replacement, bool) {
 	var best Replacement
 	found := false
 	better := func(c Replacement) bool {
@@ -50,13 +89,17 @@ func Replace(d detectors.Detector, raw string) (Replacement, bool) {
 		}
 		return c.SameShape && !best.SameShape
 	}
-	shaped := 0
-	for i := 0; i < maxTries; i++ {
+	shapedCount := 0
+	for i := 0; i < tries; i++ {
 		cand := gen(r)
 		c := Replacement{Text: cand}
-		if out, ok := layout(raw, cand); ok {
+		if out, ok := layout(raw, cand, true); ok && classes(out) == classes(raw) {
 			c = Replacement{Text: out, SameShape: true}
-			shaped++
+			shapedCount++
+			if !fits(d, out) {
+				// The case of the letters is part of a checksum (EIP-55): keep the candidate's.
+				c.Text, _ = layout(raw, cand, false)
+			}
 		}
 		c.Marked = detectors.Synthetic(c.Text)
 		if better(c) && fits(d, c.Text) && detectors.Canonical(c.Text) != original {
@@ -65,11 +108,56 @@ func Replace(d detectors.Detector, raw string) (Replacement, bool) {
 				return best, true
 			}
 		}
-		if best.Marked && (shaped >= enoughShaped || i >= 1000 && shaped == 0) {
+		if best.Marked && (shapedCount >= enoughShaped || i >= 1000 && shapedCount == 0) {
 			break
 		}
 	}
 	return best, found
+}
+
+// shaped wraps gen to return, of up to shapeTries values, the first with letters and digits where raw has
+// them, else the first with as many, else the last. Once it has drawn shapeBudget values more than it
+// returned, it returns gen's, so a shape the generator rarely writes costs a bounded search.
+func shaped(gen synth.Generator, raw string) synth.Generator {
+	want := classes(raw)
+	extra := 0
+	return func(r *rand.Rand) string {
+		if extra >= shapeBudget {
+			return gen(r)
+		}
+		var count, cand string
+		for i := 0; i < shapeTries; i++ {
+			if i > 0 {
+				extra++
+			}
+			cand = gen(r)
+			c := classes(cand)
+			if c == want {
+				return cand
+			}
+			if count == "" && len(c) == len(want) {
+				count = cand
+			}
+		}
+		if count != "" {
+			return count
+		}
+		return cand
+	}
+}
+
+// classes writes each letter of s as A and each digit as 9, and drops everything else.
+func classes(s string) string {
+	b := make([]byte, 0, len(s))
+	for _, r := range s {
+		switch {
+		case unicode.IsDigit(r):
+			b = append(b, '9')
+		case unicode.IsLetter(r):
+			b = append(b, 'A')
+		}
+	}
+	return string(b)
 }
 
 // seed derives the generator's seed from the detector and the value, so the same value maps to the same
@@ -80,9 +168,9 @@ func seed(detector, canonical string) int64 {
 }
 
 // layout writes the letters and digits of cand into the positions of the letters and digits of orig, keeping
-// orig's separators and the case of its letters. ok is false when they have different numbers of letters and
-// digits.
-func layout(orig, cand string) (string, bool) {
+// orig's separators and, when keepCase is set, the case of its letters. ok is false when they have different
+// numbers of letters and digits.
+func layout(orig, cand string, keepCase bool) (string, bool) {
 	var src []rune
 	for _, r := range cand {
 		if isAlnum(r) {
@@ -101,6 +189,7 @@ func layout(orig, cand string) (string, bool) {
 		c := src[k]
 		k++
 		switch {
+		case !keepCase:
 		case unicode.IsLower(r):
 			c = unicode.ToLower(c)
 		case unicode.IsUpper(r):
