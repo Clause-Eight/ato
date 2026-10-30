@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // EU VAT numbers: a two-letter prefix and the member state's format. Where the member state publishes a

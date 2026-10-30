@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Irish Personal Public Service Number (PPSN, PPS No): seven digits, a check letter and, on numbers issued since

@@ -12,13 +12,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Clause-Eight/ato/internal/detectors"
-	"github.com/Clause-Eight/ato/internal/domain"
-	"github.com/Clause-Eight/ato/internal/infra"
-	"github.com/Clause-Eight/ato/internal/lifecycle"
-	"github.com/Clause-Eight/ato/internal/recipients"
-	"github.com/Clause-Eight/ato/internal/schema"
-	"github.com/Clause-Eight/ato/internal/walk"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/infra"
+	"github.com/Clause-Eight/ato/v2/internal/lifecycle"
+	"github.com/Clause-Eight/ato/v2/internal/recipients"
+	"github.com/Clause-Eight/ato/v2/internal/schema"
+	"github.com/Clause-Eight/ato/v2/internal/walk"
 )
 
 // maxLine caps how much of one line is read; the rest of a very long line is skipped.

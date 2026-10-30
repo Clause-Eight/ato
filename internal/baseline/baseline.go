@@ -10,7 +10,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // FileName is the default baseline file in the scanned folder.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Google Cloud encrypts all data at rest; the settings that vary are location, expiry and public grants.

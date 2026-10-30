@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Luxembourg national identification number (matricule, numéro d'identification national): thirteen digits

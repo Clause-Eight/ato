@@ -21,7 +21,7 @@ deprecated.
    The release is **2.0.0**, a major version, because commands, file names and report identifiers change.
 2. What changes:
    - The command `pii-eu` becomes `ato`; the Go module `github.com/Clause-Eight/pii-eu` becomes
-     `github.com/Clause-Eight/ato`, with the command in `cmd/ato`. The GitHub repository is renamed to
+     `github.com/Clause-Eight/ato/v2`, with the command in `cmd/ato`. The GitHub repository is renamed to
      `Clause-Eight/ato` by the owner; GitHub redirects the old URL.
    - Release archives are named `ato_<version>_<os>_<arch>` instead of `pii-eu_…`.
    - Default files: `.ato.toml` and `.ato-baseline.json`. Inline comments: `ato:ignore <reason>`.
@@ -56,8 +56,8 @@ The complete list is in docs/COMPATIBILITY.md, "Changes in 2.0".
 - Readers of the JSON reports must accept `schema_version` `2.0` and `tool.name` `ato`; no field changed.
 - GitLab shows Code Quality findings under new check names; it matches findings by fingerprint, which is
   unchanged.
-- Go requires the module path of a `v2.x.x` tag to end in `/v2`. With the path `github.com/Clause-Eight/ato`,
-  `go install …@v2.0.0` and `@latest` fail; installing from a commit or branch, and the release binaries, work.
-  Before tagging, either the module path becomes `github.com/Clause-Eight/ato/v2` or installs name a commit.
+- Go requires the module path of a `v2.x.x` tag to end in `/v2`, so the module path is
+  `github.com/Clause-Eight/ato/v2` and `go install github.com/Clause-Eight/ato/v2/cmd/ato@latest` works once a
+  v2 tag exists.
 - The warnings add lines on standard error for users who have not renamed their files; standard output and
   every report are unaffected.

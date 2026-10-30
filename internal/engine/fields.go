@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/classify"
-	"github.com/Clause-Eight/ato/internal/domain"
-	"github.com/Clause-Eight/ato/internal/schema"
+	"github.com/Clause-Eight/ato/v2/internal/classify"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/schema"
 )
 
 // SpecialCategoryDetector names the findings for schema fields holding GDPR Art. 9 data. It can be switched

@@ -37,7 +37,7 @@ when it is used and is removed no earlier than 3.0.
 |---|---|---|---|
 | Product name | pii-eu | ATO | – |
 | Command and binary | `pii-eu` | `ato` | not installed; scripts must call `ato` |
-| Go module | `github.com/Clause-Eight/pii-eu`, command in `cmd/pii-eu` | `github.com/Clause-Eight/ato`, command in `cmd/ato` | – |
+| Go module | `github.com/Clause-Eight/pii-eu`, command in `cmd/pii-eu` | `github.com/Clause-Eight/ato/v2`, command in `cmd/ato` | – |
 | Release archives | `pii-eu_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) | `ato_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows); `checksums.txt` and its signature keep their names | – |
 | Settings file | `.pii-eu.toml` | `.ato.toml` | read, with a warning, when `.ato.toml` is absent |
 | Baseline file | `.pii-eu-baseline.json` | `.ato-baseline.json` | read, with a warning, when `.ato-baseline.json` is absent; `ato baseline` writes `.ato-baseline.json` and says to delete the old file. The file format and the fingerprints are unchanged. |

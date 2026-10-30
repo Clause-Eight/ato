@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 func init() {

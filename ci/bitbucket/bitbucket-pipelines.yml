@@ -8,7 +8,7 @@ definitions:
         script:
           - if [ -z "${ATO_VERSION:-}" ] && [ -n "${PII_EU_VERSION:-}" ]; then echo "ato: PII_EU_VERSION is deprecated; set ATO_VERSION" >&2; ATO_VERSION="$PII_EU_VERSION"; fi
           - export ATO_VERSION="${ATO_VERSION:-main}"
-          - go install "github.com/Clause-Eight/ato/cmd/ato@${ATO_VERSION}"
+          - go install "github.com/Clause-Eight/ato/v2/cmd/ato@${ATO_VERSION}"
           - ato scan --format json --output ato.json . || code=$?
           - ato scan .
         artifacts:

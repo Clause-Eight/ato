@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/ato/internal/synth"
+	"github.com/Clause-Eight/ato/v2/internal/synth"
 )
 
 // TestDefinitionOfDone holds every detector to the bar in CONTRIBUTING.md: a synthetic generator, values the

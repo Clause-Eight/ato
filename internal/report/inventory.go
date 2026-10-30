@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // InventorySchemaVersion is the version of the JSON inventory, versioned like the findings report.

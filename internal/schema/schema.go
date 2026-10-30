@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // reader extracts fields from one format. Wants is cheap and decides from the path and the start of the file.

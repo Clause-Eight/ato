@@ -5,8 +5,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Clause-Eight/ato/internal/classify"
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/classify"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // expr is an expression such as user.email, $user->email, params[:email] or user.getEmail() in a call's

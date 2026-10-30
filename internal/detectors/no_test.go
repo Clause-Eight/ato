@@ -3,7 +3,7 @@ package detectors
 import (
 	"testing"
 
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // The values below are made up so that they pass (or fail) the published rules; they belong to nobody.

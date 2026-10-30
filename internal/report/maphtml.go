@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/ato/internal/datamap"
-	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/datamap"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // The HTML data map is written for a data protection officer: what changed since the last saved map, what needs a
