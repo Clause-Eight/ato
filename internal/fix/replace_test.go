@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
@@ -87,7 +88,7 @@ func TestLayout(t *testing.T) {
 		{"1234", "12345", ""},
 		{"12345", "1234", ""},
 	} {
-		got, ok := layout(c.orig, c.cand)
+		got, ok := layout(c.orig, c.cand, true)
 		if got != c.want || ok != (c.want != "") {
 			t.Errorf("layout(%q, %q) = %q %v, want %q", c.orig, c.cand, got, ok, c.want)
 		}
@@ -122,5 +123,143 @@ func TestRunMasksTheDiffAndSkipsStaleFindings(t *testing.T) {
 	got := string(o.Content)
 	if strings.Contains(got, cnp) || !strings.Contains(got, card) || !strings.HasSuffix(got, "\"}\r\n") || !strings.HasPrefix(got, "{}\r\n") {
 		t.Fatalf("unexpected content %q", got)
+	}
+}
+
+// family is what a test on a value of the detector commonly checks besides its format: the country, brand, kind
+// or class. Detectors without one return "".
+func family(t *testing.T, name, text string) string {
+	t.Helper()
+	c := detectors.Canonical(text)
+	switch name {
+	case "iban", "eu-vat":
+		return c[:2]
+	case "card":
+		return detectors.CardBrand(detectors.DigitsOnly(text))
+	case "eu-phone":
+		n := detector(t, name).Normalize(text)
+		if strings.HasPrefix(n, "+") {
+			return n[:4]
+		}
+		return n[:3]
+	case "email":
+		return strings.ToLower(text[strings.LastIndexByte(text, '.'):])
+	case "ro-cnp":
+		return c[:1]
+	case "bg-egn":
+		return string([]byte{'0' + (c[2]-'0')/2, '0' + (c[8]-'0')%2})
+	case "ip-address":
+		if i := strings.IndexByte(text, ':'); i >= 0 {
+			return text[:i]
+		}
+		return "IPv4"
+	case "mac-address":
+		return text[:2]
+	case "crypto-wallet":
+		if l := strings.ToLower(text); strings.HasPrefix(l, "bc1") {
+			return l[:4]
+		}
+		return strings.ToLower(text[:1])
+	}
+	return ""
+}
+
+// likeTemplates are shapes the generators rarely or never write: other countries, brands, separators and case.
+var likeTemplates = map[string][]string{
+	"iban":       {"BE00 0000 0000 0000", "DK0000000000000000", "MT00AAAA00000AAAAAAAAAAAAAAAAAA", "gb00 aaaa 0000 0000 0000 00", "RO00-AAAA-0000-0000-0000-0000"},
+	"card":       {"3530 0000 0000 0000", "6011-0000-0000-0000", "4000000000000", "2221 0000 0000 0000", "3700 000000 00000", "6759000000000000"},
+	"eu-phone":   {"+32 470 00 00 00", "0049 (0)30 1234567", "+353-87-000-0000", "0740 000 000", "+30 69 0000 0000"},
+	"email":      {"jane.doe99@company.ro", "A.B@Firma.DE", "first_last+tag@mail.corp.co.uk"},
+	"eu-vat":     {"NL000000000B01", "ATU00000000", "SE000000000001", "RO123456", "HU00000000", "FR00000000000", "IE0000000WA"},
+	"ro-cnp":     {"7000101400000", "3000101400000"},
+	"bg-egn":     {"0041010000", "0021010010"},
+	"ip-address": {"93.184.216.34", "2a02:1234::1"},
+}
+
+// fewValues reports whether there are too few values with the letters and digits of v in the same positions,
+// after the letters it starts with, for one to be likely to carry the mark (a four-digit postcode, the IPv4
+// address 51.7.57.9): those may change format to keep the mark.
+func fewValues(v string) bool {
+	n := 1.0
+	for i, r := range v {
+		switch {
+		case unicode.IsDigit(r):
+			n *= 10
+		case unicode.IsLetter(r) && strings.IndexFunc(v[:i], unicode.IsDigit) >= 0:
+			n *= 20
+		}
+	}
+	return n < 1<<22
+}
+
+// originals are values of every detector with a generator, and of the shapes in likeTemplates.
+func originals(t *testing.T) map[string][]string {
+	t.Helper()
+	out := map[string][]string{}
+	for _, name := range synth.Names() {
+		d, ok := detectors.Get(name)
+		if !ok {
+			continue
+		}
+		for s := int64(1); s <= 3; s++ {
+			out[name] = append(out[name], generated(t, name, s))
+		}
+		for _, tmpl := range likeTemplates[name] {
+			g, ok := synth.Like(name, tmpl)
+			if !ok {
+				t.Fatalf("%s: no shaper for template %d", name, len(out[name]))
+			}
+			r := rand.New(rand.NewSource(1))
+			for i := 0; ; i++ {
+				v, _ := layout(tmpl, g(r), true)
+				if fits(d, v) {
+					out[name] = append(out[name], v)
+					break
+				}
+				if i > 1000 {
+					t.Fatalf("%s: template %d gives no valid value", name, len(out[name]))
+				}
+			}
+		}
+	}
+	return out
+}
+
+// TestReplaceKeepsCountryBrandAndFormat: a replacement keeps the length, separators, case and letter and digit
+// positions of the original, and its country, brand or class. Values are never printed, only their index.
+func TestReplaceKeepsCountryBrandAndFormat(t *testing.T) {
+	// The case of a mixed-case Ethereum address is its checksum and Base58 addresses vary in length; a street
+	// address is free text whose length follows the street name.
+	loose := map[string]bool{"crypto-wallet": true, "street-address": true}
+	for name, values := range originals(t) {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			d := detector(t, name)
+			for i, v := range values {
+				r, ok := Replace(d, v)
+				if !ok {
+					t.Errorf("value %d: no replacement", i)
+					continue
+				}
+				if f, g := family(t, name, v), family(t, name, r.Text); f != g {
+					t.Errorf("value %d: the replacement changed the country, brand or class", i)
+				}
+				if loose[name] || fewValues(v) {
+					continue
+				}
+				a, b := []rune(v), []rune(r.Text)
+				if !r.SameShape || len(a) != len(b) || classes(r.Text) != classes(v) {
+					t.Errorf("value %d: the replacement changed the format", i)
+					continue
+				}
+				for j := range a {
+					sep := !isAlnum(a[j])
+					if sep && a[j] != b[j] || !sep && unicode.IsUpper(a[j]) != unicode.IsUpper(b[j]) {
+						t.Errorf("value %d: a separator or the case changed at %d", i, j)
+						break
+					}
+				}
+			}
+		})
 	}
 }
