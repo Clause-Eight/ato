@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Clause-Eight/pii-eu/internal/baseline"
+	"github.com/Clause-Eight/pii-eu/internal/config"
 	"github.com/Clause-Eight/pii-eu/internal/domain"
 	"github.com/Clause-Eight/pii-eu/internal/fix"
 )
@@ -41,7 +42,7 @@ func runFix(args []string, stdout, stderr io.Writer) (int, error) {
 		return 0, usageError{err.Error()}
 	}
 	findings, _ = b.Filter(findings)
-	findings = atLeast(findings, cfg)
+	findings = toFix(findings, cfg)
 
 	byPath := map[string][]domain.Finding{}
 	var paths []string
@@ -145,4 +146,16 @@ func writeKeepingMode(path string, data []byte) error {
 		mode = st.Mode().Perm()
 	}
 	return os.WriteFile(path, data, mode)
+}
+
+// toFix keeps what a scan would report, and also any value whose own keyword is next to it whatever its
+// confidence: a CNP labelled "cnp" in a fixture is real data even when its context lowered it.
+func toFix(fs []domain.Finding, cfg config.Config) []domain.Finding {
+	var out []domain.Finding
+	for _, f := range fs {
+		if f.Confidence >= cfg.MinConfidenceFor(f.Detector) || f.Kind == domain.KindValue && f.Keyword {
+			out = append(out, f)
+		}
+	}
+	return out
 }

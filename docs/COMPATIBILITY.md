@@ -9,7 +9,7 @@ change is announced before it breaks anything.
 |---|---|
 | Commands | `scan`, `baseline`, `inventory`, `map`, `fix`, `detectors` and `version` keep their names and meaning. |
 | Flags | Every flag listed by `pii-eu help` keeps its name, its meaning and its default. |
-| Exit codes | `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read. `pii-eu fix` exits `0` when it changed files or had nothing to do. |
+| Exit codes | `0` nothing found, `1` findings, `2` usage or settings error, `3` the scan is incomplete: some files could not be read, or were not read in full (see the next release). `pii-eu fix` exits `0` when it changed files or had nothing to do. |
 | Settings file | `.pii-eu.toml` keys keep their names and meaning. An unknown key stays an error. |
 | JSON report | `schemas/findings.schema.json`: fields listed there are never removed, renamed or given a new type. `schema_version` stays `1.x`. |
 | Inventory | `schemas/inventory.schema.json` and the CSV columns, under the same rule. |
@@ -54,6 +54,19 @@ Each version only adds optional fields, so a reader written for an earlier `1.x`
   `max_file_size` (data files read their first `max_rows` rows instead); values in files with columns take their
   keywords from their column name instead of the line, so the confidence of such findings may change; fingerprints
   keep their rule (detector, path and line with values replaced).
+
+## Next release
+
+- Exit code `3` also covers files that may hold personal data and were not read in full: data files cut at
+  `max_rows`, files over `max_file_size` or an archive limit, archives nested too deep, and document formats
+  pii-eu does not open (office files, PDFs, other compression formats, database files). Before, such a scan could
+  exit `0`, which told CI the data was clean when it was never read. This is treated as a correction of the
+  meaning of `3`, not a new meaning (ADR 8). `--allow-partial` and `allow_partial = true` restore the old exit
+  code for these files.
+- `.zip` files are scanned inside, with the same limits as tar files.
+- JSON report, schema version `1.3`: optional `not_read` on entries of `summary.files_skipped` and `summary.sampled`.
+- Confidence: context (a test path, a line of long numbers, an unlikely word, a time-like name) lowers a valid
+  value by one step at most (#256).
 
 ## Deprecation
 

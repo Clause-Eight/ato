@@ -104,6 +104,8 @@ Scan flags:
   --baseline FILE          baseline file (default: <path>/.pii-eu-baseline.json)
   --show-values            print found values in full in text output (never in files)
   --max-rows N             read at most N rows of each CSV, TSV or JSON Lines file; 0 reads every row
+  --allow-partial          exit 0 or 1 even when a file was not read in full (cut at max_rows, over a
+                           size limit, or a document format pii-eu does not open); see exit codes
                            (default: 100000)
   --image FILE             scan a saved container image (docker save or OCI layout tar) instead of a path
 
@@ -160,6 +162,7 @@ type scanFlags struct {
 	lifecycle     bool
 	diff          string
 	maxRows       int
+	allowPartial  bool
 	image         string
 	dryRun        bool
 	all           bool
@@ -187,6 +190,7 @@ func parseFlags(command string, args []string, stderr io.Writer, extra func(*fla
 	fs.StringVar(&f.baselinePath, "baseline", "", "")
 	fs.StringVar(&f.diff, "diff", "", "")
 	fs.IntVar(&f.maxRows, "max-rows", -1, "")
+	fs.BoolVar(&f.allowPartial, "allow-partial", false, "")
 	fs.StringVar(&f.image, "image", "", "")
 	if extra != nil {
 		extra(fs, &f)
@@ -275,6 +279,7 @@ func loadConfig(f scanFlags, root string) (config.Config, error) {
 	if f.maxRows >= 0 {
 		cfg.MaxRows = f.maxRows
 	}
+	cfg.AllowPartial = cfg.AllowPartial || f.allowPartial
 	return cfg, nil
 }
 
@@ -323,7 +328,7 @@ func runScan(args []string, stdout, stderr io.Writer) (int, error) {
 	switch {
 	case len(findings) > 0:
 		return ExitFindings, nil
-	case len(res.Summary.Unreadable) > 0:
+	case incomplete(res.Summary, cfg):
 		return ExitIncomplete, nil
 	}
 	return ExitClean, nil
@@ -643,7 +648,7 @@ func runInventory(args []string, stdout, stderr io.Writer) (int, error) {
 		return 0, usageError{fmt.Sprintf("unknown inventory format %q: use json, csv or html", f.format)}
 	}
 	f.inventory = true
-	res, _, err := collect(f, root)
+	res, cfg, err := collect(f, root)
 	if err != nil {
 		return 0, err
 	}
@@ -660,7 +665,7 @@ func runInventory(args []string, stdout, stderr io.Writer) (int, error) {
 	if err := report.WriteInventory(f.format, w, inv); err != nil {
 		return 0, err
 	}
-	if len(res.Summary.Unreadable) > 0 {
+	if incomplete(res.Summary, cfg) {
 		return ExitIncomplete, nil
 	}
 	return ExitClean, nil
@@ -703,7 +708,7 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 		previous = &m
 	}
 	f.inventory, f.recipients, f.lifecycle = true, true, true
-	res, _, err := collect(f, root)
+	res, cfg, err := collect(f, root)
 	if err != nil {
 		return 0, err
 	}
@@ -733,7 +738,7 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 	} else if err := report.WriteMap(f.format, stdout, report.DataMap{Tool: "pii-eu", Version: Version, Map: m}); err != nil {
 		return 0, err
 	}
-	if len(res.Summary.Unreadable) > 0 {
+	if incomplete(res.Summary, cfg) {
 		return ExitIncomplete, nil
 	}
 	return ExitClean, nil
@@ -749,4 +754,10 @@ func writeMapFile(f scanFlags, m datamap.Map) error {
 		return err
 	}
 	return file.Close()
+}
+
+// incomplete reports whether a scan must exit 3: a file could not be read, or one that may hold personal data was
+// not read in full and allow_partial is off (ADR 8).
+func incomplete(s domain.Summary, cfg config.Config) bool {
+	return len(s.Unreadable) > 0 || !cfg.AllowPartial && len(report.NotRead(s)) > 0
 }

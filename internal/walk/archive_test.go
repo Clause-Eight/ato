@@ -2,6 +2,7 @@ package walk
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
@@ -283,6 +284,57 @@ func TestNotAnImage(t *testing.T) {
 	for _, p := range []string{plain, zipped, filepath.Join(dir, "missing.tar")} {
 		if _, err := OpenImage(p, Options{}); err == nil {
 			t.Errorf("%s: expected an error", p)
+		}
+	}
+}
+
+func zipOf(t *testing.T, members ...tarMember) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	zw := zip.NewWriter(&buf)
+	for _, m := range members {
+		w, err := zw.Create(m.name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := w.Write(m.body); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return buf.Bytes()
+}
+
+func TestZipArchivesAreReadInside(t *testing.T) {
+	data := zipOf(t,
+		tarMember{"data/users.csv", []byte("a,b\n1,2\n")},
+		tarMember{"inner.tar.gz", gz(t, tarOf(t, tarMember{"notes.txt", []byte("inner\n")}))},
+		tarMember{"vendor/skip.txt", []byte("x\n")},
+	)
+	got, out := visit(t, "export.zip", data, Options{Exclude: []string{"vendor"}})
+	want := []string{"export.zip!/data/users.csv", "export.zip!/inner.tar.gz!/notes.txt"}
+	if fmt.Sprint(keysOf(got)) != fmt.Sprint(want) || got[want[0]] != "a,b\n1,2\n" {
+		t.Fatalf("got %v", got)
+	}
+	if len(out.Skipped)+len(out.Unreadable) != 0 {
+		t.Fatalf("outcome %+v", out)
+	}
+	got, _ = visit(t, "dump.tar", tarOf(t, tarMember{"export.zip", data}), Options{})
+	if got["dump.tar!/export.zip!/data/users.csv"] != "a,b\n1,2\n" {
+		t.Fatalf("zip inside tar: %v", keysOf(got))
+	}
+	_, out = visit(t, "big.zip", data, Options{Limits: Limits{MaxBytes: 64}})
+	if len(out.Unreadable) != 1 || !strings.Contains(out.Unreadable[0].Reason, "max_archive_bytes") {
+		t.Fatalf("byte limit: %+v", out)
+	}
+}
+
+func TestUnopenedFormats(t *testing.T) {
+	for name, want := range map[string]bool{"report.XLSX": true, "contract.pdf": true, "dump.7z": true, "app.db": true, "logo.png": false, "app.zip": false, "main.go": false} {
+		if Unopened(name) != want {
+			t.Errorf("Unopened(%q) = %v", name, !want)
 		}
 	}
 }

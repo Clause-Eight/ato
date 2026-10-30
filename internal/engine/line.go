@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -48,8 +49,21 @@ type match struct {
 	confidence domain.Confidence
 	reasons    []string
 	sample     bool
+	keyword    bool
 	ownWord    bool
 	column     string
+}
+
+// timeLabel finds names that usually hold a time: created_at, updatedAt, ts, timestamp, time, date.
+var timeLabel = regexp.MustCompile(`(?i)(_at|At|_on|_ts)\b|\b(ts|time|timestamp|date|datetime|epoch|millis|ms)\b`)
+
+// millisTimestamp reports whether a value is 13 digits that read as a Unix time in milliseconds between 2000 and 2100.
+func millisTimestamp(v string) bool {
+	if len(v) != 13 {
+		return false
+	}
+	n, err := strconv.ParseInt(v, 10, 64)
+	return err == nil && n >= 946684800000 && n < 4102444800000
 }
 
 var longNumber = regexp.MustCompile(`\d{10,}`)
@@ -188,13 +202,23 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	if kw == "" && d.NeedsKeyword {
 		return match{}, false
 	}
+	// Context can lower a valid value by one step at most, however many signals agree; every signal is still
+	// listed as a reason.
+	demoted := false
+	demote := func(reason string) {
+		if !demoted {
+			m.confidence = lower1(m.confidence)
+			demoted = true
+		}
+		m.reasons = append(m.reasons, reason)
+	}
 	if kw != "" {
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby", kw))
+		m.keyword = true
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
 	} else if w := keyword(context, d.Unlikely); w != "" {
-		m.confidence = lower1(m.confidence)
-		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
+		demote(fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
 	}
 	if d.Samples[value] {
 		m.sample = true
@@ -205,13 +229,17 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.confidence = domain.Low
 		m.reasons = append(m.reasons, "carries the mark of a synthetic value written by pii-eu fix")
 	}
-	if !m.sample && numberTable(text) {
-		m.confidence = lower1(m.confidence)
-		m.reasons = append(m.reasons, "in a line of long numbers, which is usually data such as seeds or constants")
+	if m.sample {
+		return m, true
 	}
-	if ctx.testPath && !m.sample {
-		m.confidence = lower1(m.confidence)
-		m.reasons = append(m.reasons, "in a test, fixture or example path")
+	if kw == "" && millisTimestamp(value) && timeLabel.MatchString(text) {
+		demote("a time in milliseconds under a time-like name, such as created_at")
+	}
+	if numberTable(text) {
+		demote("in a line of long numbers, which is usually data such as seeds or constants")
+	}
+	if ctx.testPath {
+		demote("in a test, fixture or example path")
 	}
 	return m, true
 }
@@ -370,6 +398,7 @@ func toFindings(ctx lineContext, ms []match) []domain.Finding {
 			Reasons:     m.reasons,
 			Sample:      m.sample,
 			TestPath:    ctx.testPath,
+			Keyword:     m.keyword,
 			Fingerprint: fingerprint(m.det.Name, ctx.path, shape, i),
 		})
 	}

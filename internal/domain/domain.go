@@ -51,22 +51,24 @@ type Location struct {
 // ColumnName is the data column a value was found in (a CSV or TSV header, a JSON Lines key path or a SQL
 // column), when the file has columns. Span is where a value sits in its line, in bytes, so it can be replaced.
 type Finding struct {
-	Kind        Kind
-	Category    DataCategory
-	Special     SpecialCategory
-	Sink        Sink
-	Detector    string
-	Label       string
-	Country     string
-	Location    Location
-	ColumnName  string
-	Span        Span
-	Value       string
-	Masked      string
-	Confidence  Confidence
-	Reasons     []string
-	Sample      bool
-	TestPath    bool
+	Kind       Kind
+	Category   DataCategory
+	Special    SpecialCategory
+	Sink       Sink
+	Detector   string
+	Label      string
+	Country    string
+	Location   Location
+	ColumnName string
+	Span       Span
+	Value      string
+	Masked     string
+	Confidence Confidence
+	Reasons    []string
+	Sample     bool
+	TestPath   bool
+	// Keyword is true when the identifier's own name or keyword was found next to the value.
+	Keyword     bool
 	Fingerprint string
 	Ignored     bool
 	// Store is the data store an infra finding is about; nil for other kinds.
@@ -92,4 +94,7 @@ type Summary struct {
 type Skipped struct {
 	Path   string
 	Reason string
+	// NotRead marks a file that may hold personal data and was not read in full: over a size limit, cut at
+	// max_rows, nested too deep, or in a document format pii-eu does not open. It makes a scan incomplete.
+	NotRead bool
 }
