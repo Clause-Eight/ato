@@ -25,12 +25,13 @@ pull request, and the golden files under `internal/report/testdata` pin the exac
 
 ## Schema versions
 
-| Release | Findings report | Inventory |
-|---|---|---|
-| 1.0 | `1.1`: `kind` and `special_category` | `1.0` |
-| next | `1.2`: kinds `sink`, `infra` and `lifecycle`; `sink`, `data_category`, `column_name` and the `store` object on findings; `sampled` and `columns` in the summary | `1.1`: the `stores` array; the CSV columns are unchanged |
+| Release | Findings report | Inventory | Data map |
+|---|---|---|---|
+| 1.0 | `1.1`: `kind` and `special_category` | `1.0` | `1.0` |
+| next | `1.2`: kinds `sink`, `infra` and `lifecycle`; `sink`, `data_category`, `column_name` and the `store` object on findings; `sampled` and `columns` in the summary | `1.1`: the `stores` array; the CSV columns are unchanged | `1.0` |
+| next, after #264 | unchanged | `1.2`: source formats `typeorm`, `mongoose`, `doctrine`, `laravel`, `csv`, `tsv` and `jsonl`; stores of type `module` with the optional `module` object; `unknown` as a store's `provider` or `service`, for module calls only | `1.1`: optional `module_source` on `infrastructure` entries |
 
-Each version only adds optional fields, so a reader written for an earlier `1.x` keeps working: it ignores the new fields, and a finding of an unknown `kind` can be read like a `field` finding.
+Each version only adds optional fields and new enum values, so a reader written for an earlier `1.x` keeps working: it ignores the new fields, a finding of an unknown `kind` can be read like a `field` finding, and an unknown `source_format` or store `type` can be read as text.
 
 ## What a minor release may change
 
@@ -67,6 +68,9 @@ Each version only adds optional fields, so a reader written for an earlier `1.x`
 - JSON report, schema version `1.3`: optional `not_read` on entries of `summary.files_skipped` and `summary.sampled`.
 - Confidence: context (a test path, a line of long numbers, an unlikely word, a time-like name) lowers a valid
   value by one step at most (#256).
+- Inventory, schema version `1.2`: TypeORM, Mongoose, Doctrine and Laravel models are read, and Terraform module
+  calls that are not read inside are listed under `stores` as type `module` (#264). Data map, schema version
+  `1.1`: optional `module_source` on infrastructure entries. Module calls give no scan findings.
 
 ## Deprecation
 

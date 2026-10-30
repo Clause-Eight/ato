@@ -166,7 +166,7 @@ A file deleted or replaced in a later layer is still in the image, so it is stil
 
 ### Schemas, special categories and a data inventory
 
-pii-eu also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Django, SQLAlchemy, ActiveRecord, GORM, JPA and Prisma models, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
+pii-eu also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Laravel migrations (`Schema::create`, `Schema::table`), Django, SQLAlchemy, ActiveRecord, GORM, JPA, Doctrine (attributes and annotations), TypeORM and Prisma models, Mongoose schemas, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
 
 - `pii-eu scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
 - `pii-eu inventory` writes every personal-data field it finds as CSV (default), HTML (`--format html`) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
@@ -222,7 +222,7 @@ infra/main.tf
           region us-east-1 is outside the EEA (from the aws provider block); linked to personal data: tagged data_classification with "pii"
 ```
 
-`pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
+`pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. A `module` block whose source is not read (a registry or git module) is listed as type `module` with its source and the setting-like arguments it passes, every setting unknown, when its source, label or arguments point to a data store; a local module that was scanned is read as its own folder. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
 
 ### Personal data in logs, error trackers and analytics
 

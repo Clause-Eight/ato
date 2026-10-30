@@ -42,6 +42,8 @@ func Parse(p string, data []byte) *File {
 }
 
 // Stores returns the data stores declared in the files, grouped into modules by folder, sorted by path and line.
+// Calls to modules that are not read, and that look like they create a store, are listed as stores of type
+// "module" with unknown settings.
 func Stores(files []*File) []domain.Store {
 	byDir := map[string][]*File{}
 	for _, f := range files {
@@ -51,6 +53,14 @@ func Stores(files []*File) []domain.Store {
 		dir := path.Dir(f.Path)
 		byDir[dir] = append(byDir[dir], f)
 	}
+	scanned := map[string]bool{}
+	for dir, fs := range byDir {
+		for _, f := range fs {
+			if !f.vars {
+				scanned[dir] = true
+			}
+		}
+	}
 	var out []domain.Store
 	for _, fs := range byDir {
 		sort.Slice(fs, func(i, j int) bool { return fs[i].Path < fs[j].Path })
@@ -58,6 +68,11 @@ func Stores(files []*File) []domain.Store {
 		for _, r := range m.order {
 			if sp, ok := specs[r.typ]; ok {
 				out = append(out, build(m, r, sp))
+			}
+		}
+		for _, call := range m.calls {
+			if s, ok := moduleStore(m, call, scanned); ok {
+				out = append(out, s)
 			}
 		}
 	}

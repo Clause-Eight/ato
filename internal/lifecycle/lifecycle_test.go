@@ -42,6 +42,16 @@ func TestFind(t *testing.T) {
 		{"models.py", "class Visit(models.Model):\n    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)\n", "cascade:Visit<Patient"},
 		{"user.rb", "class User < ApplicationRecord\n  has_many :addresses, dependent: :destroy\nend\n", "cascade:addresses<User"},
 		{"notes.py", "# we never delete anything\nx = obj.delete_flag\n", ""},
+		{"svc.js", "  await Customer.deleteOne({ _id: id });", "erasure:Customer"},
+		{"job.js", "  await Session.deleteMany({ createdAt: { $lt: cutoff } });", "retention:Session"},
+		{"user.js", "userSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });", "retention:user"},
+		{"svc.ts", "  await dataSource.getRepository(Patient).delete({ id });", "erasure:Patient"},
+		{"svc.ts", "  await this.manager.delete(Visit, { id });", "erasure:Visit"},
+		{"order.ts", "export class Order {\n  @ManyToOne(() => Customer, (c) => c.orders, { onDelete: 'CASCADE' })\n  customer: Customer;\n}\n", "cascade:Order<Customer"},
+		{"Repo.php", "        $qb->delete(Patient::class, 'p')->where('p.id = :id');", "erasure:Patient"},
+		{"Repo.php", "        $this->em->createQuery('DELETE App\\Entity\\Visit v WHERE v.id = :id');", "erasure:Visit"},
+		{"Svc.php", "        DB::table('customers')->where('id', $id)->delete();", "erasure:customers"},
+		{"m.php", "Schema::create('visits', function (Blueprint $table) {\n    $table->foreignId('patient_id')->constrained()->cascadeOnDelete();\n    $table->foreign('doctor_id')->references('id')->on('doctors')->onDelete('cascade');\n});\n", "cascade:visits<patient,cascade:visits<doctors"},
 	}
 	for _, c := range cases {
 		if got := kinds(c.path, c.text); got != c.want {

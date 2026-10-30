@@ -122,6 +122,17 @@ func syntheticStore() domain.Store {
 	}
 }
 
+// syntheticModule is a made-up module call that pii-eu does not read inside.
+func syntheticModule() domain.Store {
+	unknown := domain.Setting{State: domain.Unknown, Why: "decided inside the module"}
+	return domain.Store{
+		Type: domain.ModuleType, Name: "orders_db", Provider: "unknown", Service: "unknown", InEEA: unknown,
+		Encryption: unknown, Retention: unknown, Backup: unknown, Public: unknown,
+		Module: "git::https://example.com/acme/modules.git//thing", ModuleSettings: []string{"storage_encrypted"},
+		Location: domain.Location{Path: "infra/main.tf", Line: 20, Column: 1},
+	}
+}
+
 func withStore(r Report) Report {
 	s := syntheticStore()
 	r.Findings = append(r.Findings, domain.Finding{
@@ -148,7 +159,10 @@ func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	inv := Inventory{Tool: "pii-eu", Version: "test", Files: 1, Entries: []domain.InventoryEntry{{
 		Field:          domain.Field{Name: "diagnosis", Container: "patients", Format: "sql", Location: domain.Location{Path: "db/001.sql", Line: 4, Column: 3}},
 		Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth, Matched: "diagnosis"},
-	}}, Stores: []domain.Store{syntheticStore()}}
+	}, {
+		Field:          domain.Field{Name: "email", Container: "User", Format: "typeorm", Location: domain.Location{Path: "src/user.entity.ts", Line: 9, Column: 5}},
+		Classification: domain.Classification{Category: domain.CategoryContact, Matched: "email"},
+	}}, Stores: []domain.Store{syntheticStore(), syntheticModule()}}
 	if err := WriteInventory("json", &buf, inv); err != nil {
 		t.Fatal(err)
 	}
@@ -158,6 +172,16 @@ func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	}
 	invSchema := loadJSON(t, filepath.Join("..", "..", "schemas", "inventory.schema.json"))
 	validate(t, invSchema, invSchema, invDoc, "inventory")
+	if invDoc["schema_version"] != InventorySchemaVersion {
+		t.Errorf("inventory schema version %v", invDoc["schema_version"])
+	}
+	stores := invDoc["stores"].([]any)
+	if _, ok := stores[0].(map[string]any)["module"]; ok {
+		t.Error("a resource has no module object")
+	}
+	if m, ok := stores[1].(map[string]any)["module"].(map[string]any); !ok || m["source"] == "" || len(m["settings"].([]any)) != 1 {
+		t.Errorf("module call: %v", stores[1])
+	}
 }
 
 // frozen are the JSON fields promised stable for every 1.x release (docs/COMPATIBILITY.md). A 1.x release may

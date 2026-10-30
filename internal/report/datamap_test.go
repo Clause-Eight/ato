@@ -52,6 +52,28 @@ func TestMapMatchesSchemaAndReadsBack(t *testing.T) {
 	}
 }
 
+func TestMapModuleCall(t *testing.T) {
+	m := DataMap{Tool: "pii-eu", Version: "test", Map: datamap.Build(datamap.Input{Infra: []domain.Store{syntheticModule()}})}
+	var buf bytes.Buffer
+	if err := WriteMap("json", &buf, m); err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &doc); err != nil {
+		t.Fatal(err)
+	}
+	schema := loadJSON(t, filepath.Join("..", "..", "schemas", "map.schema.json"))
+	validate(t, schema, schema, doc, "map")
+	back, err := ReadMap(bytes.NewReader(buf.Bytes()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := back.Components[0].Infra[0]
+	if got.Address != "module.orders_db" || got.Module != syntheticModule().Module || got.Encrypted != "unknown" {
+		t.Errorf("module call read back as %+v", got)
+	}
+}
+
 func TestMapGolden(t *testing.T) {
 	for _, format := range MapFormats {
 		var buf bytes.Buffer

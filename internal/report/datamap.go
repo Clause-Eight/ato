@@ -11,7 +11,7 @@ import (
 )
 
 // MapSchemaVersion is the version of the JSON data map, versioned like the findings report.
-const MapSchemaVersion = "1.0"
+const MapSchemaVersion = "1.1"
 
 // MapFormats are the formats `pii-eu map` writes.
 var MapFormats = []string{"json", "markdown", "html"}
@@ -50,6 +50,7 @@ type jsonInfra struct {
 	Retention    string   `json:"retention,omitempty"`
 	Public       string   `json:"public,omitempty"`
 	PersonalData bool     `json:"personal_data"`
+	ModuleSource string   `json:"module_source,omitempty"`
 	Path         string   `json:"path"`
 	Line         int      `json:"line"`
 }
@@ -144,7 +145,7 @@ func ReadMap(r io.Reader) (datamap.Map, error) {
 			comp.Recipients = append(comp.Recipients, rec)
 		}
 		for _, s := range c.Infra {
-			comp.Infra = append(comp.Infra, datamap.Infra{Address: s.Address, Service: s.Service, Regions: s.Regions, InEEA: s.InEEA, Encrypted: s.Encrypted, Retention: s.Retention, Public: s.Public, PersonalData: s.PersonalData, Location: domain.Location{Path: s.Path, Line: s.Line}})
+			comp.Infra = append(comp.Infra, datamap.Infra{Address: s.Address, Service: s.Service, Regions: s.Regions, InEEA: s.InEEA, Encrypted: s.Encrypted, Retention: s.Retention, Public: s.Public, PersonalData: s.PersonalData, Module: s.ModuleSource, Location: domain.Location{Path: s.Path, Line: s.Line}})
 		}
 		m.Components = append(m.Components, comp)
 	}
@@ -176,7 +177,7 @@ func toJSONMap(m DataMap) jsonMap {
 			jc.Recipients = append(jc.Recipients, jr)
 		}
 		for _, s := range c.Infra {
-			jc.Infra = append(jc.Infra, jsonInfra{Address: s.Address, Service: s.Service, Regions: strs(s.Regions), InEEA: s.InEEA, Encrypted: s.Encrypted, Retention: s.Retention, Public: s.Public, PersonalData: s.PersonalData, Path: s.Location.Path, Line: s.Location.Line})
+			jc.Infra = append(jc.Infra, jsonInfra{Address: s.Address, Service: s.Service, Regions: strs(s.Regions), InEEA: s.InEEA, Encrypted: s.Encrypted, Retention: s.Retention, Public: s.Public, PersonalData: s.PersonalData, ModuleSource: s.Module, Path: s.Location.Path, Line: s.Location.Line})
 		}
 		out.Components = append(out.Components, jc)
 	}

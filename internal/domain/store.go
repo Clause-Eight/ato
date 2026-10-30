@@ -62,10 +62,19 @@ type Store struct {
 	PersonalData bool
 	PersonalWhy  string
 
+	// Module is the source of a module call that may create a store pii-eu does not read inside, such as a
+	// registry module; Type is then "module" and every setting is unknown. ModuleSettings are the arguments of
+	// the call that look like store settings (storage_encrypted, retention_in_days), by name.
+	Module         string
+	ModuleSettings []string
+
 	Location Location
 }
 
-// Address is how Terraform names the resource: type.name.
+// ModuleType is the Type of a store that stands for a module call.
+const ModuleType = "module"
+
+// Address is how Terraform names the resource or module call: type.name, or module.name.
 func (s Store) Address() string { return s.Type + "." + s.Name }
 
 // InfraCheck is one kind of finding about stores, with the detector name used in settings and reports.
