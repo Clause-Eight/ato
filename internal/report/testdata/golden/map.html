@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
-<title>Data map</title>
+<meta name="color-scheme" content="light dark">
+<title>Personal data map</title>
 <style>:root{--paper:#F3EFE6;--surface:#FFFDF8;--ink:#1C1B19;--muted:#5F5A52;--line:#DED7CA;--brand:#2340B0;--rule:#D7263D;--high:#A1271B;--medium:#8A5A00;--low:#4F5B66;--chip:#ECE6DA}
 @media (prefers-color-scheme:dark){:root{--paper:#1B1916;--surface:#24211D;--ink:#EEE8DD;--muted:#B3AA9C;--line:#37322B;--brand:#A3B4FF;--high:#F08A7E;--medium:#E5B45C;--low:#A9B4BE;--chip:#2E2A25}}
 *{box-sizing:border-box}
@@ -31,50 +32,156 @@ code,.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;fon
 footer{margin-top:40px;color:var(--muted);font-size:12px}
 @media print{body{background:#fff}.tile,table{break-inside:avoid}}
 .gap{margin-top:12px}
+
+.lead{font-size:16px;max-width:72ch}
+section>h2{border-bottom:1px solid var(--line);padding-bottom:6px}
+h3{font-size:16px;margin:20px 0 6px}
+h4{font-size:15px;margin:18px 0 6px}
+.sub{color:var(--muted);font-weight:400;font-size:13px;margin-right:4px}
+a{color:var(--brand);text-underline-offset:2px}
+a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.changes{margin:0;padding-left:20px}
+.changes li{margin:4px 0}
+.where{color:var(--muted);font-size:13px;margin-top:2px}
+.decisions{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.decisions li{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:8px;padding:10px 14px}
+.decisions h3{margin:0 0 4px;font-size:15px}
+.decisions p{margin:2px 0}
+.label{font-weight:600}
+.component{margin-top:8px}
+.component>h3{font-size:18px;margin-top:28px}
+.component>h3 .mono{font-size:17px}
+.store h4 .mono{font-size:15px}
+.store{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 14px 14px;margin:12px 0}
+.store table{border:0}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;margin:8px 0 12px}
+dt{color:var(--muted)}
+dd{margin:0}
+caption{text-align:left;color:var(--muted);font-size:12px;padding:6px 10px;caption-side:top}
+@media (max-width:600px){dl{grid-template-columns:1fr}dd{margin-bottom:6px}}
+@media print{
+:root{--paper:#fff;--surface:#fff;--ink:#000;--muted:#333;--line:#999;--brand:#000;--chip:#eee}
+body{font-size:11pt}
+main{max-width:none;padding:0}
+a{color:#000;text-decoration:none}
+.wrap{overflow:visible}
+h2,h3,h4{break-after:avoid}
+.decisions li,tr,dl{break-inside:avoid}
+}
 </style>
 </head>
 <body>
 <main>
 <header>
-<h1>Data map</h1>
-<div class="meta">pii-eu test · a draft for the record of processing activities (GDPR Art. 30) · review purposes, legal bases and retention, which code cannot show</div>
+<h1>Personal data map</h1>
+<p class="meta">Drafted from the code by pii-eu test. It shows which personal data the code keeps, where it goes and what needs a decision. It shows field names and file locations, never the data itself.</p>
 </header>
-<div class="tiles">
-<div class="tile"><b>2</b><span>components</span></div>
-<div class="tile"><b>1</b><span>stores of personal data</span></div>
-<div class="tile"><b>2</b><span>third-party recipients</span></div>
-<div class="tile"><b>1</b><span>places personal data is logged</span></div>
-</div>
+<p class="lead">The code keeps personal data in 1 store, names 2 outside companies and writes personal data to logs in 1 place. Kinds of personal data: names. Special-category data (GDPR Art. 9): health data.</p>
 
-<h2>services/billing</h2>
+<section aria-labelledby="decide">
+<h2 id="decide">Needs a decision</h2>
+<p>These come from the whole map. Save the map as JSON and use <span class="mono">--diff</span> next time to see only what is new. Each item says why it matters and what to decide.</p>
+<ol class="decisions">
+<li>
+<h3>Special-category data: health data in services/clinic</h3>
+<p><span class="label">Why it matters:</span> Health data is special-category data (GDPR Art. 9), which may only be processed under one of the exceptions in Art. 9(2).</p>
+<p><span class="label">To decide:</span> Decide the purpose, which Art. 9(2) exception applies and whether a data protection impact assessment is needed.</p>
+<div class="where"><a href="./services/clinic/db/001.sql" class="mono">services/clinic/db/001.sql, line 4</a></div></li>
+<li>
+<h3>Outside company: Stripe (payments)</h3>
+<p><span class="label">Why it matters:</span> The code in services/billing names Stripe, so personal data may be sent to it. It is not established in the EEA.</p>
+<p><span class="label">To decide:</span> Check there is a processor agreement (GDPR Art. 28) and that it is listed as a recipient. Also check the safeguard for transfers outside the EEA (Chapter V).</p>
+<div class="where"><a href="./services/billing/requirements.txt" class="mono">services/billing/requirements.txt, line 2</a></div></li>
+<li>
+<h3>Outside company: Mistral AI (AI model provider)</h3>
+<p><span class="label">Why it matters:</span> The code in services/clinic names Mistral AI, so personal data may be sent to it.</p>
+<p><span class="label">To decide:</span> Check there is a processor agreement (GDPR Art. 28) and that it is listed as a recipient.</p>
+<div class="where"><a href="./services/clinic/notes.py" class="mono">services/clinic/notes.py, line 1</a></div></li>
+<li>
+<h3>Store without erasure or retention: patients in services/clinic</h3>
+<p><span class="label">Why it matters:</span> No code was found that removes old data from patients.</p>
+<p><span class="label">To decide:</span> Decide how long this data is kept and ask for a retention limit (GDPR Art. 5(1)(e)).</p>
+<div class="where"><a href="./services/clinic/db/001.sql" class="mono">services/clinic/db/001.sql, line 3</a></div></li>
+<li>
+<h3>Cloud store: aws_s3_bucket.patient_exports in services/clinic</h3>
+<p><span class="label">Why it matters:</span> It holds personal data and has no rule that deletes old data and is outside the EEA (us-east-1).</p>
+<p><span class="label">To decide:</span> Decide whether to set a retention limit and move it to an EU region or record the transfer safeguard.</p>
+<div class="where"><a href="./services/clinic/infra/main.tf" class="mono">services/clinic/infra/main.tf, line 4</a></div></li>
+<li>
+<h3>Personal data in logs: contact details such as email or phone in services/billing</h3>
+<p><span class="label">Why it matters:</span> The code writes contact details such as email or phone to logs or telemetry, which are often kept longer and seen by more people than the data itself.</p>
+<p><span class="label">To decide:</span> Decide whether logs may hold this data; if not, ask for it to be removed or masked.</p>
+<div class="where"><a href="./services/billing/api.py" class="mono">services/billing/api.py, line 9</a></div></li>
+</ol>
 
-<div class="wrap gap"><table>
-<tr><th>Recipient</th><th>Purpose</th><th>Established in the EEA</th><th>Named in</th></tr>
-<tr><td>Stripe</td><td>payments</td><td>no: check transfers</td><td class="mono">services/billing/requirements.txt:2</td></tr>
-</table></div>
+</section>
+<section aria-labelledby="map">
+<h2 id="map">The full map</h2>
+<p>Grouped by part of the code, then by store: a table, model or message that holds personal data.</p>
 
-<div class="wrap gap"><table>
-<tr><th>Personal data logged</th><th>Category</th><th>Where</th></tr>
-<tr><td>Personal data written to a log</td><td>contact</td><td class="mono">services/billing/api.py:9</td></tr>
-</table></div>
-
-<h2>services/clinic</h2>
+<section class="component">
+<h3><span class="sub">Part of the code</span> <span class="mono">services/billing</span></h3>
+<h4>Outside companies named in the code</h4>
 <div class="wrap"><table>
-<tr><th>Store</th><th>Categories of personal data</th><th>Special categories (Art. 9)</th><th>Erasure (Art. 17)</th><th>Retention</th><th>Fields</th></tr>
-<tr><td class="mono">patients</td><td>name</td><td>health</td><td>SQL DELETE<div class="why mono">services/clinic/repo.sql:7</div></td><td><span class="conf medium">none found</span></td><td>2</td></tr>
+<caption>Outside companies named in services/billing</caption>
+<thead><tr><th scope="col">Company</th><th scope="col">What for</th><th scope="col">Established in the EEA</th><th scope="col">Named in</th></tr></thead>
+<tbody>
+<tr><td>Stripe</td><td>payments</td><td>no: check the transfer safeguard</td><td><a href="./services/billing/requirements.txt" class="mono">services/billing/requirements.txt, line 2</a></td></tr>
+</tbody>
 </table></div>
-<div class="wrap gap"><table>
-<tr><th>Recipient</th><th>Purpose</th><th>Established in the EEA</th><th>Named in</th></tr>
-<tr><td>Mistral AI</td><td>AI model provider</td><td>yes</td><td class="mono">services/clinic/notes.py:1</td></tr>
+<h4>Personal data written to logs or telemetry</h4>
+<div class="wrap"><table>
+<caption>Logging of personal data in services/billing</caption>
+<thead><tr><th scope="col">What</th><th scope="col">Kind of personal data</th><th scope="col">Where</th></tr></thead>
+<tbody>
+<tr><td>Personal data written to a log</td><td>contact details such as email or phone</td><td><a href="./services/billing/api.py" class="mono">services/billing/api.py, line 9</a></td></tr>
+</tbody>
 </table></div>
-<div class="wrap gap"><table>
-<tr><th>Infrastructure</th><th>Service</th><th>Regions</th><th>In the EEA</th><th>Encrypted</th><th>Retention</th><th>Public</th><th>Personal data</th></tr>
-<tr><td class="mono">aws_s3_bucket.patient_exports</td><td>object-storage</td><td>us-east-1</td><td>no</td><td>yes</td><td>no</td><td>no</td><td>yes</td></tr>
-</table></div>
+</section>
 
-
-<footer>Generated by pii-eu test. Field names and file locations only, never values.</footer>
+<section class="component">
+<h3><span class="sub">Part of the code</span> <span class="mono">services/clinic</span></h3>
+<div class="store">
+<h4><span class="sub">Store</span> <span class="mono">patients</span></h4>
+<dl>
+<dt>Holds</dt><dd>names</dd>
+<dt>Special-category data</dt><dd><strong>health data</strong> (GDPR Art. 9)</dd>
+<dt>Erasure on request</dt><dd>SQL DELETE.<div class="where"><a href="./services/clinic/repo.sql" class="mono">services/clinic/repo.sql, line 7</a></div></dd>
+<dt>Removal of old data</dt><dd>No code found that removes old data.</dd>
+</dl>
+<div class="wrap"><table>
+<caption>Fields in patients</caption>
+<thead><tr><th scope="col">Field</th><th scope="col">Kind of personal data</th><th scope="col">Where</th></tr></thead>
+<tbody>
+<tr><td class="mono">first_name</td><td>names</td><td><a href="./services/clinic/db/001.sql" class="mono">services/clinic/db/001.sql, line 3</a></td></tr>
+<tr><td class="mono">diagnosis</td><td><strong>health data</strong> (special category)</td><td><a href="./services/clinic/db/001.sql" class="mono">services/clinic/db/001.sql, line 4</a></td></tr>
+</tbody>
+</table></div>
+</div>
+<h4>Outside companies named in the code</h4>
+<div class="wrap"><table>
+<caption>Outside companies named in services/clinic</caption>
+<thead><tr><th scope="col">Company</th><th scope="col">What for</th><th scope="col">Established in the EEA</th><th scope="col">Named in</th></tr></thead>
+<tbody>
+<tr><td>Mistral AI</td><td>AI model provider</td><td>yes</td><td><a href="./services/clinic/notes.py" class="mono">services/clinic/notes.py, line 1</a></td></tr>
+</tbody>
+</table></div>
+<h4>Cloud stores in Terraform</h4>
+<div class="wrap"><table>
+<caption>Cloud stores declared in services/clinic</caption>
+<thead><tr><th scope="col">Resource</th><th scope="col">Kind</th><th scope="col">Regions</th><th scope="col">In the EEA</th><th scope="col">Encrypted</th><th scope="col">Deletes old data</th><th scope="col">Public</th><th scope="col">Linked to personal data</th><th scope="col">Where</th></tr></thead>
+<tbody>
+<tr><td class="mono">aws_s3_bucket.patient_exports</td><td>object storage</td><td>us-east-1</td><td>no</td><td>yes</td><td>no</td><td>no</td><td>yes</td><td><a href="./services/clinic/infra/main.tf" class="mono">services/clinic/infra/main.tf, line 4</a></td></tr>
+</tbody>
+</table></div>
+</section>
+</section>
+<footer>
+<p>Generated by pii-eu test from the code alone. Purposes, legal bases and retention periods need a person; naming a company in the code does not prove personal data goes to it. Erasure and retention show that the code has a path that removes data, not that it runs. File links are relative to the scanned folder.</p>
+<p>This report is supporting evidence, not legal advice.</p>
+</footer>
 </main>
 </body>
 </html>
+
 

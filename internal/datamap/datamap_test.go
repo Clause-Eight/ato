@@ -84,3 +84,40 @@ func TestDiffListsOnlyWhatIsNew(t *testing.T) {
 		t.Errorf("removals are not changes: %+v", d)
 	}
 }
+
+func TestCompareListsRemovalsAndLostProtections(t *testing.T) {
+	bucket := func(eea, enc domain.Tri) domain.Store {
+		return domain.Store{Type: "aws_s3_bucket", Name: "exports", Regions: []string{"eu-west-1"}, InEEA: domain.Setting{State: eea}, Encryption: domain.Setting{State: enc}, Retention: domain.Setting{State: domain.Yes}, PersonalData: true, Location: domain.Location{Path: "infra/main.tf", Line: 1}}
+	}
+	erase := []domain.Removal{{How: "SQL DELETE", Location: domain.Location{Path: "api/repo.sql", Line: 3}}}
+	before := Build(Input{
+		Inventory: []domain.InventoryEntry{entry("api/models.py", "User", "email", domain.CategoryContact, ""), entry("api/models.py", "Lead", "phone", domain.CategoryContact, "")},
+		Infra:     []domain.Store{bucket(domain.Yes, domain.Yes)},
+		Lifecycle: []domain.StoreLifecycle{{Store: "User", Erasure: erase, Retention: erase}},
+	})
+	after := Build(Input{
+		Inventory: []domain.InventoryEntry{entry("api/models.py", "User", "email", domain.CategoryContact, "")},
+		Infra:     []domain.Store{bucket(domain.No, domain.Unknown)},
+		Lifecycle: []domain.StoreLifecycle{{Store: "User", Erasure: nil, Retention: erase}},
+	})
+	got := Compare(before, after)
+	if len(got.Added) != 0 || len(got.Removed) != 1 || got.Removed[0] != (Change{"api", NewStore, "Lead"}) {
+		t.Errorf("added %+v, removed %+v", got.Added, got.Removed)
+	}
+	want := []Weakening{{"infra", "aws_s3_bucket.exports", LostEncryption}, {"infra", "aws_s3_bucket.exports", LostEEA}, {"api", "User", LostErasure}}
+	if len(got.Weakened) != len(want) {
+		t.Fatalf("weakened: %+v", got.Weakened)
+	}
+	for _, w := range want {
+		found := false
+		for _, g := range got.Weakened {
+			found = found || g == w
+		}
+		if !found {
+			t.Errorf("missing %+v in %+v", w, got.Weakened)
+		}
+	}
+	if !Compare(after, after).Empty() {
+		t.Error("a map compared with itself must be empty")
+	}
+}

@@ -104,6 +104,7 @@ func init() {
 	add("kotlin", true, false, []string{".kt", ".kts"},
 		log("system.", `(?:^|[^\w.])System\.(?:out|err)\.print(?:ln|f)?\s*\(`),
 		log("print", `(?:^|[^\w.])print(?:ln)?\s*\(`),
+		log(logWords, `(?:^|[^\w$@.>:])`+chain+logReceiver+`\s*(?:\.|\?\.)\s*`+logMethod+`\s*\{`),
 	)
 	add("ruby", false, true, []string{".rb", ".rake"},
 		log("puts print p pp warn", `^\s*(?:puts|print|p|pp|warn)(?:\s*\(|\s+)`),
