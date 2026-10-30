@@ -182,7 +182,8 @@ What the numbers say:
   own key names another kind of number (phone, postcode, height) is lowered; order and request words lower
   13-digit national numbers (#267, #269, #271, #274).
 - **Where Presidio is still ahead, by choice:** emails (Presidio reports every email; most emails in code and
-  tests are fake, so pii-eu reports one without its keyword only on a non-placeholder domain next to its keyword)
+  tests are fake, so pii-eu reports an email only next to a word such as `email`, and never on a reserved or
+  placeholder domain)
   and cards written under names that usually label other numbers (`id`, `ref`, `order`), where a Luhn-valid
   number is more often an ID. Presidio's 780 card alarms on the original code are the other side of that choice.
 - **pii-eu's own alarms** on the original code are 17 lines, mostly placeholder emails on real domains in
