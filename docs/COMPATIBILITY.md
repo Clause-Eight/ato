@@ -71,6 +71,14 @@ Each version only adds optional fields and new enum values, so a reader written 
 - Inventory, schema version `1.2`: TypeORM, Mongoose, Doctrine and Laravel models are read, and Terraform module
   calls that are not read inside are listed under `stores` as type `module` (#264). Data map, schema version
   `1.1`: optional `module_source` on infrastructure entries. Module calls give no scan findings.
+- Confidence: order, invoice, request, trace, transaction, shipment and similar words lower a Romanian CNP or
+  Slovenian EMŠO without its own keyword. Words that label other numbers now count only on the value's own line,
+  not on the line before (#267).
+- Cards: a number that is also a valid GTIN-8, -12, -13 or -14 is not reported when gtin, ean, barcode or upc is
+  on its line; sku and those words lower other cards one step (#266).
+- Values are also found URL-encoded and as whole base64 tokens, and a Romanian CNP is also found in the groups it
+  is printed in (1-6-6, 3-4-6, 3-3-3-4, with spaces or dashes). The span of a decoded finding covers the encoded
+  text; `pii-eu fix` does not rewrite encoded values (#263).
 
 ## Deprecation
 

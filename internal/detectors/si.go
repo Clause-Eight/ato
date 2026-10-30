@@ -35,6 +35,7 @@ func init() {
 		Validate:    validSIEMSO,
 		Keywords:    []string{"emšo", "emso", "enotna matična številka", "enotna maticna stevilka"},
 		Concepts:    []Concept{NationalID},
+		Unlikely:    referenceWords(),
 		Base:        domain.Medium,
 		Samples:     map[string]bool{"2902932505526": true},
 		Validation:  "birth date, register and mod-11 check digit are valid",

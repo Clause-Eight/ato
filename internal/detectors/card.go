@@ -21,7 +21,8 @@ func init() {
 		Mask:        MaskKeepLast(4),
 		Keywords:    []string{"card", "pan", "cc_number", "ccnumber", "credit", "debit", "visa", "mastercard", "maestro", "amex", "card_number", "cardnumber"},
 		Concepts:    []Concept{Card},
-		Unlikely:    []string{"id", "trace", "order", "invoice", "transaction", "txn", "tracking", "correlation", "request", "session", "sequence", "nonce", "timestamp", "serial", "reference", "ref", "build"},
+		Unlikely:    []string{"id", "trace", "order", "invoice", "transaction", "txn", "tracking", "correlation", "request", "session", "sequence", "nonce", "timestamp", "serial", "reference", "ref", "build", "gtin", "ean", "barcode", "sku", "upc"},
+		Rival:       &Rival{Words: []string{"gtin", "ean", "barcode", "upc"}, Valid: ValidGTIN},
 		Base:        domain.Medium,
 		Samples: map[string]bool{
 			"4111111111111111": true, "4242424242424242": true, "4012888888881881": true, "4000056655665556": true,
@@ -72,6 +73,30 @@ func CardBrand(s string) string {
 		}
 	}
 	return ""
+}
+
+// ValidGTIN reports whether s is a GTIN-8, GTIN-12 (UPC-A), GTIN-13 (EAN-13) or GTIN-14 product code: from the
+// right, the digits before the check digit are weighted 3, 1, 3, 1 and the check digit brings the sum to a
+// multiple of ten. Source: GS1 General Specifications, section 7.9 (check digit calculation).
+func ValidGTIN(s string) bool {
+	switch len(s) {
+	case 8, 12, 13, 14:
+	default:
+		return false
+	}
+	d, ok := Digits(s)
+	if !ok {
+		return false
+	}
+	sum := 0
+	for i := len(d) - 2; i >= 0; i-- {
+		w := 1
+		if (len(d)-2-i)%2 == 0 {
+			w = 3
+		}
+		sum += d[i] * w
+	}
+	return (10-sum%10)%10 == d[len(d)-1]
 }
 
 // Luhn reports whether a digit string passes the Luhn (mod 10) check.

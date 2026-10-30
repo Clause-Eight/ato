@@ -14,13 +14,21 @@ func init() {
 		Label:       "Romanian personal number (CNP)",
 		Country:     "RO",
 		OnByDefault: true,
-		Pattern:     regexp.MustCompile(`[1-9]\d{12}`),
+		Pattern:     regexp.MustCompile(`[1-9]\d{12}|` + cnpGroups(" ") + `|` + cnpGroups("-")),
+		Normalize:   DigitsOnly,
 		Validate:    validCNP,
 		Keywords:    []string{"cnp", "cod numeric", "codnumeric", "personal_code", "personalcode", "national_id", "nationalid"},
 		Concepts:    []Concept{NationalID},
+		Unlikely:    referenceWords(),
 		Base:        domain.Medium,
 		Validation:  "date, county code and check digit are valid",
 	})
+}
+
+// cnpGroups are the ways a CNP is printed in groups, with one separator throughout: S YYMMDD JJNNNC (sex, birth
+// date, county and number), SYY MMDD JJNNNC, and SYY YMM DDJ JNNNC as phone numbers are grouped.
+func cnpGroups(sep string) string {
+	return `[1-9]` + sep + `\d{6}` + sep + `\d{6}|[1-9]\d{2}` + sep + `\d{4}` + sep + `\d{6}|[1-9]\d{2}` + sep + `\d{3}` + sep + `\d{3}` + sep + `\d{4}`
 }
 
 var cnpWeights = [12]int{2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9}
