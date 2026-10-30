@@ -16,40 +16,40 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |
 |---|---|---|---|---|---|---|---|
 | `advertising-id` | 136 | 40.4% | 100.0% | 0 | 40.4% | 100.0% | 100.0% |
-| `at-social-insurance` | 133 | 69.9% | 100.0% | 0 | 100.0% | 91.1% | 5.2% |
+| `at-social-insurance` | 133 | 69.9% | 100.0% | 0 | 99.2% | 91.7% | 4.3% |
 | `at-tax-number` | 146 | 82.9% | 100.0% | 0 | 100.0% | 69.9% | 21.7% |
-| `be-national-register` | 162 | 75.3% | 100.0% | 0 | 100.0% | 98.8% | 16.9% |
-| `bg-egn` | 169 | 51.5% | 100.0% | 0 | 99.4% | 85.7% | 64.2% |
+| `be-national-register` | 162 | 100.0% | 98.8% | 2 | 100.0% | 98.8% | 15.0% |
+| `bg-egn` | 169 | 100.0% | 96.6% | 6 | 100.0% | 85.4% | 30.4% |
 | `bg-lnch` | 159 | 50.3% | 95.2% | 4 | 97.5% | 40.6% | 88.8% |
 | `birth-date` | 156 | 55.8% | 100.0% | 0 | 55.8% | 100.0% | 100.0% |
-| `card` | 162 | 100.0% | 98.2% | 3 | 100.0% | 49.8% | 2.1% |
+| `card` | 162 | 100.0% | 99.4% | 1 | 100.0% | 50.2% | 2.2% |
 | `ch-ahv` | 163 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 99.3% |
 | `crypto-wallet` | 156 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `cy-id-card` | 158 | 55.1% | 100.0% | 0 | 55.1% | 100.0% | 100.0% |
-| `cy-tic` | 146 | 52.7% | 100.0% | 0 | 100.0% | 99.3% | 91.2% |
+| `cy-tic` | 146 | 52.7% | 100.0% | 0 | 96.6% | 100.0% | 100.0% |
 | `cz-birth-number` | 143 | 100.0% | 100.0% | 0 | 100.0% | 69.8% | 95.3% |
 | `de-id-card` | 137 | 56.9% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `de-pension` | 151 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `de-tax-id` | 147 | 63.3% | 100.0% | 0 | 100.0% | 96.7% | 94.8% |
+| `de-tax-id` | 147 | 100.0% | 96.7% | 5 | 100.0% | 96.7% | 94.9% |
 | `dk-cpr` | 155 | 54.8% | 95.5% | 4 | 54.8% | 95.5% | 90.4% |
-| `driving-licence` | 129 | 48.8% | 96.9% | 2 | 48.8% | 96.9% | 49.2% |
-| `ee-isikukood` | 155 | 45.8% | 97.3% | 2 | 99.4% | 64.4% | 95.9% |
+| `driving-licence` | 129 | 45.7% | 96.7% | 2 | 45.7% | 96.7% | 45.8% |
+| `ee-isikukood` | 155 | 99.4% | 64.4% | 85 | 99.4% | 64.4% | 95.9% |
 | `ehic` | 154 | 49.4% | 100.0% | 0 | 49.4% | 100.0% | 100.0% |
 | `email` | 163 | 52.1% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `es-dni` | 133 | 50.4% | 100.0% | 0 | 100.0% | 95.7% | 96.1% |
-| `es-nie` | 147 | 46.3% | 100.0% | 0 | 99.3% | 100.0% | 100.0% |
+| `es-dni` | 133 | 100.0% | 91.7% | 12 | 100.0% | 91.7% | 63.6% |
+| `es-nie` | 147 | 99.3% | 100.0% | 0 | 99.3% | 100.0% | 100.0% |
 | `es-nss` | 143 | 84.6% | 100.0% | 0 | 100.0% | 98.6% | 34.8% |
 | `eu-phone` | 138 | 79.7% | 99.1% | 1 | 100.0% | 83.6% | 84.8% |
 | `eu-vat` | 142 | 51.4% | 100.0% | 0 | 100.0% | 100.0% | 93.4% |
-| `fi-hetu` | 147 | 100.0% | 91.9% | 13 | 100.0% | 91.9% | 57.6% |
-| `fr-nir` | 142 | 70.4% | 100.0% | 0 | 100.0% | 98.6% | 99.1% |
-| `fr-spi` | 161 | 81.4% | 100.0% | 0 | 100.0% | 97.0% | 93.5% |
+| `fi-hetu` | 147 | 100.0% | 89.6% | 17 | 100.0% | 89.6% | 55.9% |
+| `fr-nir` | 142 | 100.0% | 100.0% | 0 | 100.0% | 98.6% | 99.1% |
+| `fr-spi` | 161 | 81.4% | 100.0% | 0 | 100.0% | 97.0% | 92.0% |
 | `gb-nhs` | 164 | 69.5% | 99.1% | 1 | 95.1% | 78.8% | 94.2% |
 | `gb-nino` | 135 | 80.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `gps-coordinates` | 152 | 75.0% | 100.0% | 0 | 75.0% | 100.0% | 100.0% |
 | `gr-afm` | 150 | 50.7% | 100.0% | 0 | 90.7% | 80.5% | 98.7% |
-| `gr-amka` | 149 | 48.3% | 100.0% | 0 | 100.0% | 98.0% | 100.0% |
-| `hr-oib` | 137 | 46.0% | 98.4% | 1 | 97.1% | 75.1% | 98.4% |
+| `gr-amka` | 149 | 48.3% | 100.0% | 0 | 91.9% | 98.6% | 100.0% |
+| `hr-oib` | 137 | 97.1% | 83.6% | 26 | 97.1% | 70.7% | 98.4% |
 | `hu-taj` | 154 | 51.9% | 98.8% | 1 | 90.3% | 85.3% | 76.0% |
 | `hu-tax-id` | 151 | 54.3% | 100.0% | 0 | 92.7% | 99.3% | 100.0% |
 | `iban` | 131 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 42.0% |
@@ -60,34 +60,34 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | `it-fiscal-code` | 142 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `licence-plate` | 149 | 50.3% | 100.0% | 0 | 50.3% | 100.0% | 96.2% |
 | `lt-asmens-kodas` | 150 | 44.7% | 100.0% | 0 | 44.7% | 100.0% | 100.0% |
-| `lu-national-id` | 153 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 95.1% |
-| `lv-personal-code` | 168 | 84.5% | 100.0% | 0 | 98.2% | 100.0% | 54.9% |
+| `lu-national-id` | 153 | 99.3% | 100.0% | 0 | 99.3% | 100.0% | 95.1% |
+| `lv-personal-code` | 168 | 84.5% | 100.0% | 0 | 97.6% | 100.0% | 52.9% |
 | `lv-personal-code-new` | 151 | 49.0% | 100.0% | 0 | 49.0% | 100.0% | n/a |
 | `mac-address` | 149 | 62.4% | 100.0% | 0 | 62.4% | 100.0% | 100.0% |
 | `mrz` | 121 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `mt-id-card` | 166 | 48.2% | 100.0% | 0 | 48.2% | 100.0% | 100.0% |
 | `nl-bsn` | 144 | 59.7% | 100.0% | 0 | 87.5% | 85.7% | 97.7% |
-| `no-fnr` | 156 | 67.3% | 100.0% | 0 | 94.9% | 100.0% | 99.1% |
+| `no-fnr` | 156 | 67.3% | 100.0% | 0 | 94.2% | 100.0% | 98.8% |
 | `person-name` | 159 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `pl-id-card` | 161 | 44.1% | 100.0% | 0 | 99.4% | 100.0% | 96.3% |
 | `pl-nip` | 130 | 80.8% | 99.1% | 1 | 93.8% | 42.4% | 96.3% |
-| `pl-pesel` | 142 | 45.8% | 100.0% | 0 | 94.4% | 97.8% | 98.5% |
+| `pl-pesel` | 142 | 94.4% | 95.7% | 6 | 94.4% | 95.0% | 98.5% |
 | `pl-regon` | 138 | 47.8% | 100.0% | 0 | 47.8% | 100.0% | 97.0% |
 | `postcode` | 141 | 46.8% | 98.5% | 1 | 46.8% | 98.5% | 75.0% |
 | `pt-citizen-card` | 163 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `pt-nif` | 149 | 49.7% | 100.0% | 0 | 82.6% | 96.9% | 98.6% |
-| `ro-cnp` | 138 | 98.6% | 99.3% | 1 | 98.6% | 92.5% | 5.7% |
+| `pt-nif` | 149 | 49.7% | 100.0% | 0 | 82.6% | 96.9% | 100.0% |
+| `ro-cnp` | 138 | 100.0% | 98.6% | 2 | 100.0% | 92.0% | 10.2% |
 | `ro-id-card` | 138 | 58.7% | 100.0% | 0 | 58.7% | 100.0% | 100.0% |
 | `se-personnummer` | 140 | 70.7% | 91.7% | 9 | 92.9% | 89.0% | 90.2% |
-| `si-emso` | 146 | 100.0% | 100.0% | 0 | 100.0% | 98.6% | 27.9% |
+| `si-emso` | 146 | 100.0% | 100.0% | 0 | 100.0% | 98.6% | 32.5% |
 | `si-tax-number` | 148 | 52.0% | 100.0% | 0 | 100.0% | 100.0% | 99.3% |
 | `street-address` | 128 | 54.7% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| **All** | 9877 | 67.5% | 99.3% | 46 | 87.8% | 88.8% | 34.5% |
+| **All** | 9877 | 73.4% | 97.5% | 188 | 87.6% | 88.6% | 34.3% |
 <!-- bench:end -->
 
 What the numbers say:
 
-- **Validation is what keeps the output usable.** With every detector on, precision is 99.3% at the default level against 34.4% for pattern-only matching.
+- **Validation is what keeps the output usable.** With every detector on, precision is 97.5% at the default level against 34.3% for pattern-only matching. Most of the false positives in this table are not noise: an unlabelled, quoted eleven-digit value is often valid as a PESEL, an OIB and an Estonian code at once, and is counted under the country it was not generated for (see "Many national numbers share a shape" below). False alarms on noise lines stay at about 10 in 20,000 at the defaults.
 - **Low-base detectors trade recall for quiet output.** Bare numbers with one check digit (EGN, LNCh, PESEL, OIB, BSN, the Nordic and Baltic codes), VAT numbers and contact data start at low confidence, so at the default `--min-confidence medium` they are reported only with a nearby keyword or in their usual printed format. Detectors marked "only with a keyword" are never reported without one.
 - **Many national numbers share a shape.** An eleven-digit number can be a valid PESEL, OIB, German tax ID and Estonian code at once. Each value is reported once, preferring the detector whose own name is nearby, so at `--min-confidence low` some values are counted under another country and precision there is lower.
 - **Personal data without a check digit stays quiet.** Dates of birth, postcodes, licence and plate numbers, health-card numbers and names in name fields are off by default and reported only next to a keyword; each has 100% precision at the default level here. Names were also checked on about 157,000 public files in Go's module cache: every reported name was in a name field.
