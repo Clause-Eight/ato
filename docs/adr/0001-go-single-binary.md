@@ -2,6 +2,8 @@
 
 Date: 2026-10-18 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 pii-eu runs in pre-commit hooks, CI jobs and on laptops. Install friction decides whether people keep it turned on. Rust and Go both give a single static binary; Python and Node need a runtime.

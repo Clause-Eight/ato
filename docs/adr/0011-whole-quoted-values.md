@@ -2,6 +2,8 @@
 
 Date: 2026-10-31 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 After ADR 10 the open-source benchmark caught 71.9% of inserted values against Presidio's 54.1%, but Presidio

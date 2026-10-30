@@ -2,6 +2,8 @@
 
 Date: 2026-10-27 · Status: proposed
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 Customers install pii-eu today with access to the private repository, or with a token that can read its
