@@ -76,6 +76,7 @@ type verdict struct {
 	confidence domain.Confidence
 	reason     string
 	kind       string
+	via        string
 }
 
 var keywords = map[string]bool{"new": true, "return": true, "await": true, "typeof": true, "not": true, "and": true, "or": true, "in": true, "is": true, "none": true, "null": true, "nil": true, "true": true, "false": true, "undefined": true, "this": true, "self": true, "lambda": true, "fn": true, "func": true, "function": true}

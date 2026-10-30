@@ -229,6 +229,8 @@ infra/main.tf
 - a whole request body, such as `req.body`, `request.json`, `$request->all()` or `$_POST`: medium confidence;
 - a whole user-like object, such as `user` or `currentUser`: low confidence.
 
+Each of these also counts when it reaches the call through one local variable in the same function (`v := u.Email` and then `log.Println(v)`, within 30 lines), including inside a string template such as `"#{v}"` or `"${v}"`; the finding then says which variable and on which line it was assigned. A variable that is reassigned, or rebound by a loop or a lambda, is forgotten.
+
 The finding names the sink (`log`, `error-tracker` or `analytics`) and shows the expression passed, never a value. Names that are about a value rather than the value (`isEmail`, `emailTemplate`, `len(user.email)`, `hash(user.phone)`) are left alone, and ambiguous words such as `address` count only on a person (`customer.address`, not `server.address`). Switch these findings off with `log-sink = false` under `[detectors]`.
 
 ```text
