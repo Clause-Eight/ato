@@ -25,6 +25,11 @@ func readPath(toks []token, i int) expr {
 	for j < len(toks) {
 		t := toks[j]
 		switch {
+		case t.kind == 'p' && (t.text == "." || t.text == "?.") && j+3 < len(toks) && toks[j+1].kind == 'i' &&
+			transforms[strings.ToLower(toks[j+1].text)] && toks[j+2].text == "(" && toks[j+3].text == ")":
+			// user.email.strip() is still the email: a string method that changes case or spaces is skipped.
+			j += 4
+			continue
 		case t.kind == 'p' && (t.text == "." || t.text == "?." || t.text == "->" || t.text == "::") && j+1 < len(toks) && toks[j+1].kind == 'i':
 			p.segs = append(p.segs, toks[j+1].text)
 			j += 2
@@ -56,6 +61,13 @@ func readPath(toks []token, i int) expr {
 	}
 	return p
 }
+
+// transforms are string methods without arguments that change only case or surrounding spaces, so the result
+// still holds the value.
+var transforms = map[string]bool{"strip": true, "lstrip": true, "rstrip": true, "trim": true, "trimstart": true, "trimend": true,
+	"lower": true, "upper": true, "casefold": true, "title": true, "capitalize": true, "tolowercase": true, "touppercase": true,
+	"tolocalelowercase": true, "tolocaleuppercase": true, "downcase": true, "upcase": true, "squish": true, "chomp": true,
+	"lowercase": true, "uppercase": true, "trimspace": true}
 
 // serializers turn an object into text without changing what it holds.
 var serializers = map[string]bool{"to_json": true, "tojson": true, "to_h": true, "to_dict": true, "dict": true, "model_dump": true, "as_json": true, "inspect": true, "tostring": true, "to_s": true, "string": true, "__dict__": true, "read": true, "decode": true, "values": true}
