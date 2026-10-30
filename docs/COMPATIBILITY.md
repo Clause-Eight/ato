@@ -70,6 +70,8 @@ Each version only adds optional fields, so a reader written for an earlier `1.x`
 - Confidence: order, invoice, request, trace, transaction, shipment and similar words lower a Romanian CNP or
   Slovenian EMŠO without its own keyword. Words that label other numbers now count only on the value's own line,
   not on the line before (#267).
+- Cards: a number that is also a valid GTIN-8, -12, -13 or -14 is not reported when gtin, ean, barcode or upc is
+  on its line; sku and those words lower other cards one step (#266).
 
 ## Deprecation
 
