@@ -293,3 +293,19 @@ func TestPartlyReadFilesMakeTheScanIncomplete(t *testing.T) {
 		t.Fatalf("every row read: exit %d", code)
 	}
 }
+
+// TestAllowPartialTakesNoValue: --allow-partial is a switch, so the argument after it is not its value.
+func TestAllowPartialTakesNoValue(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "a.txt"), []byte("nothing here\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{
+		{"scan", "--no-git", "--allow-partial", "--min-confidence", "low", dir},
+		{"scan", dir, "--allow-partial", "--format", "json"},
+	} {
+		if code, _, errOut := run(args...); code != ExitClean {
+			t.Fatalf("%v: exit %d %s", args, code, errOut)
+		}
+	}
+}

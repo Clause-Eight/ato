@@ -108,6 +108,9 @@ func (s *Scanner) statement(toks []token, number, end int) {
 	}
 	if v, ok := s.judge(p.segs); ok {
 		s.vars[name] = binding{name: name, v: v, line: number, end: end}
+	} else if b, ok := s.through(p.segs[0], number, rhs[0].start); ok && len(p.segs) == 1 {
+		// b = a, where a already holds personal data: b holds it too, so a chain of copies is followed.
+		s.vars[name] = binding{name: name, v: b.v, line: number, end: end}
 	}
 }
 

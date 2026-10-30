@@ -81,6 +81,14 @@ func TestVariableCases(t *testing.T) {
 		want       int
 	}{
 		{"a.go", `e := u.Email; log.Println(e)`, 1},
+		{"a.py", "a = acct.email_addr\nb = a\nlog.info(\"%s\", b)", 1},
+		{"a.ts", "const a = acct.emailAddr;\nconst b = a;\nlogger.info('x', b);", 1},
+		{"a.py", "a = acct.email_addr\nb = a\nb = order.total\nlog.info(\"%s\", b)", 0},
+		{"a.py", "a = order.total\nb = a\nlog.info(\"%s\", b)", 0},
+		{"a.py", `log.info("%s", acct.email_addr.strip())`, 1},
+		{"a.ts", `logger.info('x', acct.emailAddr.trim().toLowerCase());`, 1},
+		{"a.ts", `logger.info('x', acct.emailAddr.length);`, 0},
+		{"a.py", `log.info("%s", acct.email_addr.split("@")[1])`, 0},
 		{"a.go", `log.Println(e); e := u.Email`, 0},
 		{"a.go", "e := u.Email\ne = \"x\"\nlog.Println(e)", 0},
 		{"a.go", "var e string = u.Email\nlog.Println(e)", 1},
