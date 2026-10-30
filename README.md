@@ -246,7 +246,9 @@ app/signup.py
 
 `pii-eu fix [path]` replaces the values a scan reports in test, fixture and example paths with synthetic ones from the same generators the test suite uses. It takes the scan flags (`--min-confidence`, `--include`, `--countries` and so on), and:
 
-- each replacement passes the same detector's checks, keeps the original's separators, case and length where the format allows, and is the same for the same value in every file and every run;
+- each replacement passes the same detector's checks, keeps the original's separators, case, length and letter and digit positions where the format allows, and is the same for the same value in every file and every run;
+- each replacement keeps what tests commonly check: an IBAN's country and account layout, a card's brand, a phone number's country code and leading digits, a VAT number's country, the sex and century of a CNP or EGN (with a new, valid birth date), an IP address's version, a wallet's address type, a plate's or postcode's leading letters. An email address keeps the shape of its local part and its top-level domain (with a short second level such as `co.uk`), and gets a made-up domain name rather than `example.com`: addresses on reserved example domains are not reported at all, so they would no longer be recognised as samples;
+- where a format has too few values for one to carry the mark (a four-digit postcode, an IPv4 address with short octets), the mark comes first: the replacement may change the format, and a short postcode its country;
 - each replacement carries a synthetic mark, so a later scan reports it as a sample at low confidence and `fix` leaves it alone. A real value carries the mark by chance about once in 65,536 values; it is then reported at low confidence instead of being hidden;
 - `--dry-run` prints the changes as a unified diff, with found values masked, and changes nothing;
 - `--all` also replaces values outside test, fixture and example paths. Review that diff first: it rewrites code and configuration.
