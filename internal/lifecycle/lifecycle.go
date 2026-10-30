@@ -51,7 +51,7 @@ type rule struct {
 }
 
 // timeBound recognises a condition on a time column, the mark of a delete that keeps data for a period.
-var timeBound = regexp.MustCompile(`(?i)(?:_at|_on|date|time|timestamp|created|updated|expir\w*|last_\w+)\W{0,3}\s*(?:<=?|__lte?\b|\blt[e]?:|LessThan|Before)|(?:<=?)\s*(?:now\(\)|current_(?:date|timestamp)|sysdate|getdate\(\)|date_sub|dateadd)|\{\s*lte?\s*:|\b(?:interval|\.ago\b|days?\.ago|timedelta\(|time\.Now\(\)\.Add|Instant\.now\(\)\.minus|LocalDate(?:Time)?\.now\(\)\.minus|subDays|sub\(\s*Duration)`)
+var timeBound = regexp.MustCompile(`(?i)(?:_at|_on|date|time|timestamp|created|updated|expir\w*|last_\w+)\W{0,3}\s*(?:<=?|__lte?\b|\blt[e]?:|LessThan|Before)|(?:<=?)\s*(?:now\(\)|current_(?:date|timestamp)|sysdate|getdate\(\)|date_sub|dateadd)|\{\s*lte?\s*:|\$lte?\b|\b(?:interval|\.ago\b|days?\.ago|timedelta\(|time\.Now\(\)\.Add|Instant\.now\(\)\.minus|LocalDate(?:Time)?\.now\(\)\.minus|subDays|sub\(\s*Duration)`)
 
 var anonymising = regexp.MustCompile(`(?i)=\s*NULL\b|anonymi[sz]|pseudonymi[sz]|redact|'\*+'|md5\(|sha\d*\(|gen_random_uuid\(\)|'deleted'|"deleted"`)
 
@@ -65,13 +65,20 @@ var rules = []rule{
 	{kind: Erasure, how: "Spring Data delete", re: regexp.MustCompile(`\b(\w+?)Repository\s*\.\s*delete\w*\(`), group: 1},
 	{kind: Erasure, how: "Prisma delete", re: regexp.MustCompile(`\bprisma\.(\w+)\.delete(?:Many)?\(`), group: 1},
 	{kind: Erasure, how: "Laravel delete", re: regexp.MustCompile(`\b([A-Z]\w*)::(?:where\(.*\)->|find\(.*\)->|destroy\()(?:delete\(|forceDelete\(|)`), group: 1, onlyIf: regexp.MustCompile(`::destroy\(|->(?:force)?[dD]elete\(`)},
+	{kind: Erasure, how: "Laravel query builder delete", re: regexp.MustCompile(`\bDB::table\(\s*['"](\w+)['"]\s*\).*->delete\(`), group: 1},
+	{kind: Erasure, how: "Mongoose delete", re: regexp.MustCompile(`\b([A-Z]\w*)\.(?:deleteOne|deleteMany|findByIdAndDelete|findOneAndDelete|findByIdAndRemove|findOneAndRemove)\(`), group: 1},
+	{kind: Erasure, how: "TypeORM delete", re: regexp.MustCompile(`\bgetRepository\(\s*([A-Z]\w*)\s*\)\s*\.\s*(?:delete|remove)\w*\(|\.\s*(?:delete|remove)\(\s*([A-Z]\w*)\s*,`), group: 1, onlyIf: regexp.MustCompile(`getRepository\(|[mM]anager\s*\.\s*(?:delete|remove)\(`)},
+	{kind: Erasure, how: "Doctrine delete", re: regexp.MustCompile(`->delete\(\s*(?:[\w\\]+\\)?([A-Z]\w*)::class|(?i:\bDELETE\s+(?:FROM\s+)?)(?:\w+\\+)+([A-Z]\w*)\b`), group: 1},
 	{kind: Erasure, how: "erasure routine", re: regexp.MustCompile(`(?i)\b(?:def|func|function|fun|void|public|private|async)\s+(?:\w+\s+)*?(?:anonymi[sz]e|pseudonymi[sz]e|erase|forget|redact)_?([A-Za-z]\w*)\s*\(`), group: 1},
 	{kind: Retention, how: "TTL index", re: regexp.MustCompile(`\b(?:db\.)?(\w+)\.create_?[iI]ndex\(.*expire_?[aA]fter_?[sS]econds`), group: 1},
 	{kind: Retention, how: "partition drop", re: regexp.MustCompile("(?i)\\bALTER\\s+TABLE\\s+(?:\\w+\\.)?[\"`]?(\\w+)[\"`]?\\s+(?:DROP|DETACH|TRUNCATE)\\s+PARTITION"), group: 1},
 	{kind: Retention, how: "pg_partman retention", re: regexp.MustCompile(`(?i)part_config\b.*\bretention\b.*parent_table\s*=\s*'(?:\w+\.)?(\w+)'`), group: 1},
 	{kind: Retention, how: "scheduled clean-up", re: regexp.MustCompile(`(?i)\b(?:def|func|function|fun|void|public|private|async)\s+(?:\w+\s+)*?(?:purge|prune|cleanup|clean_up|expire|delete)_?(?:old|expired|stale)_?([A-Za-z]\w*)\s*\(`), group: 1},
 	{kind: Cascade, how: "ON DELETE CASCADE", re: regexp.MustCompile("(?i)\\bREFERENCES\\s+(?:\\w+\\.)?[\"`]?(\\w+)[\"`]?\\s*\\([^)]*\\)\\s*ON\\s+DELETE\\s+CASCADE"), parent: 1},
+	{kind: Retention, how: "Mongoose TTL index", re: regexp.MustCompile(`\b(\w+?)[sS]chema\.index\(.*(?:expireAfterSeconds|expires)\s*:`), group: 1},
 	{kind: Cascade, how: "Django CASCADE", re: regexp.MustCompile(`(?:ForeignKey|OneToOneField)\(\s*['"]?(?:\w+\.)?([A-Z]\w*)['"]?\s*,.*on_delete\s*=\s*models\.CASCADE`), parent: 1},
+	{kind: Cascade, how: "TypeORM onDelete CASCADE", re: regexp.MustCompile(`@(?:ManyToOne|OneToOne)\(\s*\(\s*\)\s*=>\s*([A-Z]\w*).*onDelete\s*:\s*['"]CASCADE['"]`), parent: 1},
+	{kind: Cascade, how: "Laravel cascade on delete", re: regexp.MustCompile(`(?:->constrained\(\s*['"](\w+)['"]|->on\(\s*['"](\w+)['"]\s*\)|foreignId\(\s*['"](\w+?)_id['"]\s*\)\s*->constrained\(\s*\)).*(?:->cascadeOnDelete\(|->onDelete\(\s*['"]cascade['"])`), parent: 1},
 }
 
 var (
@@ -80,6 +87,10 @@ var (
 	pyClass     = regexp.MustCompile(`^class\s+(\w+)\s*\(`)
 	railsMany   = regexp.MustCompile(`^\s*has_(?:many|one)\s+:(\w+).*dependent:\s*:(?:destroy|delete_all|delete)`)
 	railsClass  = regexp.MustCompile(`^\s*class\s+(\w+)\s*<`)
+	jsClass     = regexp.MustCompile(`^\s*(?:export\s+)?(?:default\s+)?(?:abstract\s+)?class\s+(\w+)\b`)
+	laravel     = regexp.MustCompile(`Schema::(?:create|table)\s*\(\s*['"](\w+)['"]`)
+	// containers name the table or model that the lines after them declare, in order of precedence.
+	containers = []*regexp.Regexp{createTable, alterTable, pyClass, railsClass, jsClass, laravel}
 )
 
 // Find returns the evidence in one file. Cascades remember the table or model they are declared in.
@@ -87,14 +98,11 @@ func Find(p string, data []byte) []Evidence {
 	var out []Evidence
 	container := ""
 	for i, l := range strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n") {
-		if m := createTable.FindStringSubmatch(l); m != nil {
-			container = m[1]
-		} else if m := alterTable.FindStringSubmatch(l); m != nil {
-			container = m[1]
-		} else if m := pyClass.FindStringSubmatch(l); m != nil {
-			container = m[1]
-		} else if m := railsClass.FindStringSubmatch(l); m != nil {
-			container = m[1]
+		for _, re := range containers {
+			if m := re.FindStringSubmatch(l); m != nil {
+				container = m[1]
+				break
+			}
 		}
 		loc := func(col int) domain.Location { return domain.Location{Path: p, Line: i + 1, Column: col + 1} }
 		if m := railsMany.FindStringSubmatchIndex(l); m != nil && container != "" {
@@ -109,20 +117,34 @@ func Find(p string, data []byte) []Evidence {
 				continue
 			}
 			if r.kind == Cascade {
-				if container != "" {
-					out = append(out, Evidence{Kind: Cascade, Target: container, Parent: l[m[2*r.parent]:m[2*r.parent+1]], How: r.how, Location: loc(m[2*r.parent])})
+				if g := firstGroup(m, r.parent); g > 0 && container != "" {
+					out = append(out, Evidence{Kind: Cascade, Target: container, Parent: l[m[2*g]:m[2*g+1]], How: r.how, Location: loc(m[2*g])})
 				}
 				continue
 			}
-			target := l[m[2*r.group]:m[2*r.group+1]]
+			g := firstGroup(m, r.group)
+			if g == 0 {
+				continue
+			}
 			kind := r.kind
 			if kind == Erasure && timeBound.MatchString(l) {
 				kind = Retention
 			}
-			out = append(out, Evidence{Kind: kind, Target: target, How: r.how, Location: loc(m[2*r.group])})
+			out = append(out, Evidence{Kind: kind, Target: l[m[2*g]:m[2*g+1]], How: r.how, Location: loc(m[2*g])})
 		}
 	}
 	return dedupe(out)
+}
+
+// firstGroup returns the first submatch from g on that matched, so a rule can name its store in alternative
+// places; 0 when none did.
+func firstGroup(m []int, g int) int {
+	for ; 2*g+1 < len(m); g++ {
+		if m[2*g] >= 0 {
+			return g
+		}
+	}
+	return 0
 }
 
 func dedupe(es []Evidence) []Evidence {
