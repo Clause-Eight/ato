@@ -1,15 +1,15 @@
-"""Compare pii-eu with Microsoft Presidio, scrubadub and HoundDog.ai on the same inputs (ADR 9).
+"""Compare ATO with Microsoft Presidio, scrubadub and HoundDog.ai on the same inputs (ADR 9).
 
 Three tests, each with every tool at its documented defaults, adjusted only where the default would be unfair:
 
-  values-synthetic  the pii-eu bench corpus (go run ./bench -export), several seeds
+  values-synthetic  the ATO bench corpus (go run ./bench -export), several seeds
   values-oss        files from real open-source applications (fixtures, migrations, seeders, specs) plus a
                     generated application log, with generated values inserted on new lines
   sinks             generated code in eight languages: personal fields passed to log calls, and harmless ones
 
 Every value is generated and belongs to nobody. See README.md for how to run it.
 
-    venv/bin/python -I compare.py --pii-eu ./pii-eu --oss oss/ --out results/
+    venv/bin/python -I compare.py --ato ./ato --oss oss/ --out results/
 """
 
 from __future__ import annotations
@@ -27,10 +27,10 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-TOOLS = {"pii-eu", "presidio", "scrubadub", "hounddog"}
+TOOLS = {"ato", "presidio", "scrubadub", "hounddog"}
 REPO = HERE.parent.parent
 
-# Identifiers inserted into the OSS corpus: every one is on by default in pii-eu.
+# Identifiers inserted into the OSS corpus: every one is on by default in ATO.
 SEEDED = ["ro-cnp", "bg-egn", "hu-taj", "pl-pesel", "cz-birth-number", "hr-oib", "de-tax-id", "es-dni",
           "it-fiscal-code", "fr-nir", "nl-bsn", "iban", "card", "email", "eu-phone"]
 NEUTRAL = ["ref", "value", "code", "external_id", "data", "number", "token_ref"]
@@ -87,14 +87,14 @@ def run_scrubadub(lines: list[str]):
     return hits, time.perf_counter() - start
 
 
-def run_piieu(binary: Path, folder: Path):
+def run_ato(binary: Path, folder: Path):
     """Default settings; the timed run is the scored run."""
     start = time.perf_counter()
     out = subprocess.run([str(binary), "scan", "--no-git", "--allow-partial", "--format", "json", str(folder)],
                          capture_output=True, text=True, check=False)
     elapsed = time.perf_counter() - start
     if out.returncode not in (0, 1):
-        sys.exit(f"pii-eu exited {out.returncode}: {out.stderr}")
+        sys.exit(f"ato exited {out.returncode}: {out.stderr}")
     return json.loads(out.stdout)["findings"], elapsed
 
 
@@ -122,15 +122,15 @@ def score(labels: dict, total_lines: int, flagged: dict) -> dict:
 
 
 def compare_lines(name: str, keys: list, lines: list[str], labels: dict, binary: Path, folder: Path, root_rel) -> dict:
-    """Runs every tool over the same lines. keys[i] is the label key of lines[i]; root_rel maps a pii-eu
+    """Runs every tool over the same lines. keys[i] is the label key of lines[i]; root_rel maps an ATO
     finding to its key."""
     out = {}
-    findings, t = run_piieu(binary, folder)
+    findings, t = run_ato(binary, folder)
     flagged = defaultdict(list)
     for f in findings:
         if f.get("kind", "value") == "value":
             flagged[root_rel(f)].append(f["detector"])
-    out["pii-eu"] = {**score(labels, len(lines), flagged), "seconds": round(t, 2)}
+    out["ato"] = {**score(labels, len(lines), flagged), "seconds": round(t, 2)}
     for tool, runner in (("presidio", run_presidio), ("scrubadub", run_scrubadub)):
         if tool not in TOOLS:
             continue
@@ -141,8 +141,8 @@ def compare_lines(name: str, keys: list, lines: list[str], labels: dict, binary:
         out[tool] = {**score(labels, len(lines), flagged), "seconds": round(t, 2)}
         print(f"  {name} {tool}: {out[tool]['caught']}/{out[tool]['values']} caught, "
               f"{out[tool]['alarm_lines']} alarm lines, {t:.1f} s", file=sys.stderr)
-    print(f"  {name} pii-eu: {out['pii-eu']['caught']}/{out['pii-eu']['values']} caught, "
-          f"{out['pii-eu']['alarm_lines']} alarm lines", file=sys.stderr)
+    print(f"  {name} ato: {out['ato']['caught']}/{out['ato']['values']} caught, "
+          f"{out['ato']['alarm_lines']} alarm lines", file=sys.stderr)
     return out
 
 
@@ -247,8 +247,8 @@ def values_oss(binary: Path, oss: Path, seed: int, work: Path) -> tuple[dict, di
 
 
 # Per language: file name, file template, personal field access, harmless field access, local assignment.
-# A quarter of the personal cases go through a local variable first (v = user.email; log(v)), a case pii-eu's
-# lexical check misses (#265); we keep it in so the test does not favour pii-eu.
+# A quarter of the personal cases go through a local variable first (v = user.email; log(v)), a case ATO's
+# lexical check misses (#265); we keep it in so the test does not favour ATO.
 SINK_LANGS = {
     "py": ("app/{n}.py", "import logging\nlog = logging.getLogger(__name__)\n\n\ndef handle(user, order):\n{pre}    log.info(\"done %s\", {expr})\n", "user.{f}", "order.{f}", "    v = {src}\n", "v"),
     "js": ("web/{n}.js", "export function handle(user, order) {{\n{pre}  console.log('done', {expr});\n}}\n", "user.{f}", "order.{f}", "  const v = {src};\n", "v"),
@@ -283,8 +283,8 @@ def sinks(binary: Path, seed: int, work: Path) -> dict:
             (folder / rel).write_text(tmpl.format(n=n, expr=expr, pre=pre))
             labels[rel] = (lang, case)
     out = {}
-    findings, t = run_piieu(binary, folder)
-    out["pii-eu"] = sink_score(labels, {f["path"] for f in findings if f.get("kind") == "sink"}, t)
+    findings, t = run_ato(binary, folder)
+    out["ato"] = sink_score(labels, {f["path"] for f in findings if f.get("kind") == "sink"}, t)
     out["hounddog"] = hounddog(folder, labels)
     out["hounddog"].pop("_files", None)
     return out
@@ -364,8 +364,8 @@ def sinks_hard(binary: Path, work: Path) -> dict:
                 (folder / rel).parent.mkdir(parents=True, exist_ok=True)
                 (folder / rel).write_text(text)
                 labels[rel] = (pattern, positive)
-    findings, t = run_piieu(binary, folder)
-    out = {"pii-eu": hard_score(labels, {f["path"] for f in findings if f.get("kind") == "sink"}, t)}
+    findings, t = run_ato(binary, folder)
+    out = {"ato": hard_score(labels, {f["path"] for f in findings if f.get("kind") == "sink"}, t)}
     if "hounddog" in TOOLS:
         hd = hounddog(folder, {k: ("x", "direct" if v[1] else "harmless") for k, v in labels.items()})
         files = hd.pop("_files", None)
@@ -401,19 +401,19 @@ def sink_score(labels: dict, hit: set, seconds) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pii-eu", required=True, type=Path)
+    ap.add_argument("--ato", required=True, type=Path)
     ap.add_argument("--oss", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--seeds", default="1,2,3")
-    ap.add_argument("--tools", default=",".join(sorted(TOOLS)), help="comma-separated subset, e.g. pii-eu for a quick run")
+    ap.add_argument("--tools", default=",".join(sorted(TOOLS)), help="comma-separated subset, e.g. ato for a quick run")
     a = ap.parse_args()
     TOOLS.intersection_update(a.tools.split(","))
     a.out.mkdir(parents=True, exist_ok=True)
     work = a.out / "work"
     work.mkdir(exist_ok=True)
     seeds = [int(s) for s in a.seeds.split(",")]
-    version = subprocess.run([str(a.pii_eu), "version"], capture_output=True, text=True).stdout.strip()
-    versions = {"pii-eu": version}
+    version = subprocess.run([str(a.ato), "version"], capture_output=True, text=True).stdout.strip()
+    versions = {"ato": version}
     for pkg in ("presidio-analyzer", "spacy", "scrubadub"):
         try:
             versions[pkg] = md.version(pkg)
@@ -421,11 +421,11 @@ def main() -> None:
             pass
     res = {"date": time.strftime("%Y-%m-%d"), "versions": versions, "synthetic": {}, "oss": {}}
     for s in seeds:
-        res["synthetic"][s] = values_synthetic(a.pii_eu, s, work)
-        res["oss"][s], res["oss_meta"] = values_oss(a.pii_eu, a.oss, s, work)
+        res["synthetic"][s] = values_synthetic(a.ato, s, work)
+        res["oss"][s], res["oss_meta"] = values_oss(a.ato, a.oss, s, work)
     if "hounddog" in TOOLS:
-        res["sinks"] = sinks(a.pii_eu, seeds[0], work)
-    res["sinks_hard"] = sinks_hard(a.pii_eu, work)
+        res["sinks"] = sinks(a.ato, seeds[0], work)
+    res["sinks_hard"] = sinks_hard(a.ato, work)
     (a.out / "results.json").write_text(json.dumps(res, indent=1, default=str))
     print(json.dumps({k: v for k, v in res.items() if k in ("versions", "sinks", "oss_meta")}, indent=1, default=str))
 
