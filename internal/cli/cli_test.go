@@ -331,6 +331,17 @@ func TestMapAndDiff(t *testing.T) {
 	if code != ExitFindings || !strings.Contains(out, "services/clinic") || !strings.Contains(out, "OpenAI") {
 		t.Errorf("new recipient: exit %d\n%s", code, out)
 	}
+	code, out, _ = run("map", "--no-git", "--format", "html", "--diff", saved, dir)
+	if code != ExitFindings || !strings.Contains(out, "What changed since the last saved map") || !strings.Contains(out, "Outside company: OpenAI") || !strings.Contains(out, "map.json") {
+		t.Errorf("html diff: exit %d\n%s", code, out)
+	}
+	page := filepath.Join(t.TempDir(), "map.html")
+	if code, _, _ = run("map", "--no-git", "--format", "html", "--output", page, "--diff", saved, dir); code != ExitFindings {
+		t.Errorf("html diff to a file: exit %d", code)
+	}
+	if b, err := os.ReadFile(page); err != nil || !strings.Contains(string(b), "Needs a decision") {
+		t.Errorf("html diff file: %v", err)
+	}
 	if code, _, _ := run("map", "--format", "sarif", dir); code != ExitUsage {
 		t.Errorf("map accepts only markdown, json and html: exit %d", code)
 	}
