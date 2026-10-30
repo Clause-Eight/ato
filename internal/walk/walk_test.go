@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -118,5 +119,47 @@ func TestSingleFileAndMissingPath(t *testing.T) {
 func TestIsBinary(t *testing.T) {
 	if IsBinary([]byte("hello\nworld")) || !IsBinary([]byte("a\x00b")) {
 		t.Fatal("binary detection wrong")
+	}
+}
+
+// TestUntrustedRepositoryConfigRunsNothing: a scanned folder's own .git/config must not make git run a
+// command, here through core.fsmonitor, while files are listed or staged files are read (ADR 0007).
+func TestUntrustedRepositoryConfigRunsNothing(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not installed")
+	}
+	if runtime.GOOS == "windows" {
+		t.Skip("the probe command is a POSIX shell command")
+	}
+	dir := tree(t, "a.txt")
+	marker := filepath.Join(t.TempDir(), "ran")
+	for _, args := range [][]string{
+		{"init", "-q"},
+		{"config", "core.fsmonitor", "touch '" + marker + "'; false"},
+		{"add", "a.txt"},
+	} {
+		cmd := exec.Command("git", append([]string{"-C", dir, "-c", "core.fsmonitor=false"}, args...)...)
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v %s", args, err, out)
+		}
+	}
+	for _, opts := range []Options{{}, {Staged: true}} {
+		fs, _, err := Files(dir, opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := rels(fs); !reflect.DeepEqual(got, []string{"a.txt"}) {
+			t.Fatalf("staged %v: got %v", opts.Staged, got)
+		}
+		if opts.Staged {
+			r, err := Open(fs[0])
+			if err != nil {
+				t.Fatal(err)
+			}
+			r.Close()
+		}
+	}
+	if _, err := os.Stat(marker); err == nil {
+		t.Fatal("git ran the command from the scanned folder's core.fsmonitor")
 	}
 }

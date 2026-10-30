@@ -132,11 +132,11 @@ func gitFiles(root string) ([]string, bool) {
 	if _, err := exec.LookPath("git"); err != nil {
 		return nil, false
 	}
-	top, err := exec.Command("git", "-C", root, "rev-parse", "--is-inside-work-tree").Output()
+	top, err := gitCommand(root, "rev-parse", "--is-inside-work-tree").Output()
 	if err != nil || strings.TrimSpace(string(top)) != "true" {
 		return nil, false
 	}
-	out, err := exec.Command("git", "-C", root, "ls-files", "-z", "--cached", "--others", "--exclude-standard").Output()
+	out, err := gitCommand(root, "ls-files", "-z", "--cached", "--others", "--exclude-standard").Output()
 	if err != nil {
 		return nil, false
 	}
@@ -147,6 +147,30 @@ func gitFiles(root string) ([]string, bool) {
 		}
 	}
 	return rels, true
+}
+
+// untrusted turns off every setting a repository's own config could use to make git run a command while
+// pii-eu lists or reads files, so scanning a folder from a client or an archive never runs its code (ADR 0007).
+// Values given with -c override the repository's config.
+var untrusted = []string{
+	"-c", "core.fsmonitor=false",
+	"-c", "core.untrackedCache=false",
+	"-c", "core.hooksPath=" + os.DevNull,
+	"-c", "core.pager=cat",
+	"-c", "core.sshCommand=",
+	"-c", "core.gitProxy=",
+	"-c", "core.askPass=",
+	"-c", "diff.external=",
+	"-c", "credential.helper=",
+	"-c", "protocol.allow=never",
+}
+
+// gitCommand runs git in root with the repository's command-running settings turned off, without prompts
+// and without writing the index.
+func gitCommand(root string, args ...string) *exec.Cmd {
+	cmd := exec.Command("git", append(append(append([]string{}, untrusted...), "-C", root), args...)...)
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0", "GIT_OPTIONAL_LOCKS=0", "GIT_EXTERNAL_DIFF=", "GIT_PAGER=cat")
+	return cmd
 }
 
 func walkFiles(root string) ([]string, error) {
@@ -181,7 +205,7 @@ func walkFiles(root string) ([]string, error) {
 var ErrNotGit = errors.New("--staged needs a git work tree")
 
 func stagedFiles(root string, opts Options) ([]File, []domain.Skipped, error) {
-	out, err := exec.Command("git", "-C", root, "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR").Output()
+	out, err := gitCommand(root, "diff", "--cached", "--name-only", "--no-ext-diff", "--no-textconv", "-z", "--diff-filter=ACMR").Output()
 	if err != nil {
 		return nil, nil, ErrNotGit
 	}
@@ -210,7 +234,7 @@ func Open(f File) (io.ReadCloser, error) {
 	if !f.Staged {
 		return os.Open(f.Abs)
 	}
-	out, err := exec.Command("git", "-C", f.Root, "show", ":"+f.Rel).Output()
+	out, err := gitCommand(f.Root, "cat-file", "blob", ":"+f.Rel).Output()
 	if err != nil {
 		return nil, fmt.Errorf("cannot read the staged version: %w", err)
 	}
