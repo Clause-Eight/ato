@@ -23,6 +23,8 @@ type lineContext struct {
 	previous string
 	segments []segment
 	folded   *string
+	uuids    *[][]int
+	record   *string
 }
 
 // segment is one value of a line in a file with columns: a CSV cell, a JSON Lines value or a SQL value. Its
@@ -58,13 +60,83 @@ type match struct {
 // date or a contact detail, as a key in JSON, YAML, a dict, a hash or a column (#269).
 var personalField = regexp.MustCompile(`(?i)(?:^|[^a-z0-9_])(first_?name|last_?name|surname|given_?name|family_?name|full_?name|date_?of_?birth|birth_?date|dob|street|address_?line\d?|postal_?code|post_?code|zip_?code|nationality|gender)["']?\s*(?::|=>|=)`)
 
-// recordText is the raw text a value's record is read from: the line and the line before, or a segment's
-// column name in a file with columns.
-func recordText(ctx *lineContext, seg *segment) string {
-	if seg != nil {
-		return seg.column + ":"
+var uuidShape = regexp.MustCompile(`[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}`)
+
+// inUUID reports whether a candidate lies inside a UUID, whose hex groups can pass an identifier's check. The
+// UUIDs of a line are found once, on first use.
+func (c *lineContext) inUUID(start, end int) bool {
+	if c.uuids == nil {
+		var locs [][]int
+		if strings.Count(c.line, "-") >= 4 {
+			locs = uuidShape.FindAllStringIndex(c.line, -1)
+		}
+		c.uuids = &locs
 	}
-	return ctx.previous + "\n" + ctx.line
+	for _, loc := range *c.uuids {
+		if start < loc[1] && loc[0] < end {
+			return true
+		}
+	}
+	return false
+}
+
+// ownKey is the key written just before a value: `phone: "…"`, `'postal_code' => '…'`, `"height": …`, `zip=…`.
+var ownKey = regexp.MustCompile(`([A-Za-z][A-Za-z0-9_.-]*)\\?["']?\s*(?::|=>|=)\s*\\?["']?$`)
+
+// otherKinds are key names that say a number is something other than an identifier, with the detectors that
+// may still match under them. A national number under `phone:` is a phone number that happens to pass a check.
+var otherKinds = []struct {
+	words  []string
+	allows string
+}{
+	{[]string{"phone", "telephone", "tel", "mobile", "cell", "fax", "msisdn", "phone_number", "phonenumber"}, "eu-phone"},
+	{[]string{"zip", "zipcode", "zip_code", "postal_code", "postalcode", "postcode", "post_code"}, "postcode"},
+	{[]string{"height", "width", "weight", "length", "depth", "size", "quantity", "qty", "price", "amount", "total", "version", "port", "timestamp", "duration"}, ""},
+}
+
+// otherKind returns the key before a value when it names another kind of value than detector name.
+func otherKind(before, name string) string {
+	if len(before) > 80 {
+		before = before[len(before)-80:]
+	}
+	m := ownKey.FindStringSubmatch(before)
+	if m == nil {
+		return ""
+	}
+	key := strings.ToLower(m[1])
+	if i := strings.LastIndexAny(key, "."); i >= 0 {
+		key = key[i+1:]
+	}
+	for _, k := range otherKinds {
+		if k.allows == name {
+			continue
+		}
+		for _, w := range k.words {
+			if key == w || strings.HasSuffix(key, "_"+w) {
+				return key
+			}
+		}
+	}
+	return ""
+}
+
+// recordField returns a personal field named in a value's record: the line and the line before (found once per
+// line), or a segment's column name in a file with columns.
+func (c *lineContext) recordField(seg *segment) string {
+	if seg != nil {
+		if f := personalField.FindStringSubmatch(seg.column + ":"); f != nil {
+			return f[1]
+		}
+		return ""
+	}
+	if c.record == nil {
+		var r string
+		if f := personalField.FindStringSubmatch(c.previous + "\n" + c.line); f != nil {
+			r = f[1]
+		}
+		c.record = &r
+	}
+	return *c.record
 }
 
 // timeLabel finds names that usually hold a time: created_at, updatedAt, ts, timestamp, time, date.
@@ -185,6 +257,9 @@ func ignoreReason(line string) (bool, string) {
 // evaluate checks one candidate. In a segment the column name gives the keywords and the segment is the text
 // judged as a table of numbers; otherwise the line and the line before do.
 func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end int) (match, bool) {
+	if ctx.inUUID(start, end) {
+		return match{}, false
+	}
 	if seg != nil && !bounded(ctx.line[seg.start:seg.end], start-seg.start, end-seg.start) || seg == nil && !bounded(ctx.line, start, end) {
 		return match{}, false
 	}
@@ -232,9 +307,11 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
 	} else if w := keyword(context, d.Unlikely); w != "" {
 		demote(fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
-	} else if f := personalField.FindStringSubmatch(recordText(ctx, seg)); f != nil {
+	} else if k := otherKind(ctx.line[:start], d.Name); k != "" {
+		demote(fmt.Sprintf("its own name %q says it is another kind of value", k))
+	} else if f := ctx.recordField(seg); f != "" {
 		m.confidence = raise(m.confidence)
-		m.reasons = append(m.reasons, fmt.Sprintf("next to another personal field (%s), as in a record about a person", f[1]))
+		m.reasons = append(m.reasons, fmt.Sprintf("next to another personal field (%s), as in a record about a person", f))
 	}
 	if d.Samples[value] {
 		m.sample = true
