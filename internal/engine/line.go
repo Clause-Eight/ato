@@ -23,6 +23,7 @@ type lineContext struct {
 	previous string
 	segments []segment
 	folded   *string
+	own      *string
 }
 
 // segment is one value of a line in a file with columns: a CSV cell, a JSON Lines value or a SQL value. Its
@@ -40,6 +41,15 @@ func (c *lineContext) keywordText() string {
 		c.folded = &f
 	}
 	return *c.folded
+}
+
+// lineText is the current line alone folded for keyword matching, computed once per line on first use.
+func (c *lineContext) lineText() string {
+	if c.own == nil {
+		f := detectors.Fold(c.line)
+		c.own = &f
+	}
+	return *c.own
 }
 
 type match struct {
@@ -192,16 +202,17 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	if words == nil {
 		words = d.Keywords
 	}
-	context, text := "", ctx.line
+	context, own, text := "", "", ctx.line
 	if seg != nil {
-		context, text, m.column = seg.keywords, ctx.line[seg.start:seg.end], seg.column
+		context, own, text, m.column = seg.keywords, seg.keywords, ctx.line[seg.start:seg.end], seg.column
 	} else {
-		context = ctx.keywordText()
+		context, own = ctx.keywordText(), ctx.lineText()
 	}
 	kw := keyword(context, words)
 	if kw == "" && d.NeedsKeyword {
 		return match{}, false
 	}
+	// A keyword counts on the line before too; a word that labels other numbers only on the value's own line.
 	// Context can lower a valid value by one step at most, however many signals agree; every signal is still
 	// listed as a reason.
 	demoted := false
@@ -217,7 +228,7 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.reasons = append(m.reasons, fmt.Sprintf("the word %q is nearby", kw))
 		m.keyword = true
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
-	} else if w := keyword(context, d.Unlikely); w != "" {
+	} else if w := keyword(own, d.Unlikely); w != "" {
 		demote(fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
 	}
 	if d.Samples[value] {

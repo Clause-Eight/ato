@@ -37,8 +37,8 @@ type Detector struct {
 	TrimGroups  bool
 	Formatted   *regexp.Regexp
 	Needs       Needs
-	// Unlikely are words that usually label other numbers (trace, order, invoice). With one nearby and no
-	// keyword, a match drops one confidence step. They are folded when the registry is read.
+	// Unlikely are words that usually label other numbers (trace, order, invoice). With one on the value's own
+	// line and no keyword, a match drops one confidence step. They are folded when the registry is read.
 	Unlikely []string
 	// NeedsKeyword drops a match unless a keyword is on the line or the line before, for identifiers with no
 	// check digit that would otherwise match too much (format-only ID card numbers, MAC addresses).
@@ -50,6 +50,18 @@ type Detector struct {
 	// detector's own name. Both are set when the registry is read.
 	OwnWords   []string
 	MatchWords []string
+}
+
+// referenceWords label the long numbers of business records (orders, invoices, requests, traces), which share
+// their length with some national numbers, also run together with id, no or number as in orderId. Each detector
+// gets its own copy, because the registry folds it in place.
+func referenceWords() []string {
+	base := []string{"order", "invoice", "request", "trace", "transaction", "txn", "shipment", "tracking", "awb", "correlation", "session", "receipt"}
+	ws := append([]string{}, base...)
+	for _, w := range base {
+		ws = append(ws, w+"id", w+"no", w+"number")
+	}
+	return ws
 }
 
 // Countries is Country followed by AlsoIn.
