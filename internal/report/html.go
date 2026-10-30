@@ -13,7 +13,7 @@ import (
 //go:embed html/*
 var htmlFiles embed.FS
 
-var htmlTemplates = template.Must(template.New("").Funcs(template.FuncMap{"join": strings.Join, "pair": pair}).ParseFS(htmlFiles, "html/*.html"))
+var htmlTemplates = template.Must(template.New("").Funcs(template.FuncMap{"join": strings.Join}).ParseFS(htmlFiles, "html/*.html"))
 
 func init() { register("html", writeHTML) }
 
@@ -105,23 +105,3 @@ func containsString(xs []string, x string) bool {
 	}
 	return false
 }
-
-func writeMapHTML(w io.Writer, m DataMap) error {
-	stores, recipients, sinks := 0, 0, 0
-	for _, c := range m.Map.Components {
-		stores += len(c.Stores)
-		recipients += len(c.Recipients)
-		sinks += len(c.Sinks)
-	}
-	return htmlTemplates.ExecuteTemplate(w, "map.html", map[string]any{
-		"CSS": htmlCSS(), "Tool": m.Tool, "Version": m.Version, "Map": m.Map,
-		"Stores": stores, "Recipients": recipients, "Sinks": sinks,
-	})
-}
-
-type removalCell struct {
-	A bool
-	R []domain.Removal
-}
-
-func pair(assessed bool, rs []domain.Removal) removalCell { return removalCell{A: assessed, R: rs} }
