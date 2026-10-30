@@ -2,6 +2,7 @@ package report
 
 import (
 	"fmt"
+	"github.com/Clause-Eight/pii-eu/internal/domain"
 	"io"
 	"strings"
 )
@@ -40,6 +41,9 @@ func writeText(w io.Writer, r Report, opts Options) error {
 	for _, s := range r.Summary.Unreadable {
 		fmt.Fprintf(&b, "pii-eu: could not read %s (%s)\n", s.Path, s.Reason)
 	}
+	for _, s := range NotRead(r.Summary) {
+		fmt.Fprintf(&b, "pii-eu: did not read all of %s (%s)\n", s.Path, s.Reason)
+	}
 	_, err := io.WriteString(w, b.String())
 	return err
 }
@@ -71,6 +75,9 @@ func summaryLine(r Report, files int) string {
 	if k := len(r.Summary.Unreadable); k > 0 {
 		parts = append(parts, fmt.Sprintf("%d unreadable", k))
 	}
+	if k := len(NotRead(domain.Summary{FilesSkipped: r.Summary.FilesSkipped})); k > 0 {
+		parts = append(parts, fmt.Sprintf("%d not read in full", k))
+	}
 	return strings.Join(parts, " · ")
 }
 
@@ -79,4 +86,15 @@ func plural(n int, one, many string) string {
 		return one
 	}
 	return many
+}
+
+// NotRead lists the skipped and sampled files that may hold personal data and were not read in full.
+func NotRead(s domain.Summary) []domain.Skipped {
+	var out []domain.Skipped
+	for _, k := range append(append([]domain.Skipped{}, s.FilesSkipped...), s.Sampled...) {
+		if k.NotRead {
+			out = append(out, k)
+		}
+	}
+	return out
 }

@@ -94,4 +94,7 @@ type Summary struct {
 type Skipped struct {
 	Path   string
 	Reason string
+	// NotRead marks a file that may hold personal data and was not read in full: over a size limit, cut at
+	// max_rows, nested too deep, or in a document format pii-eu does not open. It makes a scan incomplete.
+	NotRead bool
 }

@@ -76,7 +76,7 @@ func Files(root string, opts Options) ([]File, []domain.Skipped, error) {
 			continue
 		}
 		if tooLarge(rel, st.Size(), opts.MaxFileSize) {
-			skipped = append(skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", opts.MaxFileSize)})
+			skipped = append(skipped, domain.Skipped{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", opts.MaxFileSize), NotRead: true})
 			continue
 		}
 		files = append(files, File{Rel: rel, Abs: abs, Size: st.Size(), Root: root})
@@ -88,7 +88,7 @@ func Files(root string, opts Options) ([]File, []domain.Skipped, error) {
 func single(path string, info fs.FileInfo, opts Options) ([]File, []domain.Skipped, error) {
 	rel := filepath.ToSlash(filepath.Base(path))
 	if tooLarge(rel, info.Size(), opts.MaxFileSize) {
-		return nil, []domain.Skipped{{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", opts.MaxFileSize)}}, nil
+		return nil, []domain.Skipped{{Path: rel, Reason: fmt.Sprintf("larger than %d bytes", opts.MaxFileSize), NotRead: true}}, nil
 	}
 	return []File{{Rel: filepath.ToSlash(path), Abs: path, Size: info.Size()}}, nil, nil
 }

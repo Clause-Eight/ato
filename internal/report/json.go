@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "1.2"
+const SchemaVersion = "1.3"
 
 func init() { register("json", writeJSON) }
 
@@ -49,8 +49,9 @@ type jsonDetector struct {
 }
 
 type jsonSkipped struct {
-	Path   string `json:"path"`
-	Reason string `json:"reason"`
+	Path    string `json:"path"`
+	Reason  string `json:"reason"`
+	NotRead bool   `json:"not_read,omitempty"`
 }
 
 type jsonFinding struct {
@@ -167,7 +168,7 @@ func optional(s []domain.Skipped) []jsonSkipped {
 func nonNil(s []domain.Skipped) []jsonSkipped {
 	out := make([]jsonSkipped, 0, len(s))
 	for _, k := range s {
-		out = append(out, jsonSkipped{Path: k.Path, Reason: k.Reason})
+		out = append(out, jsonSkipped{Path: k.Path, Reason: k.Reason, NotRead: k.NotRead})
 	}
 	return out
 }
