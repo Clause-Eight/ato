@@ -39,7 +39,7 @@ func TestSinkFindings(t *testing.T) {
 		t.Fatalf("a test path should lower the confidence: %+v", inTest)
 	}
 
-	ignored := scanSource(t, "app/handler.go", "// pii-eu:ignore the address is a synthetic support mailbox\nlog.Printf(\"%s\", u.Email)\n")
+	ignored := scanSource(t, "app/handler.go", "// ato:ignore the address is a synthetic support mailbox\nlog.Printf(\"%s\", u.Email)\n")
 	if len(ignored) != 1 || !ignored[0].Ignored {
 		t.Fatalf("an ignore comment should apply: %+v", ignored)
 	}

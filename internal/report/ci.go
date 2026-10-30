@@ -23,7 +23,7 @@ func writeGitHub(w io.Writer, r Report, _ Options) error {
 			cmd = "notice"
 		}
 		fmt.Fprintf(&b, "::%s file=%s,line=%d,col=%d,title=%s::%s\n",
-			cmd, escapeProperty(f.Location.Path), f.Location.Line, f.Location.Column, escapeProperty("pii-eu: "+f.Label), escapeData(message(f)))
+			cmd, escapeProperty(f.Location.Path), f.Location.Line, f.Location.Column, escapeProperty("ato: "+f.Label), escapeData(message(f)))
 	}
 	fmt.Fprintf(&b, "%s\n", summaryLine(r, countFiles(r.Findings)))
 	_, err := io.WriteString(w, b.String())
@@ -70,7 +70,7 @@ func writeCodeQuality(w io.Writer, r Report, _ Options) error {
 		sev := map[domain.Confidence]string{domain.High: "critical", domain.Medium: "major", domain.Low: "minor"}[f.Confidence]
 		out = append(out, codeQualityIssue{
 			Description: message(f),
-			CheckName:   "pii-eu/" + f.Detector,
+			CheckName:   "ato/" + f.Detector,
 			Fingerprint: f.Fingerprint,
 			Severity:    sev,
 			Location:    codeQualityLocation{Path: f.Location.Path, Lines: codeQualityLines{Begin: f.Location.Line}},

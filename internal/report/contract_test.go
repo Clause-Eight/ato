@@ -122,7 +122,7 @@ func syntheticStore() domain.Store {
 	}
 }
 
-// syntheticModule is a made-up module call that pii-eu does not read inside.
+// syntheticModule is a made-up module call that ATO does not read inside.
 func syntheticModule() domain.Store {
 	unknown := domain.Setting{State: domain.Unknown, Why: "decided inside the module"}
 	return domain.Store{
@@ -156,7 +156,7 @@ func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	validate(t, schema, schema, doc, "report")
 
 	buf.Reset()
-	inv := Inventory{Tool: "pii-eu", Version: "test", Files: 1, Entries: []domain.InventoryEntry{{
+	inv := Inventory{Tool: "ato", Version: "test", Files: 1, Entries: []domain.InventoryEntry{{
 		Field:          domain.Field{Name: "diagnosis", Container: "patients", Format: "sql", Location: domain.Location{Path: "db/001.sql", Line: 4, Column: 3}},
 		Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth, Matched: "diagnosis"},
 	}, {
@@ -184,7 +184,7 @@ func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	}
 }
 
-// frozen are the JSON fields promised stable for every 1.x release (docs/COMPATIBILITY.md). A 1.x release may
+// frozen are the JSON fields promised stable for every 2.x release (docs/COMPATIBILITY.md). A 2.x release may
 // add fields, never remove or rename these.
 var frozen = map[string][]string{
 	"report":  {"schema_version", "tool", "summary", "findings"},
@@ -205,11 +205,11 @@ func TestFrozenFieldsAreStillWritten(t *testing.T) {
 	for name, fields := range frozen {
 		for _, f := range fields {
 			if _, ok := objects[name][f]; !ok {
-				t.Errorf("%s no longer has %q, which 1.x promises", name, f)
+				t.Errorf("%s no longer has %q, which 2.x promises", name, f)
 			}
 		}
 	}
-	if !strings.HasPrefix(SchemaVersion, "1.") {
+	if !strings.HasPrefix(SchemaVersion, "2.") {
 		t.Errorf("schema version %s: a new major version needs a new compatibility promise", SchemaVersion)
 	}
 	keys := make([]string, 0, len(frozen))
@@ -219,8 +219,30 @@ func TestFrozenFieldsAreStillWritten(t *testing.T) {
 	sort.Strings(keys)
 }
 
+// TestSARIFKeepsTheLegacyFingerprint holds the 2.x promise: every result carries ato/v1 and, with the same value,
+// the deprecated piiEu/v1, so GitHub code scanning matches alerts opened by 1.x.
+func TestSARIFKeepsTheLegacyFingerprint(t *testing.T) {
+	var buf bytes.Buffer
+	if err := Write("sarif", &buf, sample(), Options{}); err != nil {
+		t.Fatal(err)
+	}
+	var log sarifLog
+	if err := json.Unmarshal(buf.Bytes(), &log); err != nil {
+		t.Fatal(err)
+	}
+	if name := log.Runs[0].Tool.Driver.Name; name != "ATO" {
+		t.Errorf("driver name %q", name)
+	}
+	for _, r := range log.Runs[0].Results {
+		fp := r.PartialFingerprints
+		if fp["ato/v1"] == "" || fp["ato/v1"] != fp["piiEu/v1"] {
+			t.Errorf("%s: partial fingerprints %v", r.RuleID, fp)
+		}
+	}
+}
+
 func TestInfraFindingsInEachFormat(t *testing.T) {
-	r := withStore(Report{Tool: "pii-eu", Version: "test"})
+	r := withStore(Report{Tool: "ato", Version: "test"})
 	var buf bytes.Buffer
 	if err := Write("sarif", &buf, r, Options{}); err != nil {
 		t.Fatal(err)

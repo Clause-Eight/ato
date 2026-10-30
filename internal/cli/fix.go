@@ -70,7 +70,7 @@ func runFix(args []string, stdout, stderr io.Writer) (int, error) {
 	for _, p := range paths {
 		data, err := os.ReadFile(diskPath(root, p))
 		if err != nil {
-			fmt.Fprintf(stderr, "pii-eu: could not read %s (%s)\n", p, err)
+			fmt.Fprintf(stderr, "ato: could not read %s (%s)\n", p, err)
 			unreadable++
 			continue
 		}

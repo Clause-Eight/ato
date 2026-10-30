@@ -71,6 +71,8 @@ type Finding struct {
 	Keyword     bool
 	Fingerprint string
 	Ignored     bool
+	// LegacyIgnore is true when the ignore comment used the deprecated pii-eu:ignore form.
+	LegacyIgnore bool
 	// Store is the data store an infra finding is about; nil for other kinds.
 	Store *Store
 }
@@ -95,6 +97,6 @@ type Skipped struct {
 	Path   string
 	Reason string
 	// NotRead marks a file that may hold personal data and was not read in full: over a size limit, cut at
-	// max_rows, nested too deep, or in a document format pii-eu does not open. It makes a scan incomplete.
+	// max_rows, nested too deep, or in a document format ATO does not open. It makes a scan incomplete.
 	NotRead bool
 }

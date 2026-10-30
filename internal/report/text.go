@@ -39,10 +39,10 @@ func writeText(w io.Writer, r Report, opts Options) error {
 	}
 	b.WriteString(summaryLine(r, files) + "\n")
 	for _, s := range r.Summary.Unreadable {
-		fmt.Fprintf(&b, "pii-eu: could not read %s (%s)\n", s.Path, s.Reason)
+		fmt.Fprintf(&b, "ato: could not read %s (%s)\n", s.Path, s.Reason)
 	}
 	for _, s := range NotRead(r.Summary) {
-		fmt.Fprintf(&b, "pii-eu: did not read all of %s (%s)\n", s.Path, s.Reason)
+		fmt.Fprintf(&b, "ato: did not read all of %s (%s)\n", s.Path, s.Reason)
 	}
 	_, err := io.WriteString(w, b.String())
 	return err

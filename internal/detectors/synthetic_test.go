@@ -27,3 +27,11 @@ func TestSyntheticMarkIsRare(t *testing.T) {
 		t.Fatal("an empty value is never synthetic")
 	}
 }
+
+// TestSyntheticMarkSurvivesTheRename pins the mark written by every earlier version: 0000247615 carries it
+// under the 1.x salt, so a value written by pii-eu 1.x is still recognised by ATO.
+func TestSyntheticMarkSurvivesTheRename(t *testing.T) {
+	if !Synthetic("0000247615") || !Synthetic("00-0024-7615") {
+		t.Fatal("a value marked by 1.x is no longer recognised as synthetic")
+	}
+}

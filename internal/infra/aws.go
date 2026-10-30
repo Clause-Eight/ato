@@ -130,7 +130,7 @@ func (c *check) enumSetting(path string, states map[string]domain.Tri, absent do
 	}
 	state, known := states[strings.ToUpper(s)]
 	if !known {
-		return domain.Setting{State: domain.Unknown, Why: fmt.Sprintf("%s has a value pii-eu does not know", path), Line: a.line}
+		return domain.Setting{State: domain.Unknown, Why: fmt.Sprintf("%s has a value ATO does not know", path), Line: a.line}
 	}
 	return domain.Setting{State: state, Why: fmt.Sprintf("%s = %q", path, s), Line: a.line}
 }

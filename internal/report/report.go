@@ -9,6 +9,10 @@ import (
 	"github.com/Clause-Eight/ato/internal/domain"
 )
 
+// Product is the product name printed in reports for people and in the SARIF driver. Report.Tool is the
+// command name written in machine-readable reports.
+const Product = "ATO"
+
 // Report is everything a reporter may print. Findings carry no raw values: Redact removes them first.
 type Report struct {
 	Tool     string

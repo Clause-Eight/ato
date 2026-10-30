@@ -16,7 +16,7 @@ const sentinel = "SENTINEL-4929000000006"
 
 func sample() Report {
 	return Report{
-		Tool: "pii-eu", Version: "test", Root: ".",
+		Tool: "ato", Version: "test", Root: ".",
 		Findings: []domain.Finding{
 			{Detector: "card", Label: "Payment card number", Country: "EU", Location: domain.Location{Path: "app/config.yml", Line: 3, Column: 9},
 				Value: sentinel, Masked: "••••••••••••0006", Confidence: domain.High, Reasons: []string{"brand prefix, length and Luhn check are valid", `the word "card" is nearby`}, Fingerprint: "0123456789abcdef0123456789abcdef"},
@@ -50,7 +50,7 @@ func TestNoFormatLeaksValues(t *testing.T) {
 
 func TestGolden(t *testing.T) {
 	golden(t, "report", withSink(sample()))
-	golden(t, "infra", withStore(Report{Tool: "pii-eu", Version: "test", Summary: domain.Summary{FilesScanned: 3}}))
+	golden(t, "infra", withStore(Report{Tool: "ato", Version: "test", Summary: domain.Summary{FilesScanned: 3}}))
 }
 
 func golden(t *testing.T, name string, r Report) {
@@ -61,7 +61,7 @@ func golden(t *testing.T, name string, r Report) {
 			t.Fatal(err)
 		}
 		path := filepath.Join("testdata", "golden", name+"."+format)
-		if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+		if os.Getenv("ATO_UPDATE_GOLDEN") == "1" {
 			if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
 				t.Fatal(err)
 			}
@@ -69,7 +69,7 @@ func golden(t *testing.T, name string, r Report) {
 		}
 		want, err := os.ReadFile(path)
 		if err != nil {
-			t.Fatalf("%v (run with PII_EU_UPDATE_GOLDEN=1 to create it)", err)
+			t.Fatalf("%v (run with ATO_UPDATE_GOLDEN=1 to create it)", err)
 		}
 		if got := strings.ReplaceAll(buf.String(), "\r\n", "\n"); got != strings.ReplaceAll(string(want), "\r\n", "\n") {
 			t.Errorf("%s differs from %s:\n%s", format, path, got)
@@ -147,7 +147,7 @@ func TestUnknownFormat(t *testing.T) {
 }
 
 func TestInventoryFormats(t *testing.T) {
-	inv := Inventory{Tool: "pii-eu", Version: "test", Files: 1, Entries: []domain.InventoryEntry{{
+	inv := Inventory{Tool: "ato", Version: "test", Files: 1, Entries: []domain.InventoryEntry{{
 		Field:          domain.Field{Name: "diagnosis", Container: "patients", Format: "sql", Location: domain.Location{Path: "db/001.sql", Line: 3, Column: 3}},
 		Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth, Matched: "diagnosis"},
 	}}}
@@ -175,7 +175,7 @@ func TestHTMLIsSelfContained(t *testing.T) {
 	if err := Write("html", &findings, sample(), Options{}); err != nil {
 		t.Fatal(err)
 	}
-	inv := Inventory{Tool: "pii-eu", Version: "test", Files: 3, Entries: []domain.InventoryEntry{
+	inv := Inventory{Tool: "ato", Version: "test", Files: 3, Entries: []domain.InventoryEntry{
 		{Field: domain.Field{Name: "diagnosis", Container: "patients", Location: domain.Location{Path: "db/001.sql", Line: 4}}, Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth}},
 		{Field: domain.Field{Name: "<script>", Container: "patients", Location: domain.Location{Path: "db/001.sql", Line: 5}}, Classification: domain.Classification{Category: domain.CategoryName}},
 	}}
