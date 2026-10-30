@@ -72,6 +72,9 @@ Each version only adds optional fields, so a reader written for an earlier `1.x`
   not on the line before (#267).
 - Cards: a number that is also a valid GTIN-8, -12, -13 or -14 is not reported when gtin, ean, barcode or upc is
   on its line; sku and those words lower other cards one step (#266).
+- Values are also found URL-encoded and as whole base64 tokens, and a Romanian CNP is also found in the groups it
+  is printed in (1-6-6, 3-4-6, 3-3-3-4, with spaces or dashes). The span of a decoded finding covers the encoded
+  text; `pii-eu fix` does not rewrite encoded values (#263).
 
 ## Deprecation
 

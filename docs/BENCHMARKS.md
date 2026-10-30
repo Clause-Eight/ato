@@ -87,7 +87,7 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 
 What the numbers say:
 
-- **Validation is what keeps the output usable.** With every detector on, precision is 99.4% at the default level against 34.7% for pattern-only matching.
+- **Validation is what keeps the output usable.** With every detector on, precision is 99.4% at the default level against 34.4% for pattern-only matching.
 - **Low-base detectors trade recall for quiet output.** Bare numbers with one check digit (EGN, LNCh, PESEL, OIB, BSN, the Nordic and Baltic codes), VAT numbers and contact data start at low confidence, so at the default `--min-confidence medium` they are reported only with a nearby keyword or in their usual printed format. Detectors marked "only with a keyword" are never reported without one.
 - **Many national numbers share a shape.** An eleven-digit number can be a valid PESEL, OIB, German tax ID and Estonian code at once. Each value is reported once, preferring the detector whose own name is nearby, so at `--min-confidence low` some values are counted under another country and precision there is lower.
 - **Personal data without a check digit stays quiet.** Dates of birth, postcodes, licence and plate numbers, health-card numbers and names in name fields are off by default and reported only next to a keyword; each has 100% precision at the default level here. Names were also checked on about 157,000 public files in Go's module cache: every reported name was in a name field.
