@@ -2,6 +2,8 @@
 
 Date: 2026-10-30 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 The product page and docs/BENCHMARKS.md compare pii-eu with other scanners. The first comparison (19 and 30

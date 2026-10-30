@@ -2,6 +2,8 @@
 
 Date: 2026-10-30 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 Exit code `3` meant "some files could not be read": a read error, a corrupt archive, an archive limit reached.

@@ -1,6 +1,6 @@
-# pii-eu as a product
+# ATO as a product
 
-pii-eu ships inside Clause Eight and is also sold on its own. This page says who it is for, what it is up
+ATO, Clause Eight's EU personal-data scanner (called pii-eu before 2.0), ships inside Clause Eight and is also sold on its own. This page says who it is for, what it is up
 against and how it is packaged. Pricing below is a set of hypotheses to test with buyers, not a price list.
 
 ## The problem
@@ -36,14 +36,14 @@ the same wedge as Clause Eight.
 
 ## Competition
 
-| Tool | What it does | Where pii-eu differs |
+| Tool | What it does | Where ATO differs |
 |---|---|---|
 | Privado | Code scanning for data flows and RoPA; open-source core (Java, Python), commercial platform | EU national identifiers with check digits, 24 languages, data files and images, single binary |
 | HoundDog.ai | Privacy code scanner: PII in logs, third parties, RoPA and PIA reports | Same as above; EU-first; offline; Terraform residency and retention |
 | Microsoft Presidio | Open-source PII detection library, mostly US identifiers, NLP based | Validated EU identifiers; a product, not a library; see the comparison in docs/BENCHMARKS.md |
 | Nightfall, Purview, Macie, Google Sensitive Data Protection | Cloud DLP over SaaS and storage | Works in code and CI before data spreads; no data leaves the machine |
 
-Privado and HoundDog.ai already sell the data map and log-leak ideas. pii-eu should not compete on breadth of
+Privado and HoundDog.ai already sell the data map and log-leak ideas. ATO should not compete on breadth of
 languages; it wins on EU accuracy, evidence quality and running offline.
 
 ## Packaging

@@ -1,6 +1,6 @@
 # Contributing
 
-This is the internal guide for working on pii-eu, which is proprietary (see LICENSE). The most common change is a new identifier: one detector file, a generator and its tests.
+This is the internal guide for working on ATO, which is proprietary (see LICENSE). The most common change is a new identifier: one detector file, a generator and its tests.
 
 ## Clean-room rule
 
@@ -30,7 +30,7 @@ Conventional commits (`feat(detectors): add Polish PESEL`), one feature per pull
 2. Fill in the name (`<country>-<identifier>`, lower case), the label, the candidate pattern, the validator, the identifier's own names as keywords and its concepts.
 3. Cite the public source for the algorithm in the comment above `init`, in your own words.
 4. Write the generator in `internal/synth` without calling the detector: compute the check digits a second time, so the test compares two implementations.
-5. Regenerate the references: `PII_EU_UPDATE_GOLDEN=1 go test ./internal/cli`, and commit `docs/DETECTORS.md` and `README.md`.
+5. Regenerate the references: `ATO_UPDATE_GOLDEN=1 go test ./internal/cli`, and commit `docs/DETECTORS.md` and `README.md`.
 
 Choose the base confidence by how often a random number of that shape would pass: a long structured identifier (IBAN) can start high; a ten-digit number with one check digit starts low and relies on keywords.
 

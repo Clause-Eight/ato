@@ -2,6 +2,8 @@
 
 Date: 2026-10-30 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 Inside a git work tree, pii-eu asks git for the file list so `.gitignore` applies exactly as git applies it,
