@@ -110,7 +110,7 @@ func TestCSVInsideATarballIsScannedByColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	code, doc, out := scanJSON(t, dir)
-	if code != ExitFindings || doc.SchemaVersion != "1.2" {
+	if code != ExitFindings || doc.SchemaVersion != "1.3" {
 		t.Fatalf("exit %d\n%s", code, out)
 	}
 	values, fields := 0, 0
@@ -250,5 +250,46 @@ func TestArchiveLimitMakesTheScanIncomplete(t *testing.T) {
 	code, out, _ := run("scan", "--no-git", dir)
 	if code != ExitIncomplete || !strings.Contains(out, "max_archive_bytes") {
 		t.Fatalf("exit %d\n%s", code, out)
+	}
+}
+
+// TestPartlyReadFilesMakeTheScanIncomplete: a clean result must mean everything that may hold personal data was
+// read. A document format pii-eu does not open, or a data file cut at max_rows, exits 3 unless allow_partial.
+func TestPartlyReadFilesMakeTheScanIncomplete(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "export.xlsx"), []byte("PK\x03\x04\x00\x00binary"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "logo.png"), []byte("\x89PNG\x00\x00"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	code, out, _ := run("scan", "--no-git", dir)
+	if code != ExitIncomplete || !strings.Contains(out, "did not read all of export.xlsx") || strings.Contains(out, "logo.png") {
+		t.Fatalf("office document: exit %d\n%s", code, out)
+	}
+	if code, _, _ := run("scan", "--no-git", "--allow-partial", dir); code != ExitClean {
+		t.Fatalf("--allow-partial: exit %d", code)
+	}
+	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("allow_partial = true\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, _ := run("scan", "--no-git", dir); code != ExitClean {
+		t.Fatalf("allow_partial = true: exit %d", code)
+	}
+
+	rows := t.TempDir()
+	var csv strings.Builder
+	csv.WriteString("id,plan\n")
+	for i := 0; i < 20; i++ {
+		fmt.Fprintf(&csv, "%d,pro\n", i)
+	}
+	if err := os.WriteFile(filepath.Join(rows, "plans.csv"), []byte(csv.String()), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if code, _, _ := run("scan", "--no-git", "--max-rows", "5", rows); code != ExitIncomplete {
+		t.Fatalf("cut at --max-rows: exit %d", code)
+	}
+	if code, _, _ := run("scan", "--no-git", "--max-rows", "0", rows); code != ExitClean {
+		t.Fatalf("every row read: exit %d", code)
 	}
 }

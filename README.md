@@ -113,7 +113,7 @@ pii-eu fix                        # replace them
 | `--max-rows N` | read at most N rows of each CSV, TSV or JSON Lines file (default 100000); `0` reads every row |
 | `--image FILE` | scan a saved container image instead of a path |
 
-Exit codes: `0` nothing found, `1` findings, `2` usage or settings error, `3` some files could not be read.
+Exit codes: `0` nothing found, `1` findings, `2` usage or settings error, `3` the scan is incomplete: a file could not be read, or a file that may hold personal data was not read in full (cut at `max_rows`, over a size or archive limit, or a document format pii-eu does not open, such as `.xlsx` or `.pdf`). Each such file is listed with the reason. `--allow-partial` (or `allow_partial = true`) keeps the exit code at `0` or `1` for files not read in full; unreadable files still exit `3`.
 
 ### Settings
 
@@ -131,6 +131,7 @@ max_rows = 100000             # rows read per data file; 0 reads every row
 max_archive_bytes = 4294967296   # uncompressed bytes read from one archive or image
 max_archive_entries = 1000000    # entries read from one archive or image
 max_archive_depth = 3            # archives inside archives
+allow_partial = false            # true: files not read in full do not make the exit code 3
 image_exclude = ["/usr/share/", "/usr/lib/"]   # replaces the default; [] scans the whole image
 
 [detectors]
@@ -155,7 +156,7 @@ Findings carry the column name (`column_name` in JSON), and the JSON summary gro
 
 Large data files are sampled: only the first `max_rows` rows of a CSV, TSV or JSON Lines file are read (default 100000; `--max-rows 0` reads every row), and the file is listed under `summary.sampled`. Data files are not skipped by `max_file_size`; SQL dumps are, so raise `max_file_size` for a large dump.
 
-Gzip and tar files (`.gz`, `.tar`, `.tar.gz`, `.tgz`) are scanned inside, archives in archives too, and findings name the entry: `dump.tar.gz!/data/users.csv`. Archives are not skipped by `max_file_size`; each entry is. `exclude` patterns apply to paths inside archives. Against archive bombs, one archive with everything nested in it may produce at most `max_archive_bytes` uncompressed bytes (4 GiB) and `max_archive_entries` entries (1,000,000), nested at most `max_archive_depth` deep (3). Reading stops at a limit, the archive is listed as unreadable with the reason, and the exit code is 3 when nothing else was found.
+Gzip, tar and zip files (`.gz`, `.tar`, `.tar.gz`, `.tgz`, `.zip`) are scanned inside, archives in archives too, and findings name the entry: `dump.tar.gz!/data/users.csv`. Archives are not skipped by `max_file_size`; each entry is. `exclude` patterns apply to paths inside archives. Against archive bombs, one archive with everything nested in it may produce at most `max_archive_bytes` uncompressed bytes (4 GiB) and `max_archive_entries` entries (1,000,000), nested at most `max_archive_depth` deep (3). Reading stops at a limit, the archive is listed as unreadable with the reason, and the exit code is 3 when nothing else was found.
 
 ### Container images
 

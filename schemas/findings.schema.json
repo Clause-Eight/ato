@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.2",
-      "description": "1.2 added the kinds sink, infra and lifecycle, the store object and sink, data_category and column_name on findings, and sampled and columns in the summary; 1.1 added kind and special_category. Older reports are 1.2 reports without those fields."
+      "const": "1.3",
+      "description": "1.3 added not_read on skipped and sampled files; 1.2 added the kinds sink, infra and lifecycle, the store object and sink, data_category and column_name on findings, and sampled and columns in the summary; 1.1 added kind and special_category. Older reports are 1.2 reports without those fields."
     },
     "tool": {
       "type": "object",
@@ -308,6 +308,10 @@
         },
         "reason": {
           "type": "string"
+        },
+        "not_read": {
+          "type": "boolean",
+          "description": "The file may hold personal data and was not read in full; it makes the scan exit 3 unless allow_partial is set."
         }
       }
     }

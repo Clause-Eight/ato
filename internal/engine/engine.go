@@ -265,6 +265,9 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	r := bufio.NewReaderSize(content, 64<<10)
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
+		if walk.Unopened(rel) {
+			return fileResult{}, &domain.Skipped{Path: rel, Reason: "a document format pii-eu does not open", NotRead: true}, nil
+		}
 		return fileResult{}, &domain.Skipped{Path: rel, Reason: "binary"}, nil
 	}
 	wantFields := req.fields()
@@ -280,7 +283,7 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 		tr, err := scanText(rel, r, req.Detectors, req.MaxRows, false)
 		fr := fileResult{findings: tr.findings}
 		if tr.sampled {
-			fr.sampled = &domain.Skipped{Path: rel, Reason: fmt.Sprintf("only the first %d rows were read (max_rows)", req.MaxRows)}
+			fr.sampled = &domain.Skipped{Path: rel, Reason: fmt.Sprintf("only the first %d rows were read (max_rows)", req.MaxRows), NotRead: true}
 		}
 		if wantFields {
 			fr.entries = classifyFields(tr.fields)
