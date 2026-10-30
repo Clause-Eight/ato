@@ -18,11 +18,11 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | `advertising-id` | 136 | 40.4% | 100.0% | 0 | 40.4% | 100.0% | 100.0% |
 | `at-social-insurance` | 133 | 69.9% | 100.0% | 0 | 100.0% | 91.1% | 5.2% |
 | `at-tax-number` | 146 | 82.9% | 100.0% | 0 | 100.0% | 69.9% | 21.7% |
-| `be-national-register` | 162 | 74.7% | 100.0% | 0 | 100.0% | 98.8% | 16.9% |
-| `bg-egn` | 169 | 50.9% | 100.0% | 0 | 99.4% | 85.7% | 64.2% |
-| `bg-lnch` | 159 | 49.7% | 96.3% | 3 | 97.5% | 40.6% | 88.8% |
+| `be-national-register` | 162 | 75.3% | 100.0% | 0 | 100.0% | 98.8% | 16.9% |
+| `bg-egn` | 169 | 51.5% | 100.0% | 0 | 99.4% | 85.7% | 64.2% |
+| `bg-lnch` | 159 | 50.3% | 95.2% | 4 | 97.5% | 40.6% | 88.8% |
 | `birth-date` | 156 | 55.8% | 100.0% | 0 | 55.8% | 100.0% | 100.0% |
-| `card` | 162 | 87.7% | 97.9% | 3 | 100.0% | 49.8% | 2.3% |
+| `card` | 162 | 100.0% | 98.2% | 3 | 100.0% | 49.8% | 2.1% |
 | `ch-ahv` | 163 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 99.3% |
 | `crypto-wallet` | 156 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `cy-id-card` | 158 | 55.1% | 100.0% | 0 | 55.1% | 100.0% | 100.0% |
@@ -33,34 +33,34 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | `de-tax-id` | 147 | 63.3% | 100.0% | 0 | 100.0% | 96.7% | 94.8% |
 | `dk-cpr` | 155 | 54.8% | 95.5% | 4 | 54.8% | 95.5% | 90.4% |
 | `driving-licence` | 129 | 48.8% | 96.9% | 2 | 48.8% | 96.9% | 49.2% |
-| `ee-isikukood` | 155 | 45.2% | 97.2% | 2 | 99.4% | 64.4% | 95.9% |
+| `ee-isikukood` | 155 | 45.8% | 97.3% | 2 | 99.4% | 64.4% | 95.9% |
 | `ehic` | 154 | 49.4% | 100.0% | 0 | 49.4% | 100.0% | 100.0% |
 | `email` | 163 | 52.1% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `es-dni` | 133 | 50.4% | 100.0% | 0 | 100.0% | 95.7% | 96.1% |
-| `es-nie` | 147 | 44.9% | 100.0% | 0 | 99.3% | 100.0% | 100.0% |
+| `es-nie` | 147 | 46.3% | 100.0% | 0 | 99.3% | 100.0% | 100.0% |
 | `es-nss` | 143 | 84.6% | 100.0% | 0 | 100.0% | 98.6% | 34.8% |
-| `eu-phone` | 138 | 79.7% | 100.0% | 0 | 100.0% | 83.6% | 84.8% |
-| `eu-vat` | 142 | 51.4% | 100.0% | 0 | 100.0% | 100.0% | 91.9% |
+| `eu-phone` | 138 | 79.7% | 99.1% | 1 | 100.0% | 83.6% | 84.8% |
+| `eu-vat` | 142 | 51.4% | 100.0% | 0 | 100.0% | 100.0% | 93.4% |
 | `fi-hetu` | 147 | 100.0% | 91.9% | 13 | 100.0% | 91.9% | 57.6% |
 | `fr-nir` | 142 | 70.4% | 100.0% | 0 | 100.0% | 98.6% | 99.1% |
 | `fr-spi` | 161 | 81.4% | 100.0% | 0 | 100.0% | 97.0% | 93.5% |
 | `gb-nhs` | 164 | 69.5% | 99.1% | 1 | 95.1% | 78.8% | 94.2% |
 | `gb-nino` | 135 | 80.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `gps-coordinates` | 152 | 75.0% | 100.0% | 0 | 75.0% | 100.0% | 100.0% |
-| `gr-afm` | 150 | 50.0% | 100.0% | 0 | 90.7% | 80.5% | 98.7% |
+| `gr-afm` | 150 | 50.7% | 100.0% | 0 | 90.7% | 80.5% | 98.7% |
 | `gr-amka` | 149 | 48.3% | 100.0% | 0 | 100.0% | 98.0% | 100.0% |
 | `hr-oib` | 137 | 46.0% | 98.4% | 1 | 97.1% | 75.1% | 98.4% |
-| `hu-taj` | 154 | 51.9% | 100.0% | 0 | 90.3% | 85.3% | 76.0% |
+| `hu-taj` | 154 | 51.9% | 98.8% | 1 | 90.3% | 85.3% | 76.0% |
 | `hu-tax-id` | 151 | 54.3% | 100.0% | 0 | 92.7% | 99.3% | 100.0% |
-| `iban` | 131 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 38.1% |
-| `ie-ppsn` | 139 | 54.0% | 100.0% | 0 | 100.0% | 97.2% | 61.8% |
-| `imei` | 140 | 82.9% | 100.0% | 0 | 100.0% | 97.2% | 100.0% |
+| `iban` | 131 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 42.0% |
+| `ie-ppsn` | 139 | 54.0% | 98.7% | 1 | 100.0% | 97.2% | 62.1% |
+| `imei` | 140 | 83.6% | 100.0% | 0 | 100.0% | 97.2% | 97.5% |
 | `ip-address` | 145 | 46.2% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `is-kennitala` | 127 | 77.2% | 99.0% | 1 | 92.1% | 95.9% | 92.2% |
 | `it-fiscal-code` | 142 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `licence-plate` | 149 | 50.3% | 100.0% | 0 | 50.3% | 100.0% | 96.2% |
 | `lt-asmens-kodas` | 150 | 44.7% | 100.0% | 0 | 44.7% | 100.0% | 100.0% |
-| `lu-national-id` | 153 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 93.5% |
+| `lu-national-id` | 153 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 95.1% |
 | `lv-personal-code` | 168 | 84.5% | 100.0% | 0 | 98.2% | 100.0% | 54.9% |
 | `lv-personal-code-new` | 151 | 49.0% | 100.0% | 0 | 49.0% | 100.0% | n/a |
 | `mac-address` | 149 | 62.4% | 100.0% | 0 | 62.4% | 100.0% | 100.0% |
@@ -69,30 +69,30 @@ Corpus: 30000 lines (9877 with a value, 20123 without), 0.9 MB, seed 1
 | `nl-bsn` | 144 | 59.7% | 100.0% | 0 | 87.5% | 85.7% | 97.7% |
 | `no-fnr` | 156 | 67.3% | 100.0% | 0 | 94.9% | 100.0% | 99.1% |
 | `person-name` | 159 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| `pl-id-card` | 161 | 42.9% | 100.0% | 0 | 99.4% | 100.0% | 96.3% |
-| `pl-nip` | 130 | 80.8% | 100.0% | 0 | 93.8% | 42.4% | 96.3% |
-| `pl-pesel` | 142 | 45.1% | 100.0% | 0 | 94.4% | 97.8% | 98.5% |
+| `pl-id-card` | 161 | 44.1% | 100.0% | 0 | 99.4% | 100.0% | 96.3% |
+| `pl-nip` | 130 | 80.8% | 99.1% | 1 | 93.8% | 42.4% | 96.3% |
+| `pl-pesel` | 142 | 45.8% | 100.0% | 0 | 94.4% | 97.8% | 98.5% |
 | `pl-regon` | 138 | 47.8% | 100.0% | 0 | 47.8% | 100.0% | 97.0% |
 | `postcode` | 141 | 46.8% | 98.5% | 1 | 46.8% | 98.5% | 75.0% |
 | `pt-citizen-card` | 163 | 100.0% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
 | `pt-nif` | 149 | 49.7% | 100.0% | 0 | 82.6% | 96.9% | 98.6% |
-| `ro-cnp` | 138 | 98.6% | 99.3% | 1 | 98.6% | 92.5% | 5.4% |
+| `ro-cnp` | 138 | 98.6% | 99.3% | 1 | 98.6% | 92.5% | 5.7% |
 | `ro-id-card` | 138 | 58.7% | 100.0% | 0 | 58.7% | 100.0% | 100.0% |
-| `se-personnummer` | 140 | 70.7% | 92.5% | 8 | 92.9% | 89.0% | 90.2% |
-| `si-emso` | 146 | 100.0% | 100.0% | 0 | 100.0% | 98.6% | 25.6% |
-| `si-tax-number` | 148 | 52.0% | 100.0% | 0 | 100.0% | 99.3% | 98.0% |
+| `se-personnummer` | 140 | 70.7% | 91.7% | 9 | 92.9% | 89.0% | 90.2% |
+| `si-emso` | 146 | 100.0% | 100.0% | 0 | 100.0% | 98.6% | 27.9% |
+| `si-tax-number` | 148 | 52.0% | 100.0% | 0 | 100.0% | 100.0% | 99.3% |
 | `street-address` | 128 | 54.7% | 100.0% | 0 | 100.0% | 100.0% | 100.0% |
-| **All** | 9877 | 67.2% | 99.4% | 40 | 87.8% | 88.8% | 34.7% |
+| **All** | 9877 | 67.5% | 99.3% | 46 | 87.8% | 88.8% | 34.5% |
 <!-- bench:end -->
 
 What the numbers say:
 
-- **Validation is what keeps the output usable.** With every detector on, precision is 99.4% at the default level against 34.7% for pattern-only matching.
+- **Validation is what keeps the output usable.** With every detector on, precision is 99.3% at the default level against 34.4% for pattern-only matching.
 - **Low-base detectors trade recall for quiet output.** Bare numbers with one check digit (EGN, LNCh, PESEL, OIB, BSN, the Nordic and Baltic codes), VAT numbers and contact data start at low confidence, so at the default `--min-confidence medium` they are reported only with a nearby keyword or in their usual printed format. Detectors marked "only with a keyword" are never reported without one.
 - **Many national numbers share a shape.** An eleven-digit number can be a valid PESEL, OIB, German tax ID and Estonian code at once. Each value is reported once, preferring the detector whose own name is nearby, so at `--min-confidence low` some values are counted under another country and precision there is lower.
 - **Personal data without a check digit stays quiet.** Dates of birth, postcodes, licence and plate numbers, health-card numbers and names in name fields are off by default and reported only next to a keyword; each has 100% precision at the default level here. Names were also checked on about 157,000 public files in Go's module cache: every reported name was in a name field.
 - **Danish and Swedish personal numbers look alike.** A Danish CPR number (DDMMYY-SSSS) is often a valid Swedish personnummer too. The Danish detector is off by default, so those values are counted under Sweden, which is why `se-personnummer` is at about 94% here.
-- **Cards are the noisiest identifier.** A random 16-digit number with a Visa or Mastercard prefix passes the Luhn check one time in ten, so long trace and order numbers look like cards. A nearby word that usually labels other numbers (trace, order, invoice, transaction) lowers a card one step unless a card keyword is also there, which keeps card precision at the default level near 95%.
+- **Cards are the noisiest identifier.** A random 16-digit number with a Visa or Mastercard prefix passes the Luhn check one time in ten, so long trace and order numbers look like cards. A word on the same line that usually labels other numbers (trace, order, invoice, transaction) lowers a card one step unless a card keyword is also there, which keeps card precision at the default level near 95%. The same words lower the thirteen-digit Romanian CNP and Slovenian EMŠO, which random thirteen-digit order and request IDs sometimes pass (the CNP about one time in a thousand).
 
 ## Real repository: speed and false positives
 
@@ -120,7 +120,7 @@ The first run on this repository found 34. The run led to three engine fixes in 
 
 ## Compared with other scanners
 
-Measured on 30 October 2026 with `bench/compare/compare.py`; the method, settings and how to rerun it are in
+Measured on 31 October 2026 with `bench/compare/compare.py` (the 30 October run, before #269, is kept in `bench/compare/results/2026-10-30.json`); the method, settings and how to rerun it are in
 [bench/compare/README.md](../bench/compare/README.md) and [ADR 9](adr/0009-benchmark-method.md). Every tool runs at
 its defaults; Presidio's EU recognisers are enabled for English and its prose recognisers (names, places, dates,
 URLs) are left out, since on code they flag identifiers and call sites. Means over seeds 1, 2 and 3; the
@@ -130,8 +130,8 @@ largest difference between seeds for any figure was 4.6 points, and `results.jso
 
 | | Lines with personal data caught | Alarms on noise lines | Warnings that were real | Time |
 |---|---|---|---|---|
-| pii-eu (defaults) | 50.2% | 5 | 99.9% | 0.5 s |
-| Presidio 2.2.366 | 35.4% | 3,329 | 51.7% | 43.2 s |
+| pii-eu (defaults) | 50.6% | 10 | 99.8% | 0.6 s |
+| Presidio 2.2.366 | 35.4% | 3,329 | 51.7% | 44.2 s |
 | scrubadub 2.0.1 | 9.9% | 822 | 54.8% | 1.3 s |
 
 **Open-source application code** (96,365 lines from 644 fixture, migration, seeder and spec files of Saleor
@@ -140,39 +140,38 @@ values for 15 identifiers inserted on new lines):
 
 | | Values caught | Alarms on original lines | Warnings that were real | Time |
 |---|---|---|---|---|
-| pii-eu (defaults) | 38.8% | 26 | 97.8% | 2.4 s |
-| Presidio 2.2.366 | 54.1% | 6,826 | 19.2% | 147.7 s |
-| scrubadub 2.0.1 | 16.3% | 792 | 38.2% | 3.9 s |
+| pii-eu (defaults) | 71.9% | 17 | 99.2% | 2.8 s |
+| Presidio 2.2.366 | 54.1% | 6,826 | 19.2% | 141.9 s |
+| scrubadub 2.0.1 | 16.3% | 792 | 38.2% | 3.8 s |
 
-Per identifier on open-source code, pii-eu / Presidio: IBAN 100% / 100%, Czech birth number 65% / 8%, CNP 61% /
-40%, Italian fiscal code 61% / 50%, card 57% / 87%, phone 47% / 38%, French NIR 44% / 10%, German tax ID 36% / 67%,
-Dutch BSN 27% / 14%, Spanish DNI 14% / 78%, PESEL 14% / 100%, EGN 15% / 22%, TAJ 13% / 15%, OIB 12% / 84%, email 12%
-/ 100%.
+Per identifier on open-source code, pii-eu / Presidio: IBAN 100% / 100%, CNP 100% / 40%, Czech birth number 100% /
+8%, Italian fiscal code 100% / 50%, phone 87% / 38%, card 81% / 87%, French NIR 78% / 10%, German tax ID 75% / 67%,
+Dutch BSN 61% / 14%, TAJ 54% / 15%, EGN 51% / 22%, DNI 49% / 78%, OIB 49% / 84%, PESEL 48% / 100%, email 47% / 100%.
 
 **Personal data passed to log calls** (320 generated functions in eight languages; 120 pass a personal field
 directly, 40 through a local variable, 160 pass harmless fields):
 
 | | Direct | Through a variable | False alarms | Languages with no findings |
 |---|---|---|---|---|
-| pii-eu | 120 / 120 | 0 / 40 | 0 / 160 | none |
+| pii-eu | 120 / 120 | 40 / 40 | 0 / 160 | none |
 | HoundDog.ai 4.0.0 (Docker image, offline) | 45 / 120 | 15 / 40 | 0 / 160 | Kotlin, PHP, Ruby, TypeScript |
 
 What the numbers say:
 
-- **pii-eu is quiet; that is the trade.** Its warnings are real 98–100% of the time against 19–55% for the
-  others, and it raises tens of alarms where they raise thousands. It also misses more: at the defaults it catches
-  about half of the generated values and 39% of the values in open-source code.
-- **Test folders lower recall.** Most open-source files here are tests, fixtures and migrations. Context there
-  lowers a value one step, so identifiers that start at low confidence (PESEL, EGN, OIB, TAJ, BSN, DNI, emails) are
-  reported only with their own keyword. `--min-confidence low` catches more at the cost of more alarms; `pii-eu fix`
-  replaces keyword-confirmed values in test files even when they are not reported.
-- **Where Presidio is ahead:** emails, PESEL, OIB, Spanish DNI and cards without a keyword. Its alarms on real code
-  are mostly bare numbers read as Swedish organisation numbers, PESELs, German tax numbers and cards.
-- **Where pii-eu is ahead:** Romanian, Czech, French and Dutch numbers, phones, and the shapes Presidio has no
-  recogniser for. It is 60 times faster than Presidio on the open-source corpus.
-- **pii-eu's own false alarms** on open-source code are about 20 random 13-digit order IDs in the application log
-  that pass the CNP check, roughly 1 line in 1,000 (#267).
-- **Log calls:** pii-eu finds every direct case in eight languages and none that go through a local variable
-  (#265); HoundDog follows variables but its free image found nothing in Kotlin, PHP, Ruby or TypeScript here.
+- **pii-eu catches more and warns less.** On open-source application code it catches 71.9% of inserted values
+  with 99.2% of its warnings real; Presidio catches 54.1% with 19.2% real, scrubadub 16.3% with 38.2%.
+- **What changed since 30 October (38.8% caught, 97.8% real):** a test path no longer lowers a value that
+  passes its own check, a value next to other personal fields is raised, a value whose own key names another kind
+  of number (phone, postcode, height) is lowered, and order and request words lower 13-digit national numbers
+  (ADR 10, #267, #269, #271).
+- **Where Presidio is still ahead:** emails, PESEL, OIB, Spanish DNI and cards without a label. pii-eu reports
+  low-confidence identifiers such as these only with their own keyword or next to other personal fields.
+- **pii-eu's own alarms** on the original code are 17 lines, mostly placeholder emails on real domains in
+  fixtures.
+- **Log calls:** pii-eu now follows a value through one local variable (#265) and finds every case here in eight
+  languages; HoundDog follows variables too but its free image found nothing in Kotlin, PHP, Ruby or TypeScript.
+- **Scanning four more open-source applications** (Mastodon, OpenEMR, Medusa, ERPNext) found false alarms that
+  are now fixed (#271): findings fell from 1,947 to 1,155, nearly all of the rest emails in documentation and
+  tests.
 - **Not measured:** HoundDog's paid tier, Presidio with custom recognisers, and real personal data, which no
   benchmark here will ever use.

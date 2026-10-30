@@ -630,6 +630,7 @@ func storeTable() string {
 		}
 		fmt.Fprintf(&b, "- %s: %s\n", p.title, strings.Join(names, ", "))
 	}
+	b.WriteString("\nModule calls: a local module (`source = \"./db\"`) whose folder is scanned is read as its own folder. Any other `module` block (registry, git or a local folder outside the scan) is not read inside. When its source or label names a kind of store (`terraform-aws-modules/rds/aws`, `patients_db`) or it passes arguments that look like store settings (`storage_encrypted`, `retention_in_days`, `kms_key_id`, `publicly_accessible`), it is listed in the inventory's `stores` as type `module`, with its source, those arguments by name and every setting unknown. A module call gives no scan findings.\n")
 	return b.String()
 }
 
@@ -715,12 +716,23 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 	findings, _ := withoutIgnored(res.Findings)
 	m := datamap.Build(datamap.Input{Inventory: res.Inventory, Findings: findings, Recipients: res.Recipients, Lifecycle: res.Lifecycle, Infra: res.Stores})
 	if previous != nil {
-		if f.output != "" {
-			if err := writeMapFile(f, m); err != nil {
+		changes := datamap.Diff(*previous, m)
+		dm := report.DataMap{Tool: "pii-eu", Version: Version, Map: m, Previous: previous, PreviousName: filepath.Base(f.diff)}
+		switch {
+		case f.output != "":
+			if err := writeMapFile(f, dm); err != nil {
 				return 0, err
 			}
+		case f.format == "html":
+			// The page carries the comparison, so it replaces the text summary.
+			if err := report.WriteMap(f.format, stdout, dm); err != nil {
+				return 0, err
+			}
+			if len(changes) > 0 {
+				return ExitFindings, nil
+			}
+			return ExitClean, nil
 		}
-		changes := datamap.Diff(*previous, m)
 		if len(changes) == 0 {
 			fmt.Fprintln(stdout, "Nothing new since the previous map.")
 			return ExitClean, nil
@@ -731,11 +743,12 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 		}
 		return ExitFindings, nil
 	}
+	dm := report.DataMap{Tool: "pii-eu", Version: Version, Map: m}
 	if f.output != "" {
-		if err := writeMapFile(f, m); err != nil {
+		if err := writeMapFile(f, dm); err != nil {
 			return 0, err
 		}
-	} else if err := report.WriteMap(f.format, stdout, report.DataMap{Tool: "pii-eu", Version: Version, Map: m}); err != nil {
+	} else if err := report.WriteMap(f.format, stdout, dm); err != nil {
 		return 0, err
 	}
 	if incomplete(res.Summary, cfg) {
@@ -744,12 +757,12 @@ func runMap(args []string, stdout, stderr io.Writer) (int, error) {
 	return ExitClean, nil
 }
 
-func writeMapFile(f scanFlags, m datamap.Map) error {
+func writeMapFile(f scanFlags, m report.DataMap) error {
 	file, err := os.Create(f.output)
 	if err != nil {
 		return fmt.Errorf("cannot write %s: %w", f.output, err)
 	}
-	if err := report.WriteMap(f.format, file, report.DataMap{Tool: "pii-eu", Version: Version, Map: m}); err != nil {
+	if err := report.WriteMap(f.format, file, m); err != nil {
 		file.Close()
 		return err
 	}

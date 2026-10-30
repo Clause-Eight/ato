@@ -27,6 +27,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+TOOLS = {"pii-eu", "presidio", "scrubadub", "hounddog"}
 REPO = HERE.parent.parent
 
 # Identifiers inserted into the OSS corpus: every one is on by default in pii-eu.
@@ -131,6 +132,8 @@ def compare_lines(name: str, keys: list, lines: list[str], labels: dict, binary:
             flagged[root_rel(f)].append(f["detector"])
     out["pii-eu"] = {**score(labels, len(lines), flagged), "seconds": round(t, 2)}
     for tool, runner in (("presidio", run_presidio), ("scrubadub", run_scrubadub)):
+        if tool not in TOOLS:
+            continue
         hits, t = runner(lines)
         flagged = defaultdict(list)
         for i, typ in hits:
@@ -341,18 +344,26 @@ def main() -> None:
     ap.add_argument("--oss", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--seeds", default="1,2,3")
+    ap.add_argument("--tools", default=",".join(sorted(TOOLS)), help="comma-separated subset, e.g. pii-eu for a quick run")
     a = ap.parse_args()
+    TOOLS.intersection_update(a.tools.split(","))
     a.out.mkdir(parents=True, exist_ok=True)
     work = a.out / "work"
     work.mkdir(exist_ok=True)
     seeds = [int(s) for s in a.seeds.split(",")]
     version = subprocess.run([str(a.pii_eu), "version"], capture_output=True, text=True).stdout.strip()
-    res = {"date": time.strftime("%Y-%m-%d"), "versions": {"pii-eu": version, "presidio-analyzer": md.version("presidio-analyzer"),
-           "spacy": md.version("spacy"), "scrubadub": md.version("scrubadub")}, "synthetic": {}, "oss": {}}
+    versions = {"pii-eu": version}
+    for pkg in ("presidio-analyzer", "spacy", "scrubadub"):
+        try:
+            versions[pkg] = md.version(pkg)
+        except md.PackageNotFoundError:
+            pass
+    res = {"date": time.strftime("%Y-%m-%d"), "versions": versions, "synthetic": {}, "oss": {}}
     for s in seeds:
         res["synthetic"][s] = values_synthetic(a.pii_eu, s, work)
         res["oss"][s], res["oss_meta"] = values_oss(a.pii_eu, a.oss, s, work)
-    res["sinks"] = sinks(a.pii_eu, seeds[0], work)
+    if "hounddog" in TOOLS:
+        res["sinks"] = sinks(a.pii_eu, seeds[0], work)
     (a.out / "results.json").write_text(json.dumps(res, indent=1, default=str))
     print(json.dumps({k: v for k, v in res.items() if k in ("versions", "sinks", "oss_meta")}, indent=1, default=str))
 

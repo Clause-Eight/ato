@@ -166,7 +166,7 @@ A file deleted or replaced in a later layer is still in the image, so it is stil
 
 ### Schemas, special categories and a data inventory
 
-pii-eu also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Django, SQLAlchemy, ActiveRecord, GORM, JPA and Prisma models, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
+pii-eu also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Laravel migrations (`Schema::create`, `Schema::table`), Django, SQLAlchemy, ActiveRecord, GORM, JPA, Doctrine (attributes and annotations), TypeORM and Prisma models, Mongoose schemas, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
 
 - `pii-eu scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
 - `pii-eu inventory` writes every personal-data field it finds as CSV (default), HTML (`--format html`) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
@@ -195,7 +195,10 @@ The map is a draft for the record of processing activities (GDPR Art. 30). Purpo
 ```bash
 pii-eu map --format json --output pii-eu-map.json   # save the map, e.g. on the main branch
 pii-eu map --diff pii-eu-map.json                   # in a pull request: exit 1 if a category, store, recipient or log of personal data is new
+pii-eu map --diff pii-eu-map.json --format html --output map.html   # the same, as a page for the DPO
 ```
+
+The HTML page is written for a data protection officer. It opens with what changed since the saved map (new kinds of personal data, new special-category data, new outside companies, new stores and stores that lost encryption, a retention rule, an EU region or an erasure path, and what was removed), then lists what needs a decision, each with why it matters, what to decide and a link to its file and line. Without `--diff`, the decisions come from the whole map. The full map follows, grouped by store, with categories in words. The page is one file with no external resources, prints cleanly and follows the system's light or dark setting.
 
 ### Data stores in Terraform
 
@@ -219,7 +222,7 @@ infra/main.tf
           region us-east-1 is outside the EEA (from the aws provider block); linked to personal data: tagged data_classification with "pii"
 ```
 
-`pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
+`pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. A `module` block whose source is not read (a registry or git module) is listed as type `module` with its source and the setting-like arguments it passes, every setting unknown, when its source, label or arguments point to a data store; a local module that was scanned is read as its own folder. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
 
 ### Personal data in logs, error trackers and analytics
 
@@ -228,6 +231,8 @@ infra/main.tf
 - a field whose name says it holds personal data, such as `user.email`, `customer.getIban()` or `{"phone": ...}`: medium confidence, with the data category;
 - a whole request body, such as `req.body`, `request.json`, `$request->all()` or `$_POST`: medium confidence;
 - a whole user-like object, such as `user` or `currentUser`: low confidence.
+
+Each of these also counts when it reaches the call through one local variable in the same function (`v := u.Email` and then `log.Println(v)`, within 30 lines), including inside a string template such as `"#{v}"` or `"${v}"`; the finding then says which variable and on which line it was assigned. A variable that is reassigned, or rebound by a loop or a lambda, is forgotten.
 
 The finding names the sink (`log`, `error-tracker` or `analytics`) and shows the expression passed, never a value. Names that are about a value rather than the value (`isEmail`, `emailTemplate`, `len(user.email)`, `hash(user.phone)`) are left alone, and ambiguous words such as `address` count only on a person (`customer.address`, not `server.address`). Switch these findings off with `log-sink = false` under `[detectors]`.
 
@@ -241,7 +246,9 @@ app/signup.py
 
 `pii-eu fix [path]` replaces the values a scan reports in test, fixture and example paths with synthetic ones from the same generators the test suite uses. It takes the scan flags (`--min-confidence`, `--include`, `--countries` and so on), and:
 
-- each replacement passes the same detector's checks, keeps the original's separators, case and length where the format allows, and is the same for the same value in every file and every run;
+- each replacement passes the same detector's checks, keeps the original's separators, case, length and letter and digit positions where the format allows, and is the same for the same value in every file and every run;
+- each replacement keeps what tests commonly check: an IBAN's country and account layout, a card's brand, a phone number's country code and leading digits, a VAT number's country, the sex and century of a CNP or EGN (with a new, valid birth date), an IP address's version, a wallet's address type, a plate's or postcode's leading letters. An email address keeps the shape of its local part and its top-level domain (with a short second level such as `co.uk`), and gets a made-up domain name rather than `example.com`: addresses on reserved example domains are not reported at all, so they would no longer be recognised as samples;
+- where a format has too few values for one to carry the mark (a four-digit postcode, an IPv4 address with short octets), the mark comes first: the replacement may change the format, and a short postcode its country;
 - each replacement carries a synthetic mark, so a later scan reports it as a sample at low confidence and `fix` leaves it alone. A real value carries the mark by chance about once in 65,536 values; it is then reported at low confidence instead of being hidden;
 - `--dry-run` prints the changes as a unified diff, with found values masked, and changes nothing;
 - `--all` also replaces values outside test, fixture and example paths. Review that diff first: it rewrites code and configuration.
@@ -295,9 +302,9 @@ repos:
 ## How it decides
 
 1. A cheap prefilter skips detectors that cannot match a line (too few digits, a missing literal), so scan time stays flat as detectors are added.
-2. A pattern finds candidates; the characters around a candidate must not be letters or digits.
-3. The validator checks the identifier's rules. Only valid values become findings.
-4. Confidence starts at the detector's base. It rises one step when the value is written in the identifier's usual format (an IBAN in groups of four, a birth number with its slash) and one step when a keyword is on the line or the line before, or, in a file with columns, in the value's column name. Keywords come in all 24 EU languages and match without regard to case or diacritics. It drops one step in test, fixture and example paths, and is always low for published sample values (documentation IBANs, well-known test cards).
+2. A pattern finds candidates; the characters around a candidate must not be letters or digits. Each line is also read with percent escapes (URL encoding) decoded and with whole base64 tokens of 12 to 64 characters decoded when they hold only letters and digits; a value found that way points at the encoded text and says which encoding it was in.
+3. The validator checks the identifier's rules. Only valid values become findings. A card number that is also a valid GTIN product code, with gtin, ean, barcode or upc on its line, is not reported.
+4. Confidence starts at the detector's base. It rises one step when the value is written in the identifier's usual format (an IBAN in groups of four, a birth number with its slash) and one step when a keyword is on the line or the line before, or, in a file with columns, in the value's column name. Keywords come in all 24 EU languages and match without regard to case or diacritics. It drops one step in test, fixture and example paths and when, without a keyword, the value's own line has a word that usually labels other numbers (order, invoice, request, trace, transaction), and is always low for published sample values (documentation IBANs, well-known test cards).
 5. Overlapping matches keep the most confident one. A value that is valid for two detectors is reported once, preferring the detector whose own name is nearby, and the finding says what else it could be.
 6. Values that carry the synthetic mark written by `pii-eu fix` are treated like published sample values.
 7. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.

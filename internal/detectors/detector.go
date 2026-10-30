@@ -37,9 +37,12 @@ type Detector struct {
 	TrimGroups  bool
 	Formatted   *regexp.Regexp
 	Needs       Needs
-	// Unlikely are words that usually label other numbers (trace, order, invoice). With one nearby and no
-	// keyword, a match drops one confidence step. They are folded when the registry is read.
+	// Unlikely are words that usually label other numbers (trace, order, invoice). With one on the value's own
+	// line and no keyword, a match drops one confidence step. They are folded when the registry is read.
 	Unlikely []string
+	// Rival is another identifier with its own check that shares the detector's shape (a GTIN product code
+	// for cards). A value that passes the rival's check with one of its words on the same line is dropped.
+	Rival *Rival
 	// NeedsKeyword drops a match unless a keyword is on the line or the line before, for identifiers with no
 	// check digit that would otherwise match too much (format-only ID card numbers, MAC addresses).
 	NeedsKeyword bool
@@ -50,6 +53,25 @@ type Detector struct {
 	// detector's own name. Both are set when the registry is read.
 	OwnWords   []string
 	MatchWords []string
+}
+
+// Rival describes an identifier that is not personal data but can pass a detector's check. Words are folded
+// when the registry is read.
+type Rival struct {
+	Words []string
+	Valid func(string) bool
+}
+
+// referenceWords label the long numbers of business records (orders, invoices, requests, traces), which share
+// their length with some national numbers, also run together with id, no or number as in orderId. Each detector
+// gets its own copy, because the registry folds it in place.
+func referenceWords() []string {
+	base := []string{"order", "invoice", "request", "trace", "transaction", "txn", "shipment", "tracking", "awb", "correlation", "session", "receipt"}
+	ws := append([]string{}, base...)
+	for _, w := range base {
+		ws = append(ws, w+"id", w+"no", w+"number")
+	}
+	return ws
 }
 
 // Countries is Country followed by AlsoIn.
@@ -144,6 +166,11 @@ func resolveWords() {
 		d.MatchWords = unique(ws)
 		for i, w := range d.Unlikely {
 			d.Unlikely[i] = Fold(w)
+		}
+		if d.Rival != nil {
+			for i, w := range d.Rival.Words {
+				d.Rival.Words[i] = Fold(w)
+			}
 		}
 		registry[name] = d
 	}

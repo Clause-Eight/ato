@@ -53,7 +53,9 @@ Terraform binary and no provider downloads, and without growing the single binar
 - No new dependency. The reader and the resource rules are about two thousand lines, most of them the
   per-provider rules, which are plain tables and small functions.
 - Stores created inside registry modules (`source = "terraform-aws-modules/..."`) are not seen; local modules
-  are read as their own folders, where values passed in by the caller are unknown.
+  are read as their own folders, where values passed in by the caller are unknown. Since #264 a module call that
+  is not read and points to a store (by its source, label or setting-like arguments) is listed in the inventory
+  as type `module` with every setting unknown, and gives no findings.
 - Values that depend on `count`, `for_each`, conditionals or `-var-file` stay unknown, which keeps findings
   honest but quieter than a plan-based tool.
 - `.tf.json` files are not read.

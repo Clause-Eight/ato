@@ -52,7 +52,11 @@ func init() {
 	})
 }
 
-var exampleDomains = []string{"example.com", "example.org", "example.net", ".example", ".test", ".invalid", ".localhost", "localhost"}
+// exampleDomains are reserved for documentation and tests (RFC 2606, RFC 6761), and the placeholder domains that
+// test data uses the same way. An address on them is not reported.
+var exampleDomains = []string{"example.com", "example.org", "example.net", ".example", ".test", ".invalid", ".localhost", "localhost",
+	"test.com", "email.com", "domain.com", "yourdomain.com", "mydomain.com", "yourcompany.com", "company.com", "abc.com", "xyz.com",
+	"foo.com", "bar.com", "baz.com", "foobar.com", "acme.com", "sample.com", "somewhere.com", "someone.com"}
 
 func validEmail(s string) bool {
 	at := strings.LastIndexByte(s, '@')

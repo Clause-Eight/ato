@@ -163,3 +163,17 @@ func TestUntrustedRepositoryConfigRunsNothing(t *testing.T) {
 		t.Fatal("git ran the command from the scanned folder's core.fsmonitor")
 	}
 }
+
+func TestLockFilesAreSkipped(t *testing.T) {
+	dir := tree(t, "composer.lock", "web/package-lock.json", "go.sum", "src/app.js")
+	fs, skipped, err := Files(dir, Options{NoGit: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := rels(fs); !reflect.DeepEqual(got, []string{"src/app.js"}) {
+		t.Fatalf("got %v", got)
+	}
+	if len(skipped) != 3 || skipped[0].NotRead {
+		t.Fatalf("lock files are listed as skipped, not as unread data: %+v", skipped)
+	}
+}
