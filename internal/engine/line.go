@@ -328,6 +328,9 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		demote(fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
 	} else if k := otherKind(ctx.line[:start], d.Name); k != "" {
 		demote(fmt.Sprintf("its own name %q says it is another kind of value", k))
+	} else if distinct[d.Name] && wholeQuoted(ctx.line, start, end) && !demoted {
+		m.confidence = raise(m.confidence)
+		m.reasons = append(m.reasons, "the whole of a quoted value")
 	} else if f := ctx.recordField(seg); f != "" {
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("next to another personal field (%s), as in a record about a person", f))
@@ -550,4 +553,20 @@ func contains(xs []string, x string) bool {
 		}
 	}
 	return false
+}
+
+// distinct are identifiers that a random string of their shape rarely passes: a date of birth and a check digit,
+// or a check letter. Only these are raised for being the whole of a quoted value; numbers with a plain checksum
+// are not, since quoted codes in real data pass them often (#274).
+var distinct = map[string]bool{"ro-cnp": true, "bg-egn": true, "pl-pesel": true, "hr-oib": true, "es-dni": true, "es-nie": true,
+	"it-fiscal-code": true, "fr-nir": true, "de-tax-id": true, "be-national-register": true, "ee-isikukood": true, "lt-asmens-kodas": true,
+	"si-emso": true, "fi-hetu": true}
+
+// wholeQuoted reports whether a value is the whole of a quoted string, as values in data and fixtures are.
+func wholeQuoted(line string, start, end int) bool {
+	if start == 0 || end >= len(line) {
+		return false
+	}
+	q := line[start-1]
+	return (q == '"' || q == '\'') && line[end] == q
 }

@@ -1,0 +1,1506 @@
+{
+ "date": "2026-10-31",
+ "versions": {
+  "pii-eu": "pii-eu dev",
+  "presidio-analyzer": "2.2.366",
+  "spacy": "3.8.18",
+  "scrubadub": "2.0.1"
+ },
+ "synthetic": {
+  "1": {
+   "pii-eu": {
+    "caught": 5709,
+    "values": 9877,
+    "recall": 0.5780095170598359,
+    "alarm_lines": 9,
+    "alarm_values": 9,
+    "clean_lines": 20123,
+    "precision_lines": 0.9984260230849947,
+    "precision_values": 0.9984260230849947,
+    "alarm_types": [
+     [
+      "bg-lnch",
+      3
+     ],
+     [
+      "ro-cnp",
+      1
+     ],
+     [
+      "se-personnummer",
+      1
+     ],
+     [
+      "card",
+      1
+     ],
+     [
+      "eu-phone",
+      1
+     ],
+     [
+      "hr-oib",
+      1
+     ],
+     [
+      "pl-nip",
+      1
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 0.0,
+     "at-social-insurance": 0.707,
+     "at-tax-number": 0.829,
+     "be-national-register": 1.0,
+     "bg-egn": 1.0,
+     "bg-lnch": 0.522,
+     "birth-date": 0.0,
+     "card": 1.0,
+     "ch-ahv": 0.0,
+     "crypto-wallet": 0.0,
+     "cy-id-card": 0.551,
+     "cy-tic": 0.562,
+     "cz-birth-number": 1.0,
+     "de-id-card": 0.569,
+     "de-pension": 1.0,
+     "de-tax-id": 1.0,
+     "dk-cpr": 0.09,
+     "driving-licence": 0.302,
+     "ee-isikukood": 1.0,
+     "ehic": 0.0,
+     "email": 0.521,
+     "es-dni": 1.0,
+     "es-nie": 1.0,
+     "es-nss": 0.846,
+     "eu-phone": 0.797,
+     "eu-vat": 0.514,
+     "fi-hetu": 1.0,
+     "fr-nir": 1.0,
+     "fr-spi": 0.814,
+     "gb-nhs": 0.0,
+     "gb-nino": 0.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.507,
+     "gr-amka": 0.564,
+     "hr-oib": 1.0,
+     "hu-taj": 0.519,
+     "hu-tax-id": 0.543,
+     "iban": 1.0,
+     "ie-ppsn": 0.54,
+     "imei": 0.836,
+     "ip-address": 0.0,
+     "is-kennitala": 0.102,
+     "it-fiscal-code": 1.0,
+     "licence-plate": 0.0,
+     "lt-asmens-kodas": 1.0,
+     "lu-national-id": 1.0,
+     "lv-personal-code": 0.869,
+     "lv-personal-code-new": 0.517,
+     "mac-address": 0.0,
+     "mrz": 1.0,
+     "mt-id-card": 0.488,
+     "nl-bsn": 0.597,
+     "no-fnr": 0.077,
+     "person-name": 0.0,
+     "pl-id-card": 0.441,
+     "pl-nip": 0.815,
+     "pl-pesel": 1.0,
+     "pl-regon": 0.478,
+     "postcode": 0.0,
+     "pt-citizen-card": 1.0,
+     "pt-nif": 0.503,
+     "ro-cnp": 1.0,
+     "ro-id-card": 0.587,
+     "se-personnummer": 0.743,
+     "si-emso": 1.0,
+     "si-tax-number": 0.52,
+     "street-address": 0.0
+    },
+    "seconds": 0.58
+   },
+   "presidio": {
+    "caught": 3489,
+    "values": 9877,
+    "recall": 0.35324491242280043,
+    "alarm_lines": 3362,
+    "alarm_values": 4078,
+    "clean_lines": 20123,
+    "precision_lines": 0.5092687198949059,
+    "precision_values": 0.4772465068580951,
+    "alarm_types": [
+     [
+      "DE_TAX_NUMBER",
+      2214
+     ],
+     [
+      "SE_ORGANISATIONSNUMMER",
+      912
+     ],
+     [
+      "PL_PESEL",
+      426
+     ],
+     [
+      "CREDIT_CARD",
+      192
+     ],
+     [
+      "UK_NHS",
+      173
+     ],
+     [
+      "SE_PERSONNUMMER",
+      79
+     ],
+     [
+      "IT_VAT_CODE",
+      30
+     ],
+     [
+      "DE_TAX_ID",
+      28
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 1.0,
+     "at-social-insurance": 0.098,
+     "at-tax-number": 0.014,
+     "be-national-register": 0.099,
+     "bg-egn": 0.172,
+     "bg-lnch": 0.17,
+     "birth-date": 0.0,
+     "card": 0.846,
+     "ch-ahv": 0.061,
+     "crypto-wallet": 0.724,
+     "cy-id-card": 0.0,
+     "cy-tic": 0.075,
+     "cz-birth-number": 0.0,
+     "de-id-card": 0.0,
+     "de-pension": 0.444,
+     "de-tax-id": 0.701,
+     "dk-cpr": 0.219,
+     "driving-licence": 0.31,
+     "ee-isikukood": 0.374,
+     "ehic": 0.26,
+     "email": 1.0,
+     "es-dni": 0.744,
+     "es-nie": 0.735,
+     "es-nss": 0.042,
+     "eu-phone": 0.478,
+     "eu-vat": 0.479,
+     "fi-hetu": 1.0,
+     "fr-nir": 0.092,
+     "fr-spi": 0.286,
+     "gb-nhs": 1.0,
+     "gb-nino": 1.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.113,
+     "gr-amka": 1.0,
+     "hr-oib": 0.818,
+     "hu-taj": 0.084,
+     "hu-tax-id": 1.0,
+     "iban": 1.0,
+     "ie-ppsn": 0.022,
+     "imei": 0.114,
+     "ip-address": 1.0,
+     "is-kennitala": 0.197,
+     "it-fiscal-code": 0.43,
+     "licence-plate": 0.04,
+     "lt-asmens-kodas": 0.347,
+     "lu-national-id": 0.261,
+     "lv-personal-code": 0.095,
+     "lv-personal-code-new": 0.172,
+     "mac-address": 1.0,
+     "mrz": 0.149,
+     "mt-id-card": 0.024,
+     "nl-bsn": 0.049,
+     "no-fnr": 0.173,
+     "person-name": 0.0,
+     "pl-id-card": 0.056,
+     "pl-nip": 0.108,
+     "pl-pesel": 1.0,
+     "pl-regon": 0.109,
+     "postcode": 0.0,
+     "pt-citizen-card": 0.0,
+     "pt-nif": 0.081,
+     "ro-cnp": 0.399,
+     "ro-id-card": 0.0,
+     "se-personnummer": 1.0,
+     "si-emso": 0.568,
+     "si-tax-number": 0.0,
+     "street-address": 0.0
+    },
+    "seconds": 43.26
+   },
+   "scrubadub": {
+    "caught": 955,
+    "values": 9877,
+    "recall": 0.09668927812088692,
+    "alarm_lines": 838,
+    "alarm_values": 838,
+    "clean_lines": 20123,
+    "precision_lines": 0.5326268823201339,
+    "precision_values": 0.5326268823201339,
+    "alarm_types": [
+     [
+      "phone",
+      766
+     ],
+     [
+      "credit_card",
+      72
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 0.0,
+     "at-social-insurance": 0.429,
+     "at-tax-number": 0.0,
+     "be-national-register": 0.037,
+     "bg-egn": 0.331,
+     "bg-lnch": 0.396,
+     "birth-date": 0.0,
+     "card": 0.0,
+     "ch-ahv": 0.0,
+     "crypto-wallet": 0.0,
+     "cy-id-card": 0.0,
+     "cy-tic": 0.0,
+     "cz-birth-number": 0.259,
+     "de-id-card": 0.0,
+     "de-pension": 0.0,
+     "de-tax-id": 0.02,
+     "dk-cpr": 0.129,
+     "driving-licence": 0.062,
+     "ee-isikukood": 0.0,
+     "ehic": 0.24,
+     "email": 1.0,
+     "es-dni": 0.0,
+     "es-nie": 0.0,
+     "es-nss": 0.147,
+     "eu-phone": 0.638,
+     "eu-vat": 0.0,
+     "fi-hetu": 0.007,
+     "fr-nir": 0.0,
+     "fr-spi": 0.0,
+     "gb-nhs": 0.372,
+     "gb-nino": 0.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.0,
+     "gr-amka": 0.242,
+     "hr-oib": 0.022,
+     "hu-taj": 0.0,
+     "hu-tax-id": 0.596,
+     "iban": 0.031,
+     "ie-ppsn": 0.0,
+     "imei": 0.0,
+     "ip-address": 0.117,
+     "is-kennitala": 0.181,
+     "it-fiscal-code": 0.0,
+     "licence-plate": 0.0,
+     "lt-asmens-kodas": 0.0,
+     "lu-national-id": 0.0,
+     "lv-personal-code": 0.208,
+     "lv-personal-code-new": 0.0,
+     "mac-address": 0.0,
+     "mrz": 0.0,
+     "mt-id-card": 0.0,
+     "nl-bsn": 0.0,
+     "no-fnr": 0.096,
+     "person-name": 0.0,
+     "pl-id-card": 0.0,
+     "pl-nip": 0.5,
+     "pl-pesel": 0.028,
+     "pl-regon": 0.0,
+     "postcode": 0.0,
+     "pt-citizen-card": 0.0,
+     "pt-nif": 0.0,
+     "ro-cnp": 0.0,
+     "ro-id-card": 0.0,
+     "se-personnummer": 0.3,
+     "si-emso": 0.0,
+     "si-tax-number": 0.0,
+     "street-address": 0.0
+    },
+    "seconds": 1.25
+   }
+  },
+  "2": {
+   "pii-eu": {
+    "caught": 5868,
+    "values": 10175,
+    "recall": 0.5767076167076167,
+    "alarm_lines": 6,
+    "alarm_values": 6,
+    "clean_lines": 19825,
+    "precision_lines": 0.9989785495403473,
+    "precision_values": 0.9989785495403473,
+    "alarm_types": [
+     [
+      "pl-nip",
+      2
+     ],
+     [
+      "ro-cnp",
+      1
+     ],
+     [
+      "cz-birth-number",
+      1
+     ],
+     [
+      "bg-lnch",
+      1
+     ],
+     [
+      "nl-bsn",
+      1
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 0.0,
+     "at-social-insurance": 0.783,
+     "at-tax-number": 0.846,
+     "be-national-register": 1.0,
+     "bg-egn": 1.0,
+     "bg-lnch": 0.5,
+     "birth-date": 0.0,
+     "card": 1.0,
+     "ch-ahv": 0.0,
+     "crypto-wallet": 0.0,
+     "cy-id-card": 0.468,
+     "cy-tic": 0.506,
+     "cz-birth-number": 1.0,
+     "de-id-card": 0.455,
+     "de-pension": 1.0,
+     "de-tax-id": 1.0,
+     "dk-cpr": 0.11,
+     "driving-licence": 0.267,
+     "ee-isikukood": 1.0,
+     "ehic": 0.0,
+     "email": 0.536,
+     "es-dni": 1.0,
+     "es-nie": 1.0,
+     "es-nss": 0.8,
+     "eu-phone": 0.863,
+     "eu-vat": 0.596,
+     "fi-hetu": 1.0,
+     "fr-nir": 1.0,
+     "fr-spi": 0.72,
+     "gb-nhs": 0.0,
+     "gb-nino": 0.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.541,
+     "gr-amka": 0.589,
+     "hr-oib": 1.0,
+     "hu-taj": 0.539,
+     "hu-tax-id": 0.514,
+     "iban": 1.0,
+     "ie-ppsn": 0.608,
+     "imei": 0.842,
+     "ip-address": 0.0,
+     "is-kennitala": 0.068,
+     "it-fiscal-code": 1.0,
+     "licence-plate": 0.0,
+     "lt-asmens-kodas": 1.0,
+     "lu-national-id": 1.0,
+     "lv-personal-code": 0.83,
+     "lv-personal-code-new": 0.469,
+     "mac-address": 0.0,
+     "mrz": 1.0,
+     "mt-id-card": 0.509,
+     "nl-bsn": 0.636,
+     "no-fnr": 0.101,
+     "person-name": 0.0,
+     "pl-id-card": 0.5,
+     "pl-nip": 0.79,
+     "pl-pesel": 1.0,
+     "pl-regon": 0.439,
+     "postcode": 0.0,
+     "pt-citizen-card": 1.0,
+     "pt-nif": 0.516,
+     "ro-cnp": 1.0,
+     "ro-id-card": 0.486,
+     "se-personnummer": 0.746,
+     "si-emso": 1.0,
+     "si-tax-number": 0.54,
+     "street-address": 0.0
+    },
+    "seconds": 0.59
+   },
+   "presidio": {
+    "caught": 3616,
+    "values": 10175,
+    "recall": 0.35538083538083537,
+    "alarm_lines": 3262,
+    "alarm_values": 3949,
+    "clean_lines": 19825,
+    "precision_lines": 0.525734225065426,
+    "precision_values": 0.4951419074405523,
+    "alarm_types": [
+     [
+      "DE_TAX_NUMBER",
+      2180
+     ],
+     [
+      "SE_ORGANISATIONSNUMMER",
+      840
+     ],
+     [
+      "PL_PESEL",
+      423
+     ],
+     [
+      "CREDIT_CARD",
+      190
+     ],
+     [
+      "UK_NHS",
+      146
+     ],
+     [
+      "SE_PERSONNUMMER",
+      87
+     ],
+     [
+      "IT_VAT_CODE",
+      33
+     ],
+     [
+      "DE_LANR",
+      26
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 1.0,
+     "at-social-insurance": 0.102,
+     "at-tax-number": 0.026,
+     "be-national-register": 0.155,
+     "bg-egn": 0.156,
+     "bg-lnch": 0.205,
+     "birth-date": 0.0,
+     "card": 0.836,
+     "ch-ahv": 0.059,
+     "crypto-wallet": 0.807,
+     "cy-id-card": 0.0,
+     "cy-tic": 0.042,
+     "cz-birth-number": 0.0,
+     "de-id-card": 0.006,
+     "de-pension": 0.474,
+     "de-tax-id": 0.701,
+     "dk-cpr": 0.178,
+     "driving-licence": 0.267,
+     "ee-isikukood": 0.353,
+     "ehic": 0.221,
+     "email": 1.0,
+     "es-dni": 0.735,
+     "es-nie": 0.699,
+     "es-nss": 0.026,
+     "eu-phone": 0.529,
+     "eu-vat": 0.556,
+     "fi-hetu": 1.0,
+     "fr-nir": 0.1,
+     "fr-spi": 0.329,
+     "gb-nhs": 1.0,
+     "gb-nino": 1.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.126,
+     "gr-amka": 1.0,
+     "hr-oib": 0.843,
+     "hu-taj": 0.085,
+     "hu-tax-id": 1.0,
+     "iban": 1.0,
+     "ie-ppsn": 0.028,
+     "imei": 0.158,
+     "ip-address": 1.0,
+     "is-kennitala": 0.167,
+     "it-fiscal-code": 0.452,
+     "licence-plate": 0.032,
+     "lt-asmens-kodas": 0.399,
+     "lu-national-id": 0.14,
+     "lv-personal-code": 0.116,
+     "lv-personal-code-new": 0.1,
+     "mac-address": 1.0,
+     "mrz": 0.143,
+     "mt-id-card": 0.025,
+     "nl-bsn": 0.109,
+     "no-fnr": 0.128,
+     "person-name": 0.0,
+     "pl-id-card": 0.041,
+     "pl-nip": 0.094,
+     "pl-pesel": 1.0,
+     "pl-regon": 0.158,
+     "postcode": 0.0,
+     "pt-citizen-card": 0.0,
+     "pt-nif": 0.056,
+     "ro-cnp": 0.345,
+     "ro-id-card": 0.0,
+     "se-personnummer": 1.0,
+     "si-emso": 0.533,
+     "si-tax-number": 0.0,
+     "street-address": 0.0
+    },
+    "seconds": 42.3
+   },
+   "scrubadub": {
+    "caught": 1085,
+    "values": 10175,
+    "recall": 0.10663390663390664,
+    "alarm_lines": 790,
+    "alarm_values": 790,
+    "clean_lines": 19825,
+    "precision_lines": 0.5786666666666667,
+    "precision_values": 0.5786666666666667,
+    "alarm_types": [
+     [
+      "phone",
+      739
+     ],
+     [
+      "credit_card",
+      51
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 0.0,
+     "at-social-insurance": 0.529,
+     "at-tax-number": 0.0,
+     "be-national-register": 0.024,
+     "bg-egn": 0.49,
+     "bg-lnch": 0.349,
+     "birth-date": 0.013,
+     "card": 0.0,
+     "ch-ahv": 0.0,
+     "crypto-wallet": 0.0,
+     "cy-id-card": 0.0,
+     "cy-tic": 0.0,
+     "cz-birth-number": 0.329,
+     "de-id-card": 0.0,
+     "de-pension": 0.0,
+     "de-tax-id": 0.073,
+     "dk-cpr": 0.267,
+     "driving-licence": 0.06,
+     "ee-isikukood": 0.0,
+     "ehic": 0.252,
+     "email": 1.0,
+     "es-dni": 0.0,
+     "es-nie": 0.0,
+     "es-nss": 0.123,
+     "eu-phone": 0.647,
+     "eu-vat": 0.0,
+     "fi-hetu": 0.014,
+     "fr-nir": 0.0,
+     "fr-spi": 0.0,
+     "gb-nhs": 0.439,
+     "gb-nino": 0.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.0,
+     "gr-amka": 0.234,
+     "hr-oib": 0.039,
+     "hu-taj": 0.0,
+     "hu-tax-id": 0.638,
+     "iban": 0.037,
+     "ie-ppsn": 0.0,
+     "imei": 0.007,
+     "ip-address": 0.093,
+     "is-kennitala": 0.144,
+     "it-fiscal-code": 0.0,
+     "licence-plate": 0.0,
+     "lt-asmens-kodas": 0.0,
+     "lu-national-id": 0.0,
+     "lv-personal-code": 0.211,
+     "lv-personal-code-new": 0.0,
+     "mac-address": 0.0,
+     "mrz": 0.019,
+     "mt-id-card": 0.0,
+     "nl-bsn": 0.0,
+     "no-fnr": 0.155,
+     "person-name": 0.0,
+     "pl-id-card": 0.0,
+     "pl-nip": 0.428,
+     "pl-pesel": 0.031,
+     "pl-regon": 0.0,
+     "postcode": 0.0,
+     "pt-citizen-card": 0.0,
+     "pt-nif": 0.0,
+     "ro-cnp": 0.0,
+     "ro-id-card": 0.0,
+     "se-personnummer": 0.337,
+     "si-emso": 0.0,
+     "si-tax-number": 0.0,
+     "street-address": 0.0
+    },
+    "seconds": 1.2
+   }
+  },
+  "3": {
+   "pii-eu": {
+    "caught": 5822,
+    "values": 10086,
+    "recall": 0.5772357723577236,
+    "alarm_lines": 15,
+    "alarm_values": 15,
+    "clean_lines": 19914,
+    "precision_lines": 0.9974301867397636,
+    "precision_values": 0.9974301867397636,
+    "alarm_types": [
+     [
+      "bg-lnch",
+      5
+     ],
+     [
+      "ro-cnp",
+      3
+     ],
+     [
+      "pl-nip",
+      3
+     ],
+     [
+      "eu-phone",
+      2
+     ],
+     [
+      "cz-birth-number",
+      1
+     ],
+     [
+      "card",
+      1
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 0.0,
+     "at-social-insurance": 0.704,
+     "at-tax-number": 0.857,
+     "be-national-register": 1.0,
+     "bg-egn": 1.0,
+     "bg-lnch": 0.463,
+     "birth-date": 0.0,
+     "card": 1.0,
+     "ch-ahv": 0.0,
+     "crypto-wallet": 0.0,
+     "cy-id-card": 0.547,
+     "cy-tic": 0.544,
+     "cz-birth-number": 1.0,
+     "de-id-card": 0.477,
+     "de-pension": 1.0,
+     "de-tax-id": 1.0,
+     "dk-cpr": 0.099,
+     "driving-licence": 0.248,
+     "ee-isikukood": 1.0,
+     "ehic": 0.0,
+     "email": 0.51,
+     "es-dni": 1.0,
+     "es-nie": 1.0,
+     "es-nss": 0.854,
+     "eu-phone": 0.868,
+     "eu-vat": 0.5,
+     "fi-hetu": 1.0,
+     "fr-nir": 1.0,
+     "fr-spi": 0.743,
+     "gb-nhs": 0.006,
+     "gb-nino": 0.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.581,
+     "gr-amka": 0.561,
+     "hr-oib": 1.0,
+     "hu-taj": 0.487,
+     "hu-tax-id": 0.514,
+     "iban": 1.0,
+     "ie-ppsn": 0.493,
+     "imei": 0.875,
+     "ip-address": 0.0,
+     "is-kennitala": 0.098,
+     "it-fiscal-code": 1.0,
+     "licence-plate": 0.0,
+     "lt-asmens-kodas": 1.0,
+     "lu-national-id": 1.0,
+     "lv-personal-code": 0.779,
+     "lv-personal-code-new": 0.626,
+     "mac-address": 0.0,
+     "mrz": 1.0,
+     "mt-id-card": 0.408,
+     "nl-bsn": 0.626,
+     "no-fnr": 0.112,
+     "person-name": 0.0,
+     "pl-id-card": 0.453,
+     "pl-nip": 0.863,
+     "pl-pesel": 1.0,
+     "pl-regon": 0.493,
+     "postcode": 0.0,
+     "pt-citizen-card": 1.0,
+     "pt-nif": 0.546,
+     "ro-cnp": 1.0,
+     "ro-id-card": 0.53,
+     "se-personnummer": 0.823,
+     "si-emso": 1.0,
+     "si-tax-number": 0.468,
+     "street-address": 0.0
+    },
+    "seconds": 0.76
+   },
+   "presidio": {
+    "caught": 3578,
+    "values": 10086,
+    "recall": 0.35474915724767003,
+    "alarm_lines": 3363,
+    "alarm_values": 4007,
+    "clean_lines": 19914,
+    "precision_lines": 0.5154876818902175,
+    "precision_values": 0.48974914045587675,
+    "alarm_types": [
+     [
+      "DE_TAX_NUMBER",
+      2165
+     ],
+     [
+      "SE_ORGANISATIONSNUMMER",
+      903
+     ],
+     [
+      "PL_PESEL",
+      407
+     ],
+     [
+      "CREDIT_CARD",
+      186
+     ],
+     [
+      "UK_NHS",
+      178
+     ],
+     [
+      "SE_PERSONNUMMER",
+      88
+     ],
+     [
+      "DE_LANR",
+      30
+     ],
+     [
+      "IT_VAT_CODE",
+      21
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 1.0,
+     "at-social-insurance": 0.063,
+     "at-tax-number": 0.027,
+     "be-national-register": 0.119,
+     "bg-egn": 0.15,
+     "bg-lnch": 0.141,
+     "birth-date": 0.0,
+     "card": 0.874,
+     "ch-ahv": 0.063,
+     "crypto-wallet": 0.779,
+     "cy-id-card": 0.0,
+     "cy-tic": 0.02,
+     "cz-birth-number": 0.0,
+     "de-id-card": 0.0,
+     "de-pension": 0.513,
+     "de-tax-id": 0.669,
+     "dk-cpr": 0.18,
+     "driving-licence": 0.261,
+     "ee-isikukood": 0.416,
+     "ehic": 0.29,
+     "email": 1.0,
+     "es-dni": 0.781,
+     "es-nie": 0.801,
+     "es-nss": 0.025,
+     "eu-phone": 0.609,
+     "eu-vat": 0.561,
+     "fi-hetu": 1.0,
+     "fr-nir": 0.072,
+     "fr-spi": 0.257,
+     "gb-nhs": 1.0,
+     "gb-nino": 1.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.081,
+     "gr-amka": 1.0,
+     "hr-oib": 0.815,
+     "hu-taj": 0.12,
+     "hu-tax-id": 1.0,
+     "iban": 1.0,
+     "ie-ppsn": 0.007,
+     "imei": 0.132,
+     "ip-address": 1.0,
+     "is-kennitala": 0.184,
+     "it-fiscal-code": 0.482,
+     "licence-plate": 0.019,
+     "lt-asmens-kodas": 0.327,
+     "lu-national-id": 0.14,
+     "lv-personal-code": 0.125,
+     "lv-personal-code-new": 0.135,
+     "mac-address": 1.0,
+     "mrz": 0.173,
+     "mt-id-card": 0.059,
+     "nl-bsn": 0.082,
+     "no-fnr": 0.168,
+     "person-name": 0.0,
+     "pl-id-card": 0.036,
+     "pl-nip": 0.036,
+     "pl-pesel": 1.0,
+     "pl-regon": 0.11,
+     "postcode": 0.0,
+     "pt-citizen-card": 0.0,
+     "pt-nif": 0.059,
+     "ro-cnp": 0.329,
+     "ro-id-card": 0.0,
+     "se-personnummer": 1.0,
+     "si-emso": 0.618,
+     "si-tax-number": 0.0,
+     "street-address": 0.0
+    },
+    "seconds": 42.02
+   },
+   "scrubadub": {
+    "caught": 954,
+    "values": 10086,
+    "recall": 0.09458655562165377,
+    "alarm_lines": 838,
+    "alarm_values": 838,
+    "clean_lines": 19914,
+    "precision_lines": 0.5323660714285714,
+    "precision_values": 0.5323660714285714,
+    "alarm_types": [
+     [
+      "phone",
+      767
+     ],
+     [
+      "credit_card",
+      71
+     ]
+    ],
+    "by_detector": {
+     "advertising-id": 0.0,
+     "at-social-insurance": 0.465,
+     "at-tax-number": 0.0,
+     "be-national-register": 0.007,
+     "bg-egn": 0.364,
+     "bg-lnch": 0.379,
+     "birth-date": 0.0,
+     "card": 0.0,
+     "ch-ahv": 0.0,
+     "crypto-wallet": 0.0,
+     "cy-id-card": 0.0,
+     "cy-tic": 0.0,
+     "cz-birth-number": 0.293,
+     "de-id-card": 0.0,
+     "de-pension": 0.0,
+     "de-tax-id": 0.041,
+     "dk-cpr": 0.118,
+     "driving-licence": 0.033,
+     "ee-isikukood": 0.0,
+     "ehic": 0.244,
+     "email": 1.0,
+     "es-dni": 0.0,
+     "es-nie": 0.0,
+     "es-nss": 0.171,
+     "eu-phone": 0.629,
+     "eu-vat": 0.0,
+     "fi-hetu": 0.031,
+     "fr-nir": 0.0,
+     "fr-spi": 0.0,
+     "gb-nhs": 0.423,
+     "gb-nino": 0.0,
+     "gps-coordinates": 0.0,
+     "gr-afm": 0.0,
+     "gr-amka": 0.212,
+     "hr-oib": 0.012,
+     "hu-taj": 0.0,
+     "hu-tax-id": 0.658,
+     "iban": 0.028,
+     "ie-ppsn": 0.0,
+     "imei": 0.0,
+     "ip-address": 0.086,
+     "is-kennitala": 0.141,
+     "it-fiscal-code": 0.0,
+     "licence-plate": 0.0,
+     "lt-asmens-kodas": 0.0,
+     "lu-national-id": 0.0,
+     "lv-personal-code": 0.154,
+     "lv-personal-code-new": 0.0,
+     "mac-address": 0.0,
+     "mrz": 0.007,
+     "mt-id-card": 0.0,
+     "nl-bsn": 0.0,
+     "no-fnr": 0.112,
+     "person-name": 0.0,
+     "pl-id-card": 0.0,
+     "pl-nip": 0.36,
+     "pl-pesel": 0.041,
+     "pl-regon": 0.0,
+     "postcode": 0.0,
+     "pt-citizen-card": 0.0,
+     "pt-nif": 0.0,
+     "ro-cnp": 0.0,
+     "ro-id-card": 0.0,
+     "se-personnummer": 0.255,
+     "si-emso": 0.0,
+     "si-tax-number": 0.0,
+     "street-address": 0.0
+    },
+    "seconds": 1.19
+   }
+  }
+ },
+ "oss": {
+  "1": {
+   "pii-eu": {
+    "caught": 2656,
+    "values": 3000,
+    "recall": 0.8853333333333333,
+    "alarm_lines": 4,
+    "alarm_values": 4,
+    "clean_lines": 95983,
+    "precision_lines": 0.9984962406015038,
+    "precision_values": 0.9984962406015038,
+    "alarm_types": [
+     [
+      "email",
+      4
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 1.0,
+     "card": 0.805,
+     "cz-birth-number": 1.0,
+     "de-tax-id": 1.0,
+     "email": 0.465,
+     "es-dni": 0.995,
+     "eu-phone": 0.865,
+     "fr-nir": 1.0,
+     "hr-oib": 1.0,
+     "hu-taj": 0.54,
+     "iban": 1.0,
+     "it-fiscal-code": 1.0,
+     "nl-bsn": 0.61,
+     "pl-pesel": 1.0,
+     "ro-cnp": 1.0
+    },
+    "seconds": 2.44
+   },
+   "presidio": {
+    "caught": 1624,
+    "values": 3000,
+    "recall": 0.5413333333333333,
+    "alarm_lines": 6845,
+    "alarm_values": 7939,
+    "clean_lines": 95983,
+    "precision_lines": 0.1917581768803873,
+    "precision_values": 0.1866612027456203,
+    "alarm_types": [
+     [
+      "SE_ORGANISATIONSNUMMER",
+      3285
+     ],
+     [
+      "PL_PESEL",
+      1786
+     ],
+     [
+      "DE_TAX_NUMBER",
+      1489
+     ],
+     [
+      "CREDIT_CARD",
+      780
+     ],
+     [
+      "SE_PERSONNUMMER",
+      305
+     ],
+     [
+      "EMAIL_ADDRESS",
+      158
+     ],
+     [
+      "MEDICAL_LICENSE",
+      98
+     ],
+     [
+      "PHONE_NUMBER",
+      12
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 0.22,
+     "card": 0.865,
+     "cz-birth-number": 0.08,
+     "de-tax-id": 0.67,
+     "email": 1.0,
+     "es-dni": 0.78,
+     "eu-phone": 0.38,
+     "fr-nir": 0.1,
+     "hr-oib": 0.84,
+     "hu-taj": 0.145,
+     "iban": 1.0,
+     "it-fiscal-code": 0.5,
+     "nl-bsn": 0.14,
+     "pl-pesel": 1.0,
+     "ro-cnp": 0.4
+    },
+    "seconds": 143.39
+   },
+   "scrubadub": {
+    "caught": 481,
+    "values": 3000,
+    "recall": 0.16033333333333333,
+    "alarm_lines": 792,
+    "alarm_values": 812,
+    "clean_lines": 95983,
+    "precision_lines": 0.377847604084839,
+    "precision_values": 0.3720030935808198,
+    "alarm_types": [
+     [
+      "twitter",
+      528
+     ],
+     [
+      "email",
+      156
+     ],
+     [
+      "url",
+      82
+     ],
+     [
+      "phone",
+      30
+     ],
+     [
+      "unknown",
+      15
+     ],
+     [
+      "credit_card",
+      1
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 0.39,
+     "card": 0.0,
+     "cz-birth-number": 0.29,
+     "de-tax-id": 0.04,
+     "email": 1.0,
+     "es-dni": 0.0,
+     "eu-phone": 0.615,
+     "fr-nir": 0.0,
+     "hr-oib": 0.03,
+     "hu-taj": 0.0,
+     "iban": 0.02,
+     "it-fiscal-code": 0.0,
+     "nl-bsn": 0.0,
+     "pl-pesel": 0.02,
+     "ro-cnp": 0.0
+    },
+    "seconds": 3.83
+   }
+  },
+  "2": {
+   "pii-eu": {
+    "caught": 2666,
+    "values": 3000,
+    "recall": 0.8886666666666667,
+    "alarm_lines": 35,
+    "alarm_values": 35,
+    "clean_lines": 95790,
+    "precision_lines": 0.9870418363569049,
+    "precision_values": 0.9870418363569049,
+    "alarm_types": [
+     [
+      "email",
+      16
+     ],
+     [
+      "eu-phone",
+      15
+     ],
+     [
+      "card",
+      4
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 1.0,
+     "card": 0.81,
+     "cz-birth-number": 1.0,
+     "de-tax-id": 1.0,
+     "email": 0.525,
+     "es-dni": 1.0,
+     "eu-phone": 0.865,
+     "fr-nir": 1.0,
+     "hr-oib": 1.0,
+     "hu-taj": 0.53,
+     "iban": 1.0,
+     "it-fiscal-code": 1.0,
+     "nl-bsn": 0.6,
+     "pl-pesel": 1.0,
+     "ro-cnp": 1.0
+    },
+    "seconds": 2.46
+   },
+   "presidio": {
+    "caught": 1599,
+    "values": 3000,
+    "recall": 0.533,
+    "alarm_lines": 6871,
+    "alarm_values": 8030,
+    "clean_lines": 95790,
+    "precision_lines": 0.18878394332939788,
+    "precision_values": 0.18642350557244175,
+    "alarm_types": [
+     [
+      "SE_ORGANISATIONSNUMMER",
+      3251
+     ],
+     [
+      "PL_PESEL",
+      1775
+     ],
+     [
+      "DE_TAX_NUMBER",
+      1597
+     ],
+     [
+      "CREDIT_CARD",
+      822
+     ],
+     [
+      "SE_PERSONNUMMER",
+      320
+     ],
+     [
+      "MEDICAL_LICENSE",
+      110
+     ],
+     [
+      "EMAIL_ADDRESS",
+      99
+     ],
+     [
+      "PHONE_NUMBER",
+      27
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 0.195,
+     "card": 0.855,
+     "cz-birth-number": 0.055,
+     "de-tax-id": 0.745,
+     "email": 1.0,
+     "es-dni": 0.73,
+     "eu-phone": 0.34,
+     "fr-nir": 0.09,
+     "hr-oib": 0.815,
+     "hu-taj": 0.16,
+     "iban": 1.0,
+     "it-fiscal-code": 0.465,
+     "nl-bsn": 0.18,
+     "pl-pesel": 1.0,
+     "ro-cnp": 0.365
+    },
+    "seconds": 144.4
+   },
+   "scrubadub": {
+    "caught": 497,
+    "values": 3000,
+    "recall": 0.16566666666666666,
+    "alarm_lines": 735,
+    "alarm_values": 758,
+    "clean_lines": 95790,
+    "precision_lines": 0.4034090909090909,
+    "precision_values": 0.3960159362549801,
+    "alarm_types": [
+     [
+      "twitter",
+      479
+     ],
+     [
+      "url",
+      110
+     ],
+     [
+      "email",
+      100
+     ],
+     [
+      "phone",
+      54
+     ],
+     [
+      "unknown",
+      13
+     ],
+     [
+      "credential",
+      1
+     ],
+     [
+      "credit_card",
+      1
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 0.4,
+     "card": 0.0,
+     "cz-birth-number": 0.33,
+     "de-tax-id": 0.04,
+     "email": 1.0,
+     "es-dni": 0.0,
+     "eu-phone": 0.63,
+     "fr-nir": 0.0,
+     "hr-oib": 0.04,
+     "hu-taj": 0.0,
+     "iban": 0.03,
+     "it-fiscal-code": 0.0,
+     "nl-bsn": 0.0,
+     "pl-pesel": 0.015,
+     "ro-cnp": 0.0
+    },
+    "seconds": 3.78
+   }
+  },
+  "3": {
+   "pii-eu": {
+    "caught": 2657,
+    "values": 3000,
+    "recall": 0.8856666666666667,
+    "alarm_lines": 12,
+    "alarm_values": 12,
+    "clean_lines": 96365,
+    "precision_lines": 0.9955039340576995,
+    "precision_values": 0.9955039340576995,
+    "alarm_types": [
+     [
+      "email",
+      11
+     ],
+     [
+      "eu-phone",
+      1
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 0.995,
+     "card": 0.745,
+     "cz-birth-number": 1.0,
+     "de-tax-id": 1.0,
+     "email": 0.465,
+     "es-dni": 1.0,
+     "eu-phone": 0.855,
+     "fr-nir": 1.0,
+     "hr-oib": 1.0,
+     "hu-taj": 0.57,
+     "iban": 1.0,
+     "it-fiscal-code": 1.0,
+     "nl-bsn": 0.655,
+     "pl-pesel": 1.0,
+     "ro-cnp": 1.0
+    },
+    "seconds": 2.44
+   },
+   "presidio": {
+    "caught": 1642,
+    "values": 3000,
+    "recall": 0.5473333333333333,
+    "alarm_lines": 6761,
+    "alarm_values": 7896,
+    "clean_lines": 96365,
+    "precision_lines": 0.19540640247530644,
+    "precision_values": 0.19412124923453766,
+    "alarm_types": [
+     [
+      "SE_ORGANISATIONSNUMMER",
+      3290
+     ],
+     [
+      "PL_PESEL",
+      1692
+     ],
+     [
+      "DE_TAX_NUMBER",
+      1537
+     ],
+     [
+      "CREDIT_CARD",
+      829
+     ],
+     [
+      "SE_PERSONNUMMER",
+      280
+     ],
+     [
+      "EMAIL_ADDRESS",
+      114
+     ],
+     [
+      "MEDICAL_LICENSE",
+      108
+     ],
+     [
+      "PHONE_NUMBER",
+      15
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 0.235,
+     "card": 0.85,
+     "cz-birth-number": 0.055,
+     "de-tax-id": 0.73,
+     "email": 1.0,
+     "es-dni": 0.795,
+     "eu-phone": 0.385,
+     "fr-nir": 0.13,
+     "hr-oib": 0.855,
+     "hu-taj": 0.155,
+     "iban": 1.0,
+     "it-fiscal-code": 0.455,
+     "nl-bsn": 0.17,
+     "pl-pesel": 1.0,
+     "ro-cnp": 0.395
+    },
+    "seconds": 143.7
+   },
+   "scrubadub": {
+    "caught": 490,
+    "values": 3000,
+    "recall": 0.16333333333333333,
+    "alarm_lines": 850,
+    "alarm_values": 854,
+    "clean_lines": 96365,
+    "precision_lines": 0.3656716417910448,
+    "precision_values": 0.3645833333333333,
+    "alarm_types": [
+     [
+      "twitter",
+      586
+     ],
+     [
+      "url",
+      116
+     ],
+     [
+      "email",
+      107
+     ],
+     [
+      "phone",
+      34
+     ],
+     [
+      "unknown",
+      10
+     ],
+     [
+      "credential",
+      1
+     ]
+    ],
+    "by_detector": {
+     "bg-egn": 0.43,
+     "card": 0.0,
+     "cz-birth-number": 0.28,
+     "de-tax-id": 0.025,
+     "email": 1.0,
+     "es-dni": 0.0,
+     "eu-phone": 0.62,
+     "fr-nir": 0.0,
+     "hr-oib": 0.03,
+     "hu-taj": 0.0,
+     "iban": 0.04,
+     "it-fiscal-code": 0.0,
+     "nl-bsn": 0.0,
+     "pl-pesel": 0.025,
+     "ro-cnp": 0.0
+    },
+    "seconds": 3.8
+   }
+  }
+ },
+ "oss_meta": {
+  "repos": {
+   "solidus": "f41bf95",
+   "saleor": "cc4aea7",
+   "bagisto": "8cdaffc"
+  },
+  "files": 644,
+  "original_lines": 96365,
+  "seeded_values": 3000
+ },
+ "sinks": {
+  "pii-eu": {
+   "direct": "120/120",
+   "indirect": "40/40",
+   "false_alarms": "0/160",
+   "by_language": {
+    "go": "15/15 direct, 5/5 indirect, 0/20 false",
+    "java": "15/15 direct, 5/5 indirect, 0/20 false",
+    "js": "15/15 direct, 5/5 indirect, 0/20 false",
+    "kt": "15/15 direct, 5/5 indirect, 0/20 false",
+    "php": "15/15 direct, 5/5 indirect, 0/20 false",
+    "py": "15/15 direct, 5/5 indirect, 0/20 false",
+    "rb": "15/15 direct, 5/5 indirect, 0/20 false",
+    "ts": "15/15 direct, 5/5 indirect, 0/20 false"
+   },
+   "seconds": 0.13
+  },
+  "hounddog": {
+   "direct": "45/120",
+   "indirect": "15/40",
+   "false_alarms": "0/160",
+   "by_language": {
+    "go": "11/15 direct, 3/5 indirect, 0/20 false",
+    "java": "14/15 direct, 5/5 indirect, 0/20 false",
+    "js": "12/15 direct, 3/5 indirect, 0/20 false",
+    "kt": "0/15 direct, 0/5 indirect, 0/20 false",
+    "php": "0/15 direct, 0/5 indirect, 0/20 false",
+    "py": "8/15 direct, 4/5 indirect, 0/20 false",
+    "rb": "0/15 direct, 0/5 indirect, 0/20 false",
+    "ts": "0/15 direct, 0/5 indirect, 0/20 false"
+   },
+   "seconds": 2.6,
+   "version": "4.0.0"
+  }
+ },
+ "sinks_hard": {
+  "pii-eu": {
+   "caught": "120/120",
+   "false_alarms": "0/60",
+   "by_pattern": {
+    "two steps": "15/15",
+    "wrapped": "15/15",
+    "method on the field": "15/15",
+    "template": "15/15",
+    "default": "15/15",
+    "structured": "15/15",
+    "error tracker": "15/15",
+    "analytics": "15/15",
+    "length": "0/15",
+    "flag": "0/15",
+    "masked": "0/15",
+    "id": "0/15"
+   },
+   "seconds": 0.08
+  },
+  "hounddog": {
+   "caught": "40/120",
+   "false_alarms": "0/60",
+   "by_pattern": {
+    "two steps": "5/15",
+    "wrapped": "5/15",
+    "method on the field": "0/15",
+    "template": "5/15",
+    "default": "5/15",
+    "structured": "5/15",
+    "error tracker": "15/15",
+    "analytics": "0/15",
+    "length": "0/15",
+    "flag": "0/15",
+    "masked": "0/15",
+    "id": "0/15"
+   },
+   "seconds": 2.02
+  }
+ }
+}

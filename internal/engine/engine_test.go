@@ -250,17 +250,17 @@ func TestRecallInRecordsAndTestPaths(t *testing.T) {
 		}
 		return fs[0].Confidence
 	}
-	base := conf("app/data.json", `{"ref": "`+v+`"}`+"\n")
-	if got := conf("tests/fixtures/data.json", `{"ref": "`+v+`"}`+"\n"); got != base {
+	base := conf("app/data.json", `{ref: `+v+`}`+"\n")
+	if got := conf("tests/fixtures/data.json", `{ref: `+v+`}`+"\n"); got != base {
 		t.Fatalf("a test path changed the confidence: %s, outside tests %s", got, base)
 	}
-	if got := conf("tests/fixtures/people.json", `{"first_name": "Ana", "ref": "`+v+`"}`+"\n"); got <= base {
+	if got := conf("tests/fixtures/people.json", `{first_name: "Ana", ref: `+v+`}`+"\n"); got <= base {
 		t.Fatalf("a first_name in the same record should raise the value: %s, alone %s", got, base)
 	}
 	if got := conf("app/people.yaml", "  last_name: Nowak\n  ref: "+v+"\n"); got <= base {
 		t.Fatalf("a last_name on the line before should raise the value: %s, alone %s", got, base)
 	}
-	if got := conf("app/data.json", `{"firstname_count": 3, "ref": "`+v+`"}`+"\n"); got != base {
+	if got := conf("app/data.json", `{firstname_count: 3, ref: `+v+`}`+"\n"); got != base {
 		t.Fatalf("a name-like word that is not a personal field must not raise: %s", got)
 	}
 }
@@ -317,5 +317,37 @@ func TestFalseAlarmsFromOpenSourceApps(t *testing.T) {
 		if email.Validate(addr) {
 			t.Errorf("%s is on a placeholder domain", addr)
 		}
+	}
+}
+
+// TestWholeQuotedDistinctIdentifiers: a quoted value that is all of a distinct identifier (a date and a check digit,
+// or a check letter) is raised; a number with a plain checksum is not, nor is an unquoted one (#274).
+func TestWholeQuotedDistinctIdentifiers(t *testing.T) {
+	conf := func(name, text string) domain.Confidence {
+		t.Helper()
+		d, _ := detectors.Get(name)
+		fs, err := ScanReader("app/data.json", strings.NewReader(text+"\n"), []detectors.Detector{d})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(fs) != 1 {
+			t.Fatalf("%s %q: %d findings", name, text, len(fs))
+		}
+		return fs[0].Confidence
+	}
+	gen := func(name string) string {
+		g, _ := synth.For(name)
+		return g(rand.New(rand.NewSource(11)))
+	}
+	pesel := gen("pl-pesel")
+	if quoted, bare := conf("pl-pesel", `{"ref": "`+pesel+`"}`), conf("pl-pesel", `ref = `+pesel); quoted <= bare {
+		t.Fatalf("a whole quoted PESEL should be raised: quoted %s, bare %s", quoted, bare)
+	}
+	if inside, bare := conf("pl-pesel", `{"ref": "no `+pesel+`"}`), conf("pl-pesel", `ref = `+pesel); inside != bare {
+		t.Fatalf("a PESEL inside a longer quoted string is not the whole value: %s, bare %s", inside, bare)
+	}
+	taj := gen("hu-taj")
+	if quoted, bare := conf("hu-taj", `{"ref": "`+taj+`"}`), conf("hu-taj", `ref = `+taj); quoted != bare {
+		t.Fatalf("a plain-checksum number is not raised for being quoted: quoted %s, bare %s", quoted, bare)
 	}
 }
