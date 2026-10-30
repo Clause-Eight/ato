@@ -11,6 +11,7 @@ the published numbers are in [docs/BENCHMARKS.md](../../docs/BENCHMARKS.md).
 | Values, generated | The bench corpus (`go run ./bench -export`): 30,000 lines, a third with one generated identifier, the rest noise. Seeds 1, 2 and 3. | pii-eu, Presidio, scrubadub |
 | Values, open-source code | Up to 25,000 lines each from the fixtures, migrations, seeders and specs of three open-source applications, plus a 20,000-line generated application log. 3,000 generated values (200 for each of 15 identifiers) are inserted on new lines, written the way the file type writes values; half are named by a keyword, half by a neutral name. | pii-eu, Presidio, scrubadub |
 | Personal data in logs | 320 generated functions in eight languages: personal fields passed to a log call, directly or through a local variable, and harmless fields. | pii-eu, HoundDog.ai |
+| Personal data in logs, harder | 180 generated functions in Python, JavaScript and TypeScript: two-step variables, wrapped values, string methods on the field, templates, defaults, structured logs, error trackers and analytics events (120 to catch), and harmless lookalikes: the length, a verified flag, a masked value and the id (60 to leave alone). | pii-eu, HoundDog.ai |
 
 HoundDog.ai traces data elements by name into sinks and does not look at values, so it takes part only in the
 third test.

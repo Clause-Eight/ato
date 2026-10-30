@@ -286,6 +286,7 @@ def sinks(binary: Path, seed: int, work: Path) -> dict:
     findings, t = run_piieu(binary, folder)
     out["pii-eu"] = sink_score(labels, {f["path"] for f in findings if f.get("kind") == "sink"}, t)
     out["hounddog"] = hounddog(folder, labels)
+    out["hounddog"].pop("_files", None)
     return out
 
 
@@ -321,7 +322,67 @@ def hounddog(folder: Path, labels: dict) -> dict:
     walk(doc.get("dataflows", []))
     res = sink_score(labels, files, elapsed)
     res["version"] = doc.get("hounddog_version")
+    res["_files"] = files
     return res
+
+
+# Harder log-call cases, in the forms real code writes them. (pattern, positive, python, javascript/typescript);
+# {f} is a personal field name, {F} its camel-case form.
+HARD = [
+    ("two steps", True, "    a = user.{f}\n    b = a\n    log.info(\"done %s\", b)", "  const a = user.{F};\n  const b = a;\n  logger.info('done', b);"),
+    ("wrapped", True, "    log.info(\"done %s\", str(user.{f}))", "  logger.info('done', String(user.{F}));"),
+    ("method on the field", True, "    log.info(\"done %s\", user.{f}.strip())", "  logger.info('done', user.{F}.trim());"),
+    ("template", True, "    log.info(f\"done for {{user.{f}}}\")", "  logger.info(`done for ${{user.{F}}}`);"),
+    ("default", True, "    log.info(\"done %s\", user.{f} or \"\")", "  logger.info('done', user.{F} ?? '');"),
+    ("structured", True, "    log.info(\"done\", extra={{\"{f}\": user.{f}}})", "  logger.info({{ {F}: user.{F} }}, 'done');"),
+    ("error tracker", True, "    sentry_sdk.capture_message(f\"failed for {{user.{f}}}\")", "  Sentry.captureMessage(`failed for ${{user.{F}}}`);"),
+    ("analytics", True, "    analytics.track(user.id, \"signup\", {{\"{f}\": user.{f}}})", "  analytics.track({{ userId: user.id, event: 'signup', properties: {{ {F}: user.{F} }} }});"),
+    ("length", False, "    log.info(\"done %s\", len(user.{f}))", "  logger.info('done', user.{F}.length);"),
+    ("flag", False, "    log.info(\"done %s\", user.{f}_verified)", "  logger.info('done', user.{F}Verified);"),
+    ("masked", False, "    log.info(\"done %s\", mask(user.{f}))", "  logger.info('done', mask(user.{F}));"),
+    ("id", False, "    log.info(\"done %s\", user.id)", "  logger.info('done', user.id);"),
+]
+HARD_FIELDS = ["email", "phone", "iban", "first_name", "date_of_birth"]
+
+
+def sinks_hard(binary: Path, work: Path) -> dict:
+    folder = work / "sinks-hard"
+    shutil.rmtree(folder, ignore_errors=True)
+    labels, n = {}, 0
+    for pattern, positive, py, js in HARD:
+        for f in HARD_FIELDS:
+            camel_f = camel(f)[0].lower() + camel(f)[1:]
+            for lang, body, path in (("py", py, "app/h{n}.py"), ("js", js, "web/h{n}.js"), ("ts", js, "web/h{n}.ts")):
+                n += 1
+                if lang == "py":
+                    text = "import logging\nimport sentry_sdk\nlog = logging.getLogger(__name__)\n\n\ndef handle(user):\n" + body.format(f=f) + "\n"
+                else:
+                    head = "import * as Sentry from '@sentry/node';\nimport { logger } from './logger';\n"
+                    sig = "export function handle(user: any) {\n" if lang == "ts" else "export function handle(user) {\n"
+                    text = head + sig + body.format(F=camel_f) + "\n}\n"
+                rel = path.format(n=n)
+                (folder / rel).parent.mkdir(parents=True, exist_ok=True)
+                (folder / rel).write_text(text)
+                labels[rel] = (pattern, positive)
+    findings, t = run_piieu(binary, folder)
+    out = {"pii-eu": hard_score(labels, {f["path"] for f in findings if f.get("kind") == "sink"}, t)}
+    if "hounddog" in TOOLS:
+        hd = hounddog(folder, {k: ("x", "direct" if v[1] else "harmless") for k, v in labels.items()})
+        files = hd.pop("_files", None)
+        out["hounddog"] = hard_score(labels, files, hd.get("seconds")) if files is not None else hd
+    return out
+
+
+def hard_score(labels: dict, hit: set, seconds) -> dict:
+    positive = {p: pos for p, pos, *_ in HARD}
+    rows = defaultdict(lambda: [0, 0])
+    for rel, (pattern, _) in labels.items():
+        rows[pattern][1] += 1
+        rows[pattern][0] += rel in hit
+    count = lambda pos, i: sum(v[i] for k, v in rows.items() if positive[k] == pos)
+    return {"caught": f"{count(True, 0)}/{count(True, 1)}", "false_alarms": f"{count(False, 0)}/{count(False, 1)}",
+            "by_pattern": {k: f"{v[0]}/{v[1]}" for k, v in rows.items()},
+            "seconds": None if seconds is None else round(seconds, 2)}
 
 
 def sink_score(labels: dict, hit: set, seconds) -> dict:
@@ -364,6 +425,7 @@ def main() -> None:
         res["oss"][s], res["oss_meta"] = values_oss(a.pii_eu, a.oss, s, work)
     if "hounddog" in TOOLS:
         res["sinks"] = sinks(a.pii_eu, seeds[0], work)
+    res["sinks_hard"] = sinks_hard(a.pii_eu, work)
     (a.out / "results.json").write_text(json.dumps(res, indent=1, default=str))
     print(json.dumps({k: v for k, v in res.items() if k in ("versions", "sinks", "oss_meta")}, indent=1, default=str))
 
