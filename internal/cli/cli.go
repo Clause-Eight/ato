@@ -236,7 +236,7 @@ func reorder(args []string) []string {
 
 func takesValue(flagName string) bool {
 	switch strings.TrimLeft(flagName, "-") {
-	case "no-git", "show-values", "staged", "dry-run", "all":
+	case "no-git", "show-values", "staged", "dry-run", "all", "allow-partial":
 		return false
 	}
 	return true
