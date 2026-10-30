@@ -18,6 +18,7 @@ func init() {
 		Validate:    validCNP,
 		Keywords:    []string{"cnp", "cod numeric", "codnumeric", "personal_code", "personalcode", "national_id", "nationalid"},
 		Concepts:    []Concept{NationalID},
+		Unlikely:    referenceWords(),
 		Base:        domain.Medium,
 		Validation:  "date, county code and check digit are valid",
 	})

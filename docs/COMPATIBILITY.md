@@ -67,6 +67,9 @@ Each version only adds optional fields, so a reader written for an earlier `1.x`
 - JSON report, schema version `1.3`: optional `not_read` on entries of `summary.files_skipped` and `summary.sampled`.
 - Confidence: context (a test path, a line of long numbers, an unlikely word, a time-like name) lowers a valid
   value by one step at most (#256).
+- Confidence: order, invoice, request, trace, transaction, shipment and similar words lower a Romanian CNP or
+  Slovenian EMŠO without its own keyword. Words that label other numbers now count only on the value's own line,
+  not on the line before (#267).
 
 ## Deprecation
 
