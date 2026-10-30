@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/internal/synth"
 )
 
 // genGTIN builds a synthetic GTIN of the given length; the check digit is computed from the left, the way GS1

@@ -6,7 +6,7 @@ import (
 	"io"
 	"sort"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Report is everything a reporter may print. Findings carry no raw values: Redact removes them first.

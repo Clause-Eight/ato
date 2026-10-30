@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/textfold"
+	"github.com/Clause-Eight/ato/internal/textfold"
 )
 
 // Concept names a kind of personal data that has keywords in every language. A detector lists its concepts;

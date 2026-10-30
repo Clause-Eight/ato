@@ -7,7 +7,7 @@
         "driver": {
           "name": "pii-eu",
           "version": "test",
-          "informationUri": "https://github.com/Clause-Eight/pii-eu",
+          "informationUri": "https://github.com/Clause-Eight/ato",
           "rules": [
             {
               "id": "tf-non-eea-region",

@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Azure encrypts storage, databases and logs at rest unless transparent data encryption is switched off. Every

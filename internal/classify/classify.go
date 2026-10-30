@@ -10,9 +10,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/textfold"
+	"github.com/Clause-Eight/ato/internal/detectors"
+	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/internal/textfold"
 )
 
 //go:embed words/*.txt

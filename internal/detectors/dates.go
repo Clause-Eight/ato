@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Date of birth next to a birth-date word. There is no check digit, so the date itself is the only test: a

@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Polish PESEL: YY MM DD ZZZ X Q. The month carries the century (+80 1800s, +20 2000s, +40 2100s, +60 2200s).

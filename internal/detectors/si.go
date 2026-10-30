@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Slovenian personal number (EMŠO, enotna matična številka občana): thirteen digits DDMMYYY RR SSS K. The

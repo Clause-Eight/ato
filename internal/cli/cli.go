@@ -10,14 +10,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/baseline"
-	"github.com/Clause-Eight/pii-eu/internal/config"
-	"github.com/Clause-Eight/pii-eu/internal/datamap"
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/engine"
-	"github.com/Clause-Eight/pii-eu/internal/report"
-	"github.com/Clause-Eight/pii-eu/internal/walk"
+	"github.com/Clause-Eight/ato/internal/baseline"
+	"github.com/Clause-Eight/ato/internal/config"
+	"github.com/Clause-Eight/ato/internal/datamap"
+	"github.com/Clause-Eight/ato/internal/detectors"
+	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/internal/engine"
+	"github.com/Clause-Eight/ato/internal/report"
+	"github.com/Clause-Eight/ato/internal/walk"
 )
 
 // Exit codes. They are part of the public contract.

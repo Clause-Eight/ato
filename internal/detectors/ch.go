@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // Swiss social security number (AHV-Nummer, numéro AVS, AHVN13): thirteen digits starting with 756, the ISO

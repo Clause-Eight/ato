@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/internal/domain"
+	"github.com/Clause-Eight/ato/internal/synth"
 )
 
 // gtinCard is a synthetic 13-digit number that is both a valid Maestro card (Luhn) and a valid GTIN-13. The GTIN

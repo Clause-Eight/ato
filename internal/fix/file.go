@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/internal/detectors"
+	"github.com/Clause-Eight/ato/internal/domain"
 )
 
 // File is one file to fix. Replace are the findings to replace; All are every value finding in the file, so
