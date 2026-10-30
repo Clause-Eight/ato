@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode"
 
 	"github.com/Clause-Eight/pii-eu/internal/detectors"
 	"github.com/Clause-Eight/pii-eu/internal/synth"
@@ -165,6 +166,130 @@ func TestFixEveryGenerator(t *testing.T) {
 	}
 	if len(names) < 50 {
 		t.Fatalf("only %d detectors have generators", len(names))
+	}
+
+	// Every replacement keeps the format of the value it replaced: length, separators, case and the positions of
+	// letters and digits. A Base58 wallet varies in length and a street address follows its street name.
+	before := strings.Split(body.String(), "\n")
+	after := strings.Split(readFile(t, dir, "fixtures/all.txt"), "\n")
+	if len(before) != len(after) {
+		t.Fatalf("fix changed the number of lines")
+	}
+	for i, name := range names {
+		if name == "crypto-wallet" || name == "street-address" {
+			continue
+		}
+		a, b := []rune(before[2*i]), []rune(after[2*i])
+		if string(a) == string(b) {
+			t.Errorf("%s: the value was not replaced", name)
+			continue
+		}
+		if !sameFormat(a, b) {
+			t.Errorf("%s: the replacement changed the format", name)
+		}
+	}
+}
+
+// sameFormat reports whether b has the length of a, its other characters in the same places, and letters and
+// digits, in the same case, where a has them.
+func sameFormat(a, b []rune) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		switch {
+		case unicode.IsDigit(a[i]):
+			if !unicode.IsDigit(b[i]) {
+				return false
+			}
+		case unicode.IsLetter(a[i]):
+			if !unicode.IsLetter(b[i]) || unicode.IsUpper(a[i]) != unicode.IsUpper(b[i]) {
+				return false
+			}
+		case a[i] != b[i]:
+			return false
+		}
+	}
+	return true
+}
+
+// like returns a valid value of the detector shaped like template: its separators and case, and what
+// synth.Like keeps (country, brand, class).
+func like(t *testing.T, name, template string) string {
+	t.Helper()
+	d, _ := detectors.Get(name)
+	g, ok := synth.Like(name, template)
+	if !ok {
+		t.Fatalf("no shaper for %s", name)
+	}
+	r := rand.New(rand.NewSource(1))
+	for range 10000 {
+		var src []rune
+		for _, c := range g(r) {
+			if unicode.IsLetter(c) || unicode.IsDigit(c) {
+				src = append(src, c)
+			}
+		}
+		out := []rune(template)
+		k := 0
+		for i, c := range out {
+			if (unicode.IsLetter(c) || unicode.IsDigit(c)) && k < len(src) {
+				out[i] = src[k]
+				if unicode.IsLower(c) {
+					out[i] = unicode.ToLower(out[i])
+				}
+				k++
+			}
+		}
+		if v := string(out); k == len(src) && d.Pattern.FindString(v) == v && d.Validate(d.Normalize(v)) {
+			return v
+		}
+	}
+	t.Fatalf("no valid %s like the template", name)
+	return ""
+}
+
+// TestFixKeepsCountryBrandAndFormat: a Romanian IBAN stays Romanian, a Visa stays a Visa, and each keeps how it
+// was written.
+func TestFixKeepsCountryBrandAndFormat(t *testing.T) {
+	values := []struct{ name, keyword, value, keep string }{
+		{"iban", "iban", like(t, "iban", "RO00 AAAA 0000 0000 0000 0000"), "RO"},
+		{"iban", "iban", like(t, "iban", "nl00aaaa0000000000"), "nl"},
+		{"card", "card", like(t, "card", "4000-0000-0000-0000"), "4"},
+		{"card", "card", like(t, "card", "5100 0000 0000 0000"), "51"},
+		{"card", "card", like(t, "card", "3700 000000 00000"), "37"},
+		{"eu-phone", "phone", like(t, "eu-phone", "+40 721 000 000"), "+40 72"},
+		{"email", "email", like(t, "email", "ana.pop12@firma.ro"), ""},
+		{"ro-cnp", "cnp", like(t, "ro-cnp", "2000101400000"), "2"},
+		{"eu-vat", "vat", like(t, "eu-vat", "NL000000000B01"), "NL"},
+	}
+	dir := t.TempDir()
+	var body strings.Builder
+	for _, v := range values {
+		body.WriteString(v.keyword + ": " + v.value + "\n")
+	}
+	writeFile(t, dir, "tests/fixtures/accounts.txt", body.String())
+	if code, out, errOut := run("fix", "--no-git", "--min-confidence", "low", dir); code != ExitClean || strings.Contains(out, "Nothing to fix") {
+		t.Fatalf("fix: exit %d out %q err %q", code, out, errOut)
+	}
+	lines := strings.Split(readFile(t, dir, "tests/fixtures/accounts.txt"), "\n")
+	for i, v := range values {
+		got := strings.TrimPrefix(lines[i], v.keyword+": ")
+		switch {
+		case got == v.value:
+			t.Errorf("%s %d: not replaced", v.name, i)
+		case !sameFormat([]rune(v.value), []rune(got)):
+			t.Errorf("%s %d: the format changed", v.name, i)
+		case !strings.HasPrefix(got, v.keep):
+			t.Errorf("%s %d: the country, brand or class changed", v.name, i)
+		case v.name == "card" && detectors.CardBrand(detectors.DigitsOnly(got)) != detectors.CardBrand(detectors.DigitsOnly(v.value)):
+			t.Errorf("%s %d: the brand changed", v.name, i)
+		case v.name == "email" && !strings.HasSuffix(got, ".ro"):
+			t.Errorf("%s %d: the top-level domain changed", v.name, i)
+		}
+	}
+	if _, out, _ := run("fix", "--no-git", "--min-confidence", "low", dir); !strings.Contains(out, "Nothing to fix.") {
+		t.Fatalf("a second fix should have nothing to do: %q", out)
 	}
 }
 
