@@ -27,18 +27,19 @@ import (
 // https://www.oecd.org/tax/automatic-exchange/crs-implementation-and-assistance/tax-identification-numbers/Poland-TIN.pdf
 func init() {
 	Register(Detector{
-		Name:        "pl-id-card",
-		Label:       "Polish identity card number (dowód osobisty)",
-		Country:     "PL",
-		OnByDefault: true,
-		Pattern:     regexp.MustCompile(`[A-Z]{3} ?\d{6}`),
-		Normalize:   func(s string) string { return strings.ReplaceAll(s, " ", "") },
-		Validate:    validPLIDCard,
-		Needs:       Needs{Check: func(line string) bool { return capsThenDigit(line, 3, 1) }},
-		Keywords:    []string{"dowód osobisty", "dowod osobisty", "numer dowodu", "nr dowodu", "seria dowodu", "dowód", "dowod"},
-		Concepts:    []Concept{IDCard},
-		Base:        domain.Low,
-		Validation:  "series letters and check digit are valid",
+		Name:         "pl-id-card",
+		Label:        "Polish identity card number (dowód osobisty)",
+		Country:      "PL",
+		OnByDefault:  true,
+		Pattern:      regexp.MustCompile(`[A-Z]{3} ?\d{6}`),
+		Normalize:    func(s string) string { return strings.ReplaceAll(s, " ", "") },
+		Validate:     validPLIDCard,
+		Needs:        Needs{Check: func(line string) bool { return capsThenDigit(line, 3, 1) }},
+		Keywords:     []string{"dowód osobisty", "dowod osobisty", "numer dowodu", "nr dowodu", "seria dowodu", "dowód", "dowod"},
+		Concepts:     []Concept{IDCard},
+		Base:         domain.Low,
+		Validation:   "check digit over the series letters and number is valid",
+		NeedsKeyword: true,
 	})
 	Register(Detector{
 		Name:         "pl-regon",

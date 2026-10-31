@@ -43,7 +43,7 @@ func validKennitala(s string) bool {
 		return false
 	}
 	year := century + d[4]*10 + d[5]
-	if year > time.Now().Year() || !ValidDate(year, d[2]*10+d[3], d[0]*10+d[1]) {
+	if year > time.Now().Year() || !ValidBirthDate(year, d[2]*10+d[3], d[0]*10+d[1]) {
 		return false
 	}
 	sum := 0

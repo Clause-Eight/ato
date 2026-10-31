@@ -63,7 +63,7 @@ func validHUTaxID(s string) bool {
 	}
 	days := d[1]*10000 + d[2]*1000 + d[3]*100 + d[4]*10 + d[5]
 	born := huTaxEpoch.AddDate(0, 0, days)
-	if days == 0 || born.Year() > 2100 {
+	if days == 0 || born.After(time.Now()) {
 		return false
 	}
 	sum := 0

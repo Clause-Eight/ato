@@ -23,16 +23,17 @@ func init() {
 		Validation:  "date and check digit are valid",
 	})
 	Register(Detector{
-		Name:        "bg-lnch",
-		Label:       "Bulgarian foreigner number (LNCh)",
-		Country:     "BG",
-		OnByDefault: true,
-		Pattern:     regexp.MustCompile(`\d{10}`),
-		Validate:    validLNCh,
-		Keywords:    []string{"lnch", "лнч"},
-		Concepts:    []Concept{NationalID},
-		Base:        domain.Low,
-		Validation:  "check digit is valid",
+		Name:         "bg-lnch",
+		Label:        "Bulgarian foreigner number (LNCh)",
+		Country:      "BG",
+		OnByDefault:  true,
+		Pattern:      regexp.MustCompile(`\d{10}`),
+		Validate:     validLNCh,
+		Keywords:     []string{"lnch", "лнч"},
+		Concepts:     []Concept{NationalID},
+		Base:         domain.Low,
+		Validation:   "check digit is valid",
+		NeedsKeyword: true,
 	})
 }
 
@@ -52,7 +53,7 @@ func validEGN(s string) bool {
 	default:
 		year += 1900
 	}
-	if !ValidDate(year, month, d[4]*10+d[5]) {
+	if !ValidBirthDate(year, month, d[4]*10+d[5]) {
 		return false
 	}
 	sum := 0

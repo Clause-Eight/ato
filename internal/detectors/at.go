@@ -70,7 +70,7 @@ func validATSocialInsurance(s string) bool {
 		if day < 1 || day > 31 {
 			return false
 		}
-	case !ValidDate(1900+yy, month, day) && !ValidDate(2000+yy, month, day):
+	case !ValidBirthDate(1900+yy, month, day) && !ValidBirthDate(2000+yy, month, day):
 		return false
 	}
 	sum := 0

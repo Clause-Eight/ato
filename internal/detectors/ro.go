@@ -38,13 +38,25 @@ func validCNP(s string) bool {
 	if !ok || len(d) != 13 {
 		return false
 	}
-	century := map[int]int{1: 1900, 2: 1900, 3: 1800, 4: 1800, 5: 2000, 6: 2000, 7: 1900, 8: 1900, 9: 1900}[d[0]]
-	if century == 0 {
-		return false
-	}
-	year := century + d[1]*10 + d[2]
-	if !ValidDate(year, d[3]*10+d[4], d[5]*10+d[6]) {
-		return false
+	yy, month, day := d[1]*10+d[2], d[3]*10+d[4], d[5]*10+d[6]
+	switch d[0] {
+	case 1, 2:
+		if !ValidBirthDate(1900+yy, month, day) {
+			return false
+		}
+	case 3, 4:
+		if !ValidBirthDate(1800+yy, month, day) {
+			return false
+		}
+	case 5, 6:
+		if !ValidBirthDate(2000+yy, month, day) {
+			return false
+		}
+	default:
+		// 7, 8 (residents) and 9 (foreigners) do not encode the century.
+		if !ValidBirthDate(1900+yy, month, day) && !ValidBirthDate(2000+yy, month, day) {
+			return false
+		}
 	}
 	county := d[7]*10 + d[8]
 	if !(county >= 1 && county <= 48 || county == 51 || county == 52) {

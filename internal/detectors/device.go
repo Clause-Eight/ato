@@ -49,9 +49,11 @@ func init() {
 	})
 }
 
-// imeiReportingBodies are the two-digit reporting body identifiers that allocate (or allocated) type codes.
+// imeiReportingBodies are the two-digit reporting body identifiers that allocate (or allocated) type codes. 50 is
+// left out: every Luhn-valid 15-digit number starting 50 is also a Maestro card number, which the card detector
+// reports, so an entry for it could never match.
 var imeiReportingBodies = map[string]bool{
-	"01": true, "10": true, "30": true, "33": true, "35": true, "44": true, "45": true, "49": true, "50": true,
+	"01": true, "10": true, "30": true, "33": true, "35": true, "44": true, "45": true, "49": true,
 	"51": true, "52": true, "53": true, "54": true, "86": true, "91": true, "99": true,
 }
 

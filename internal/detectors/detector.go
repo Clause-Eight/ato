@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
@@ -293,4 +294,13 @@ func ValidDate(year, month, day int) bool {
 		return day <= 29
 	}
 	return day <= days[month]
+}
+
+// ValidBirthDate is ValidDate for a date of birth: it also rejects a date after today.
+func ValidBirthDate(year, month, day int) bool {
+	if !ValidDate(year, month, day) {
+		return false
+	}
+	y, m, d := time.Now().Date()
+	return year < y || year == y && (month < int(m) || month == int(m) && day <= d)
 }

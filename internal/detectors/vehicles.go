@@ -178,7 +178,7 @@ func dlFinnishCheck(s string) bool {
 	case c >= 'A' && c <= 'F':
 		century = 2000
 	}
-	if !ValidDate(century+d[4]*10+d[5], d[2]*10+d[3], d[0]*10+d[1]) {
+	if !ValidBirthDate(century+d[4]*10+d[5], d[2]*10+d[3], d[0]*10+d[1]) {
 		return false
 	}
 	if individual := d[6]*100 + d[7]*10 + d[8]; individual < 2 || individual > 899 {
@@ -200,7 +200,7 @@ func dlSwedishCheck(s string) bool {
 		return false
 	}
 	// The century is not written; a valid month and day in any year of the two candidates is enough.
-	if !ValidDate(2000+d[0]*10+d[1], d[2]*10+d[3], d[4]*10+d[5]) && !ValidDate(1900+d[0]*10+d[1], d[2]*10+d[3], d[4]*10+d[5]) {
+	if !ValidBirthDate(2000+d[0]*10+d[1], d[2]*10+d[3], d[4]*10+d[5]) && !ValidBirthDate(1900+d[0]*10+d[1], d[2]*10+d[3], d[4]*10+d[5]) {
 		return false
 	}
 	return Luhn(s[:6] + s[7:])

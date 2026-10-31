@@ -56,7 +56,7 @@ func validLVPersonalCode(s string) bool {
 	if !ok || len(d) != 11 || d[6] > 2 {
 		return false
 	}
-	if !ValidDate(1800+d[6]*100+d[4]*10+d[5], d[2]*10+d[3], d[0]*10+d[1]) {
+	if !ValidBirthDate(1800+d[6]*100+d[4]*10+d[5], d[2]*10+d[3], d[0]*10+d[1]) {
 		return false
 	}
 	sum := 0

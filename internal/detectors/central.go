@@ -64,7 +64,7 @@ func validPESEL(s string) bool {
 	year, month := d[0]*10+d[1], d[2]*10+d[3]
 	century := map[int]int{0: 1900, 1: 1900, 2: 2000, 3: 2000, 4: 2100, 5: 2100, 6: 2200, 7: 2200, 8: 1800, 9: 1800}[month/10]
 	month -= map[int]int{1900: 0, 2000: 20, 2100: 40, 2200: 60, 1800: 80}[century]
-	if !ValidDate(century+year, month, d[4]*10+d[5]) {
+	if !ValidBirthDate(century+year, month, d[4]*10+d[5]) {
 		return false
 	}
 	sum := 0
@@ -96,7 +96,7 @@ func validBirthNumber(s string) bool {
 	} else if yy < 54 {
 		year = 2000 + yy
 	}
-	if !ValidDate(year, month, day) {
+	if !ValidBirthDate(year, month, day) {
 		return false
 	}
 	if len(d) == 9 {
