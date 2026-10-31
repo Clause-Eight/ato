@@ -56,6 +56,12 @@ type Detector struct {
 	// Context decides values that are personal data only next to something else, such as a card's security code
 	// next to the card number. A candidate it does not fit is dropped.
 	Context func(Around) Fit
+	// NeedsPerson drops a match unless its record is about a person: a personal field or a patient key on the
+	// line or the line before (in the row, in a file with columns), or another personal-data value on the same
+	// line. It is for codes that say something about a person only next to one, such as a diagnosis code.
+	NeedsPerson bool
+	// Special is the GDPR Art. 9 category a value reveals, such as health for a diagnosis code.
+	Special domain.SpecialCategory
 
 	// OwnWords are the folded Keywords; MatchWords add the concept words, except words that are another
 	// detector's own name. Both are set when the registry is read.

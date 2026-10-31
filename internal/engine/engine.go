@@ -48,6 +48,8 @@ type Request struct {
 	Infra []string
 	// Files names the file-level detectors to run, such as database-dump (ADR 13).
 	Files []string
+	// Records names the checks on records holding Art. 9 data to run, such as hl7-patient.
+	Records []string
 }
 
 func (r Request) infra() bool { return r.Inventory || r.Lifecycle || len(r.Infra) > 0 }
@@ -294,11 +296,11 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 		if err != nil {
 			return fileResult{}, nil, fmt.Errorf("read error: %w", err)
 		}
-		tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, 0, req.Sinks)
+		tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, textOptions{sinks: req.Sinks, records: req.Records})
 		return fileResult{findings: tr.all(req), tf: infra.Parse(rel, data)}, nil, err
 	}
 	if walk.DataKind(rel) != "" {
-		tr, err := scanText(rel, r, req.Detectors, req.MaxRows, false)
+		tr, err := scanText(rel, r, req.Detectors, textOptions{maxRows: req.MaxRows, records: req.Records})
 		fr := fileResult{findings: tr.all(req)}
 		if tr.sampled {
 			fr.sampled = &domain.Skipped{Path: rel, Reason: fmt.Sprintf("only the first %d rows were read (max_rows)", req.MaxRows), NotRead: true}
@@ -318,14 +320,14 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	// retention limit, so it is read whenever stores are.
 	wantExpiry := !req.Lifecycle && req.infra() && lifecycle.Candidate(rel)
 	if !wantSchema && !wantRecipients && !wantLifecycle && !wantExpiry {
-		tr, err := scanText(rel, r, req.Detectors, 0, req.Sinks)
+		tr, err := scanText(rel, r, req.Detectors, textOptions{sinks: req.Sinks, records: req.Records})
 		return fileResult{findings: tr.all(req)}, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return fileResult{}, nil, fmt.Errorf("read error: %w", err)
 	}
-	tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, 0, req.Sinks)
+	tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, textOptions{sinks: req.Sinks, records: req.Records})
 	fr := fileResult{findings: tr.all(req)}
 	if wantSchema {
 		fr.entries = inventory(rel, data)
@@ -347,7 +349,7 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 // ScanReader scans text line by line. path is used for locations, for recognising test folders and for
 // reading data files and SQL dumps by column.
 func ScanReader(path string, r io.Reader, dets []detectors.Detector) ([]domain.Finding, error) {
-	tr, err := scanText(path, r, dets, 0, false)
+	tr, err := scanText(path, r, dets, textOptions{})
 	return tr.findings, err
 }
 
@@ -366,9 +368,18 @@ func (tr textResult) all(req Request) []domain.Finding {
 	return append(tr.findings, tr.dump...)
 }
 
-// scanText scans lines, split into columns where the format has them. With maxRows above zero it stops after
-// that many data rows and reports the file as sampled when more followed.
-func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, sinks bool) (textResult, error) {
+// textOptions are the checks scanText runs besides the detectors. With maxRows above zero it stops after that
+// many data rows and reports the file as sampled when more followed. sinks looks for log and telemetry calls;
+// records names the checks on records holding Art. 9 data.
+type textOptions struct {
+	maxRows int
+	sinks   bool
+	records []string
+}
+
+// scanText scans lines, split into columns where the format has them.
+func scanText(path string, r io.Reader, dets []detectors.Detector, opt textOptions) (textResult, error) {
+	maxRows := opt.maxRows
 	br, ok := r.(*bufio.Reader)
 	if !ok {
 		br = bufio.NewReaderSize(r, 64<<10)
@@ -378,9 +389,10 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 	ctx := lineContext{path: path, testPath: IsTestPath(path)}
 	rows := 0
 	var calls *sinkScanner
-	if sinks {
+	if opt.sinks {
 		calls = newSinkScanner(path)
 	}
+	recs := newRecordScanner(path, opt.records)
 	for lineNo := 1; ; lineNo++ {
 		line, err := readLine(br)
 		if len(line) > 0 || err == nil {
@@ -399,6 +411,9 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 			res.findings = append(res.findings, scanLine(ctx, dets)...)
 			if calls != nil {
 				res.findings = append(res.findings, calls.line(ctx)...)
+			}
+			if recs != nil {
+				res.findings = append(res.findings, recs.line(ctx)...)
 			}
 			ctx.previous = line
 			if len(ctx.above) == recordLines {
@@ -421,6 +436,9 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 	}
 	if sd, ok := sp.(*sqlDump); ok {
 		res.dump = dumpFindings(path, sd)
+	}
+	if recs != nil {
+		res.findings = append(res.findings, recs.end()...)
 	}
 	return res, nil
 }
@@ -477,6 +495,6 @@ func sortRecipients(us []domain.RecipientUse) {
 // ScanText scans text line by line for values and, when sinks is set and path names source code, for log and
 // telemetry calls that are passed personal data.
 func ScanText(path string, r io.Reader, dets []detectors.Detector, sinks bool) ([]domain.Finding, error) {
-	tr, err := scanText(path, r, dets, 0, sinks)
+	tr, err := scanText(path, r, dets, textOptions{sinks: sinks})
 	return tr.findings, err
 }

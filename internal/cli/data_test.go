@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Clause-Eight/ato/v2/internal/report"
 	"github.com/Clause-Eight/ato/v2/internal/synth"
 )
 
@@ -110,7 +111,7 @@ func TestCSVInsideATarballIsScannedByColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	code, doc, out := scanJSON(t, dir)
-	if code != ExitFindings || doc.SchemaVersion != "2.2" {
+	if code != ExitFindings || doc.SchemaVersion != report.SchemaVersion {
 		t.Fatalf("exit %d\n%s", code, out)
 	}
 	values, fields := 0, 0

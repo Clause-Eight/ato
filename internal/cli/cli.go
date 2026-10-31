@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Clause-Eight/ato/v2/internal/art9"
 	"github.com/Clause-Eight/ato/v2/internal/baseline"
 	"github.com/Clause-Eight/ato/v2/internal/config"
 	"github.com/Clause-Eight/ato/v2/internal/datamap"
@@ -302,8 +303,17 @@ func enabledInfra(cfg config.Config) []string {
 }
 
 func enabledFiles(cfg config.Config) []string {
+	return enabledCrossBorder(cfg, engine.FileDetectors())
+}
+
+func enabledRecords(cfg config.Config) []string {
+	return enabledCrossBorder(cfg, engine.RecordDetectors())
+}
+
+// enabledCrossBorder keeps the named checks that are switched on; they belong to no country and are on by default.
+func enabledCrossBorder(cfg config.Config, names []string) []string {
 	var out []string
-	for _, name := range engine.FileDetectors() {
+	for _, name := range names {
 		if cfg.Enabled(name, []string{domain.CrossBorder}, true) {
 			out = append(out, name)
 		}
@@ -381,6 +391,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		RetentionFindings: retention,
 		Infra:             enabledInfra(cfg),
 		Files:             enabledFiles(cfg),
+		Records:           enabledRecords(cfg),
 		MaxRows:           cfg.MaxRows,
 	}
 	scan := engine.Scan
@@ -403,6 +414,9 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 var engineDetector = func() map[string]bool {
 	m := map[string]bool{engine.SpecialCategoryDetector: true, engine.SinkDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
 	for _, name := range append(engine.InfraDetectors(), engine.FileDetectors()...) {
+		m[name] = true
+	}
+	for _, name := range engine.RecordDetectors() {
 		m[name] = true
 	}
 	return m
@@ -565,6 +579,9 @@ func runDetectors(args []string, stdout io.Writer) (int, error) {
 	for _, c := range domain.InfraChecks {
 		fmt.Fprintf(&b, "%-16s %-3s %-7s %s (Terraform)\n", c.Detector, domain.CrossBorder, domain.Medium, c.Label)
 	}
+	for _, c := range art9.Checks {
+		fmt.Fprintf(&b, "%-16s %-3s %-7s %s\n", c.Detector, domain.CrossBorder, domain.High, c.Label)
+	}
 	_, err := io.WriteString(stdout, b.String())
 	return ExitClean, err
 }
@@ -585,7 +602,7 @@ var coverageColumns = []struct {
 func CoverageMatrix() string {
 	cells := map[string]map[int][]string{}
 	for _, d := range detectors.All() {
-		if d.Country == domain.CrossBorder {
+		if d.Country == domain.CrossBorder || d.Special != "" {
 			continue
 		}
 		col := len(coverageColumns) - 1
@@ -663,9 +680,25 @@ func DetectorTable() string {
 		if d.NeedsKeyword {
 			label += " (only with a keyword)"
 		}
+		if d.NeedsPerson {
+			label += " (only in a record about a person)"
+		}
 		fmt.Fprintf(&b, "| `%s` | %s | %s | %s | %s | %s | %s |\n", d.Name, d.Country, label, d.Validation, d.Base, strings.Join(kws, ", "), strings.Join(concepts, ", "))
 	}
+	b.WriteString(recordTable())
 	b.WriteString(storeTable())
+	return b.String()
+}
+
+// recordTable is the part of docs/DETECTORS.md about records holding Art. 9 data.
+func recordTable() string {
+	var b strings.Builder
+	b.WriteString("\n## Health, genetic and biometric records\n\n")
+	b.WriteString("`ato scan` also reads the shape of whole records and files that hold special-category data about a person (docs/adr/0014-art9-records.md) and reports them as `record` findings with the Art. 9 category. They start high; a test or fixture path lowers them one step, and a record about a placeholder (a specification's example patient, a generated name with digits, the public reference genomes) is low. Switch a check off under `[detectors]`, for example `rsid-genotypes = false`.\n\n")
+	b.WriteString("| Name | Finding | Reported when |\n|---|---|---|\n")
+	for _, c := range art9.Checks {
+		fmt.Fprintf(&b, "| `%s` | %s | %s |\n", c.Detector, c.Label, c.When)
+	}
 	return b.String()
 }
 

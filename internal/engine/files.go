@@ -124,7 +124,7 @@ func scanBinary(format, rel string, r *bufio.Reader, req Request) (fileResult, *
 		lines := binmeta.PDFText(data)
 		var fs []domain.Finding
 		if len(lines) > 0 {
-			tr, _ := scanText(rel, strings.NewReader(strings.Join(lines, "\n")), mrzDetectors(req.Detectors), 0, false)
+			tr, _ := scanText(rel, strings.NewReader(strings.Join(lines, "\n")), mrzDetectors(req.Detectors), textOptions{})
 			fs = pdfFindings(tr.findings)
 		}
 		return fileResult{findings: fs, notRead: notRead(notOpened + "; its text was searched only for machine readable zones")}, nil, nil

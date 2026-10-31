@@ -14,7 +14,7 @@
   "properties": {
     "schema_version": {
       "const": "2.2",
-      "description": "2.2 added the kind file, the sink session-replay and criminal-convictions-and-offences (GDPR Art. 10) to special_category; 2.1 added possible on findings; 2.0 renamed the tool from pii-eu to ato (tool.name is ato) and changed no field; 1.3 added not_read on skipped and sampled files; 1.2 added the kinds sink, infra and lifecycle, the store object and sink, data_category and column_name on findings, and sampled and columns in the summary; 1.1 added kind and special_category. Older 1.x reports are 2.0 reports without those fields."
+      "description": "2.2 added the kinds file and record, special_category on value findings, the sink session-replay and criminal-convictions-and-offences (GDPR Art. 10) to special_category; 2.1 added possible on findings; 2.0 renamed the tool from pii-eu to ato (tool.name is ato) and changed no field; 1.3 added not_read on skipped and sampled files; 1.2 added the kinds sink, infra and lifecycle, the store object and sink, data_category and column_name on findings, and sampled and columns in the summary; 1.1 added kind and special_category. Older 1.x reports are 2.0 reports without those fields."
     },
     "tool": {
       "type": "object",
@@ -154,9 +154,10 @@
               "sink",
               "infra",
               "lifecycle",
-              "file"
+              "file",
+              "record"
             ],
-            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9) or criminal data (Art. 10); masked then holds the field name. sink: a log, error-tracker or analytics call that is passed personal data, or session replay set up to record form inputs; masked then holds the expression passed or the setting, never a value. infra: a data store declared in Terraform without encryption, a retention limit or EU residency, or open to the public; masked then holds the resource address. lifecycle: a table or model holding personal data with no erasure path or no retention limit in the code; masked then holds its name. file: a file that holds personal data as a whole or in its metadata (a database dump, a photo with a GPS position, a document naming its author, a possible scan of an identity document, a machine readable zone in a PDF's text); line and column are 1 unless a text dump says where its rows start, and masked holds the table and columns, or the masked author or position, or the word in the file name."
+            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9) or criminal data (Art. 10); masked then holds the field name. sink: a log, error-tracker or analytics call that is passed personal data, or session replay set up to record form inputs; masked then holds the expression passed or the setting, never a value. infra: a data store declared in Terraform without encryption, a retention limit or EU residency, or open to the public; masked then holds the resource address. lifecycle: a table or model holding personal data with no erasure path or no retention limit in the code; masked then holds its name. file: a file that holds personal data as a whole or in its metadata (a database dump, a photo with a GPS position, a document naming its author, a possible scan of an identity document, a machine readable zone in a PDF's text); line and column are 1 unless a text dump says where its rows start, and masked holds the table and columns, or the masked author or position, or the word in the file name. record: a record or file whose structure says it holds special-category data about a person (an HL7 patient segment, a FHIR resource about a patient, a VCF or genotype file, a biometric template); masked then describes the record, never a value."
           },
           "special_category": {
             "enum": [
@@ -170,7 +171,7 @@
               "sex-life-or-sexual-orientation",
               "criminal-convictions-and-offences"
             ],
-            "description": "The GDPR Art. 9 category, or criminal-convictions-and-offences for GDPR Art. 10, for kind field, and for kind sink when the data is special-category data."
+            "description": "The GDPR Art. 9 category, or criminal-convictions-and-offences for GDPR Art. 10, for kinds field and record, for kind sink when the data is special-category data, and for kind value when the value is a code that reveals one, such as a diagnosis code."
           },
           "sink": {
             "enum": [

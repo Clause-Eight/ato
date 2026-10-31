@@ -11,6 +11,9 @@ const (
 	KindField Kind = "field"
 	// KindSink is a call that writes personal data to a log, an error tracker or analytics.
 	KindSink Kind = "sink"
+	// KindRecord is a record or file whose structure says it holds special-category data about a person: an HL7
+	// patient segment, a FHIR resource about a patient, a VCF or raw genotype file, a biometric template.
+	KindRecord Kind = "record"
 	// KindLifecycle is a table, model or collection holding personal data that the code never erases or expires.
 	KindLifecycle Kind = "lifecycle"
 	// KindFile is a file that is personal data as a whole or carries it in its metadata: a database dump with rows

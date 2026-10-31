@@ -170,6 +170,16 @@ func ruleFor(f domain.Finding) sarifRule {
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
 		}
 	}
+	if f.Kind == domain.KindRecord {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". The record is about an identified person, and processing special categories of personal data is prohibited unless an Art. 9(2) condition applies."},
+			Help:             sarifText{"Replace the record with synthetic test data, or record the Art. 9(2) condition and the safeguards for keeping it here."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
+		}
+	}
 	if f.Kind == domain.KindLifecycle {
 		return sarifRule{
 			ID:               ruleID(f),
@@ -196,8 +206,17 @@ func ruleFor(f domain.Finding) sarifRule {
 		ShortDescription: sarifText{f.Label},
 		FullDescription:  sarifText{f.Label + " found in the repository. Personal data in code, fixtures and logs is easy to copy and hard to delete."},
 		Help:             sarifText{"Replace the value with synthetic test data or a reference, and remove it from history if it is real."},
-		Properties:       map[string]any{"tags": []string{"privacy", "gdpr", strings.ToLower(f.Country)}},
+		Properties:       map[string]any{"tags": valueTags(f)},
 	}
+}
+
+// valueTags are a value rule's tags: its country, and the Art. 9 category of a code that reveals one.
+func valueTags(f domain.Finding) []string {
+	tags := []string{"privacy", "gdpr", strings.ToLower(f.Country)}
+	if f.Special != "" {
+		tags = append(tags, "gdpr-art-9", string(f.Special))
+	}
+	return tags
 }
 
 func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarifResult) error {
