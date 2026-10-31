@@ -127,6 +127,10 @@ These changes were planned for the next 1.x release and ship in 2.0.0, next to t
 - Values are also found URL-encoded and as whole base64 tokens, and a Romanian CNP is also found in the groups it
   is printed in (1-6-6, 3-4-6, 3-3-3-4, with spaces or dashes). The span of a decoded finding covers the encoded
   text; `ato fix` does not rewrite encoded values (#263).
+- New detectors with a published check rule: on by default `hu-personal-id`, `pt-niss`, `de-kvnr`,
+  `nl-onderwijsnummer`, `cz-bank-account`, `es-ccc`, `pl-nrb`, `es-cups`, `es-cadastral-reference` and `iccid`;
+  off by default `gb-utr`, `gb-upn`, `no-kontonr`, `rf-creditor-reference` and `ch-qr-reference`. Values that were
+  not reported before may now be reported.
 
 ## Deprecation
 
