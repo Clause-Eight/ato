@@ -14,6 +14,9 @@ import (
 func TestDefinitionOfDone(t *testing.T) {
 	r := rand.New(rand.NewSource(11))
 	for _, d := range All() {
+		if weakChecks[d.Name] != "" && !d.NeedsKeyword {
+			t.Errorf("%s has a weak check and must need a keyword", d.Name)
+		}
 		gen, ok := synth.For(d.Name)
 		if !ok {
 			t.Errorf("%s has no generator in internal/synth", d.Name)
@@ -40,10 +43,16 @@ func TestDefinitionOfDone(t *testing.T) {
 				rejected++
 			}
 		}
-		if strings.Contains(d.Validation, "check") && rejected < n*85/100 {
+		if strings.Contains(d.Validation, "check") && weakChecks[d.Name] == "" && rejected < n*85/100 {
 			t.Errorf("%s: a changed digit is rejected only %d times in %d", d.Name, rejected, n)
 		}
 	}
+}
+
+// weakChecks are official check rules that let more than one changed digit in seven through; each detector
+// listed needs a keyword nearby.
+var weakChecks = map[string]string{
+	"gb-utr": "HMRC's table repeats 2 and 1, so two remainders in eleven give the same check digit",
 }
 
 // changeDigit adds one to the last digit of s.
