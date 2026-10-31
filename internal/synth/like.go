@@ -251,6 +251,28 @@ func likeVAT(sample string) Generator {
 		}
 	case country == "BG":
 		return nil
+	case country == "FR" && n == 11 && allDigits(body):
+		// The key is (SIREN followed by 12) mod 97, and the SIREN passes Luhn.
+		return func(r *rand.Rand) string {
+			siren := Digits(r, 8)
+			siren += fmt.Sprint(LuhnDigit(siren))
+			var v int
+			fmt.Sscan(siren+"12", &v)
+			return "FR" + Pad(v%97, 2) + siren
+		}
+	case country == "IE" && (n == 8 || n == 9) && allDigits(body[:7]):
+		// The check letter is WABCDEFGHIJKLMNOPQRSTUV at the sum of the digits weighted 8 down to 2, plus 9 times
+		// the second letter's index, mod 23.
+		const alphabet = "WABCDEFGHIJKLMNOPQRSTUV"
+		return func(r *rand.Rand) string {
+			b := Digits(r, 7)
+			sum := WeightedSum(b, []int{8, 7, 6, 5, 4, 3, 2})
+			extra := body[8:]
+			if extra != "" {
+				sum += 9 * strings.IndexByte(alphabet, extra[0])
+			}
+			return "IE" + b + string(alphabet[sum%23]) + extra
+		}
 	}
 	head, tail := 1, 0
 	switch country {
