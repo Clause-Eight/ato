@@ -1,7 +1,7 @@
 package domain
 
-// Kind says what a finding is: a personal-data value, a schema field that holds a special category of data, or
-// a call that writes personal data to a log or telemetry sink.
+// Kind says what a finding is: a personal-data value, a schema field that holds a special category of data, a
+// call that writes personal data to a log or telemetry sink, or a file that holds personal data as a whole.
 type Kind string
 
 const (
@@ -13,6 +13,9 @@ const (
 	KindSink Kind = "sink"
 	// KindLifecycle is a table, model or collection holding personal data that the code never erases or expires.
 	KindLifecycle Kind = "lifecycle"
+	// KindFile is a file that is personal data as a whole or carries it in its metadata: a database dump with rows
+	// of personal data, a photo with a GPS position, a document naming its author, a scan of an identity document.
+	KindFile Kind = "file"
 )
 
 // Sink is where a call sends what it is passed.

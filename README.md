@@ -150,13 +150,24 @@ ATO reads exports column by column, so a header like `cnp` raises confidence for
 
 - **CSV and TSV** (`.csv`, `.tsv`, `.tab`): the first line is the header unless it looks like data (a cell with five or more digits); the delimiter (comma, semicolon, tab or pipe) is sniffed from it. Quoted values may hold delimiters and line breaks. Without a header, columns are named `#1`, `#2` and so on.
 - **JSON Lines** (`.jsonl`, `.ndjson`): every string and number is named by its key path, such as `customer.cnp`.
-- **SQL dumps** (`.sql`): `INSERT` values are named by the statement's column list, or by the table's `CREATE TABLE` earlier in the dump; extended inserts and PostgreSQL `COPY ... FROM stdin` blocks work too.
+- **SQL dumps** (`.sql`, and `.dump`, `.bak`, `.pgsql`, `.psql`, `.mysql` when they are text): `INSERT` values are named by the statement's column list, or by the table's `CREATE TABLE` earlier in the dump; extended inserts and PostgreSQL `COPY ... FROM stdin` blocks work too.
 
 Findings carry the column name (`column_name` in JSON), and the JSON summary groups them by file and column with counts per detector (`summary.columns`). Column headers and JSON keys also go into `ato inventory` and, for special categories such as `diagnosis`, into scan findings.
 
 Large data files are sampled: only the first `max_rows` rows of a CSV, TSV or JSON Lines file are read (default 100000; `--max-rows 0` reads every row), and the file is listed under `summary.sampled`. Data files are not skipped by `max_file_size`; SQL dumps are, so raise `max_file_size` for a large dump.
 
 Gzip, tar and zip files (`.gz`, `.tar`, `.tar.gz`, `.tgz`, `.zip`) are scanned inside, archives in archives too, and findings name the entry: `dump.tar.gz!/data/users.csv`. Archives are not skipped by `max_file_size`; each entry is. `exclude` patterns apply to paths inside archives. Against archive bombs, one archive with everything nested in it may produce at most `max_archive_bytes` uncompressed bytes (4 GiB) and `max_archive_entries` entries (1,000,000), nested at most `max_archive_depth` deep (3). Reading stops at a limit, the archive is listed as unreadable with the reason, and the exit code is 3 when nothing else was found.
+
+### Files that are personal data
+
+Some files hold personal data as a whole or in their metadata. They are reported as `file` findings, which name the file and never a value ([ADR 13](docs/adr/0013-binary-metadata.md)):
+
+- **`database-dump`**: a SQL dump (mysqldump, pg_dump plain or custom format, sqlite3 `.dump`, also inside `.gz` and archives) with rows inserted into columns whose names say they hold personal data. The finding names the table and those columns, such as `customers: email, phone`. High confidence when the file says which tool wrote it, medium for 20 rows or more or a pg_dump archive, low for a few rows of seed data.
+- **`document-author`**: a person's name in the author metadata of an office document (`.docx`, `.xlsx`, `.pptx` and their macro and template forms; `.odt`, `.ods`, `.odp`, `.odg`), shown masked. Tool names and generic accounts are left out.
+- **`photo-location`**: a JPEG, TIFF, PNG, WebP or HEIF image with an EXIF GPS position, shown masked.
+- **`id-document-scan`**: an image or PDF whose file name says it is a passport, an identity card, a driving licence or a residence permit, in the EU languages (`passport`, `carte_identite`, `personalausweis`, `buletin`, `dowod_osobisty`, ...). Medium confidence for a word in the file name, low for an ambiguous word or a folder name.
+
+ATO does no OCR: the content of an image is never read as text, so a scan named `IMG_0001.jpg` is not found. A PDF's own text is searched for machine readable zones (`mrz`). Office documents, PDFs and pg_dump archives are still listed as not read in full, since only their metadata, MRZ text or table of contents was read. Switch any of these off under `[detectors]`, such as `photo-location = false`.
 
 ### Container images
 

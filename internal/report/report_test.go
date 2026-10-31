@@ -66,6 +66,23 @@ func TestArticlesNameArt10ForCriminalData(t *testing.T) {
 func TestGolden(t *testing.T) {
 	golden(t, "report", withSink(withCardAuth(sample())))
 	golden(t, "infra", withStore(Report{Tool: "ato", Version: "test", Summary: domain.Summary{FilesScanned: 3}}))
+	golden(t, "file", fileReport())
+}
+
+// fileReport holds file-level findings: a database dump and a document author, with the document not read.
+func fileReport() Report {
+	return Report{
+		Tool: "ato", Version: "test", Root: ".",
+		Findings: []domain.Finding{
+			{Kind: domain.KindFile, Category: domain.CategoryContact, Detector: "database-dump", Label: "Database dump with rows of personal data", Country: "EU",
+				Location: domain.Location{Path: "backups/shop.sql.gz!/shop.sql", Line: 41, Column: 1}, Masked: "customers: email, phone", Confidence: domain.High,
+				Reasons: []string{"120 rows inserted into customers", "written by mysqldump", "columns holding personal data: email, phone"}, Fingerprint: "11112222333344445555666677778888"},
+			{Kind: domain.KindFile, Category: domain.CategoryName, Detector: "document-author", Label: "Person name in document metadata (author)", Country: "EU",
+				Location: domain.Location{Path: "docs/offer.docx", Line: 1, Column: 1}, Value: sentinel, Masked: "•••• •••••••", Confidence: domain.Medium,
+				Reasons: []string{"a person's name in the document's dc:creator"}, Fingerprint: "99990000aaaabbbbccccddddeeeeffff"},
+		},
+		Summary: domain.Summary{FilesScanned: 7, FilesSkipped: []domain.Skipped{{Path: "docs/offer.docx", Reason: "a document format ATO does not open; only its author metadata was read", NotRead: true}}},
+	}
 }
 
 func golden(t *testing.T, name string, r Report) {

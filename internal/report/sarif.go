@@ -180,6 +180,16 @@ func ruleFor(f domain.Finding) sarifRule {
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "data-lifecycle"}},
 		}
 	}
+	if f.Kind == domain.KindFile {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". A file committed to a repository is copied to every clone, build and backup, and its metadata travels with it."},
+			Help:             sarifText{"Remove the file and replace it with synthetic data, strip its metadata, or move it to a store with access control; remove it from history if it is real."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "file"}},
+		}
+	}
 	return sarifRule{
 		ID:               f.Detector,
 		Name:             ruleName(f.Label),
