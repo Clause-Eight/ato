@@ -117,7 +117,7 @@ func properties(f domain.Finding) map[string]any {
 	return p
 }
 
-// ruleID is the detector name, with the Art. 9 category for special-category fields. Sink calls add the sink;
+// ruleID is the detector name, with the Art. 9 or Art. 10 category for special-category fields. Sink calls add the sink;
 // checks on data stores use the detector name, such as tf-unencrypted.
 func ruleID(f domain.Finding) string {
 	switch f.Kind {
@@ -148,6 +148,16 @@ func ruleFor(f domain.Finding) sarifRule {
 			FullDescription:  sarifText{c.Label + ", declared in Terraform. Personal data at rest needs encryption, a retention limit and EU residency or a documented transfer (" + c.Rule + ")."},
 			Help:             sarifText{c.Help},
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "terraform", "infrastructure"}},
+		}
+	}
+	if f.Kind == domain.KindField && f.Special == domain.SpecialCriminal {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". Data relating to criminal convictions and offences may be processed only under the control of official authority or where Union or Member State law authorises it."},
+			Help:             sarifText{"Record the law that authorises processing this field and its safeguards, or remove it if the data is not needed."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-10", string(f.Special)}},
 		}
 	}
 	if f.Kind == domain.KindField {

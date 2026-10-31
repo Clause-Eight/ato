@@ -246,7 +246,7 @@ func markdownMap(m DataMap) string {
 	for _, c := range m.Map.Components {
 		fmt.Fprintf(&b, "## %s\n\n", c.Name)
 		if len(c.Stores) > 0 {
-			b.WriteString("| Store | Categories of personal data | Special categories (Art. 9) | Erasure (Art. 17) | Retention (Art. 5(1)(e)) | Source |\n|---|---|---|---|---|---|\n")
+			b.WriteString("| Store | Categories of personal data | Special categories (Art. 9, 10) | Erasure (Art. 17) | Retention (Art. 5(1)(e)) | Source |\n|---|---|---|---|---|---|\n")
 			for _, s := range c.Stores {
 				src := ""
 				if len(s.Fields) > 0 {

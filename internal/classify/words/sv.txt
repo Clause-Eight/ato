@@ -2,10 +2,11 @@
 health: hälsa, hälsodata, medicinsk, diagnos, sjukdom, allergi, blodgrupp, läkemedel, recept, symtom, funktionsnedsättning, handikapp, graviditet, patient, vaccination, psykisk hälsa, journal, patientjournal, sjukskrivning
 genetic: genetisk, genom, dna, genotyp
 biometric: biometrisk, fingeravtryck, ansiktsmall, näthinna, röstavtryck
-racial-or-ethnic-origin: ras, etniskt ursprung, etnicitet, etnisk tillhörighet
-political-opinions: politisk åsikt, politiska åsikter, politiskt parti, partitillhörighet
-religious-or-philosophical-beliefs: religion, trosuppfattning, religiös övertygelse, filosofisk övertygelse, samfund
-trade-union-membership: fackförening, fackligt medlemskap, fackmedlem
-sex-life-or-sexual-orientation: sexuell läggning, sexuell orientering, sexualliv, sexualitet
+racial-or-ethnic-origin: ras, etniskt ursprung, etnicitet, etnisk tillhörighet, etnisk bakgrund, rasmässigt ursprung
+political-opinions: politisk åsikt, politiska åsikter, politiskt parti, partitillhörighet, politisk övertygelse, politisk tillhörighet, partimedlem, partimedlemskap
+religious-or-philosophical-beliefs: religion, trosuppfattning, religiös övertygelse, filosofisk övertygelse, samfund, religionstillhörighet, religiös tillhörighet, livsåskådning, kyrkotillhörighet
+trade-union-membership: fackförening, fackligt medlemskap, fackmedlem, fackföreningsmedlem, fackavgift, medlemskap i fackförening
+sex-life-or-sexual-orientation: sexuell läggning, sexuell orientering, sexualliv, sexualitet, sexuell preferens, sexuellt beteende
+criminal-convictions-and-offences: belastningsregister, utdrag ur belastningsregistret, brottsregister, fällande dom, brottmålsdom, brottslighet, lagöverträdelse, fängelsestraff
 demographic: kön, nationalitet, medborgarskap, civilstånd, ålder, födelseort
 online-identifier: ip adress, enhets id, mac adress, annons id

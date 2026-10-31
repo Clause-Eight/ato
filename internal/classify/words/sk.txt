@@ -2,10 +2,11 @@
 health: zdravie, zdravotný, lekársky, diagnóza, choroba, ochorenie, alergia, krvná skupina, liek, lieky, recept, príznak, príznaky, postihnutie, invalidita, tehotenstvo, pacient, očkovanie, duševné zdravie, zdravotný záznam, zdravotná dokumentácia, práceneschopnosť
 genetic: genetický, genóm, dna, genotyp
 biometric: biometrický, odtlačok prsta, odtlačky prstov, šablóna tváre, dúhovka, sietnica, hlasový odtlačok
-racial-or-ethnic-origin: rasa, rasový, etnický pôvod, etnická príslušnosť
-political-opinions: politický názor, politické názory, politická strana, stranícka príslušnosť
-religious-or-philosophical-beliefs: náboženstvo, vierovyznanie, náboženské presvedčenie, viera, svetonázor
-trade-union-membership: odbory, odborová organizácia, členstvo v odboroch
-sex-life-or-sexual-orientation: sexuálna orientácia, sexuálny život, sexualita
+racial-or-ethnic-origin: rasa, rasový, etnický pôvod, etnická príslušnosť, rasový pôvod, etnicita
+political-opinions: politický názor, politické názory, politická strana, stranícka príslušnosť, politické presvedčenie, politická orientácia, členstvo v strane
+religious-or-philosophical-beliefs: náboženstvo, vierovyznanie, náboženské presvedčenie, viera, svetonázor, náboženská príslušnosť, filozofické presvedčenie, cirkevná príslušnosť
+trade-union-membership: odbory, odborová organizácia, členstvo v odboroch, člen odborov, odborová príslušnosť
+sex-life-or-sexual-orientation: sexuálna orientácia, sexuálny život, sexualita, sexuálne správanie, sexuálne preferencie
+criminal-convictions-and-offences: register trestov, výpis z registra trestov, odpis z registra trestov, odsúdenie, trestný čin, trestné činy, trestná činnosť, bezúhonnosť, trest odňatia slobody
 demographic: pohlavie, národnosť, štátne občianstvo, rodinný stav, vek, miesto narodenia
 online-identifier: ip adresa, identifikátor zariadenia, mac adresa

@@ -75,24 +75,17 @@ var placeholderHandles = map[string]bool{
 
 // socialReserved are first path segments that are the site's own pages rather than accounts.
 var socialReserved = map[string]map[string]bool{
-	"facebook": words("pages groups events share sharer dialog plugins login logout home about privacy policies policy help " +
+	"facebook": words(strings.Fields("pages groups events share sharer dialog plugins login logout home about privacy policies policy help " +
 		"settings marketplace watch gaming business ads legal terms connect recover notes photos videos people hashtag " +
-		"places search messages notifications friends bookmarks profile permalink story stories reel reels live fundraisers"),
-	"instagram": words("p reel reels explore stories accounts about developer legal direct tv web static privacy terms help " +
-		"challenge emails oauth api graphql press blog session login"),
-	"x": words("home intent share i search hashtag explore settings login logout signup tos privacy rest download web oauth " +
+		"places search messages notifications friends bookmarks profile permalink story stories reel reels live fundraisers")...),
+	"instagram": words(strings.Fields("p reel reels explore stories accounts about developer legal direct tv web static privacy terms help " +
+		"challenge emails oauth api graphql press blog session login")...),
+	"x": words(strings.Fields("home intent share i search hashtag explore settings login logout signup tos privacy rest download web oauth " +
 		"streaming messages notifications compose about help jobs account rules policies following followers lists " +
-		"status statuses widgets oauth2 personalization"),
+		"status statuses widgets oauth2 personalization")...),
 	"tiktok": nil,
 }
 
-func words(s string) map[string]bool {
-	m := map[string]bool{}
-	for _, w := range strings.Fields(s) {
-		m[w] = true
-	}
-	return m
-}
 
 // splitProfile returns the subdomain, the site's name (linkedin, facebook, ...) and the path with its query.
 func splitProfile(s string) (sub, site, path string, ok bool) {

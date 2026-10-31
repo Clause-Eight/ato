@@ -2,10 +2,11 @@
 health: egészség, egészségügyi, orvosi, diagnózis, betegség, allergia, vércsoport, gyógyszer, gyógyszerek, recept, tünet, tünetek, fogyatékosság, rokkantság, terhesség, beteg, páciens, oltás, mentális egészség, kórlap, kórtörténet, betegszabadság, terápia
 genetic: genetikai, genom, genotípus
 biometric: biometrikus, ujjlenyomat, arcsablon, írisz, hangminta
-racial-or-ethnic-origin: faj, faji, etnikum, etnikai hovatartozás, etnikai származás, nemzetiség
-political-opinions: politikai vélemény, politikai nézet, párttagság, politikai párt, pártállás
-religious-or-philosophical-beliefs: vallás, vallási, felekezet, világnézet
-trade-union-membership: szakszervezet, szakszervezeti tagság, szakszervezeti tag
-sex-life-or-sexual-orientation: szexuális irányultság, szexuális élet, szexualitás
+racial-or-ethnic-origin: faj, faji, etnikum, etnikai hovatartozás, etnikai származás, nemzetiség, faji származás
+political-opinions: politikai vélemény, politikai nézet, párttagság, politikai párt, pártállás, politikai meggyőződés, politikai hovatartozás, pártszimpátia, párttag
+religious-or-philosophical-beliefs: vallás, vallási, felekezet, világnézet, vallási meggyőződés, vallási hovatartozás, felekezeti hovatartozás, vallásfelekezet, világnézeti meggyőződés
+trade-union-membership: szakszervezet, szakszervezeti tagság, szakszervezeti tag, szakszervezeti tagdíj
+sex-life-or-sexual-orientation: szexuális irányultság, szexuális élet, szexualitás, szexuális beállítottság, szexuális preferencia, nemi irányultság
+criminal-convictions-and-offences: erkölcsi bizonyítvány, büntetett előélet, büntetlen előélet, bűnügyi nyilvántartás, bűncselekmény, bűncselekmények, elítélés, büntetőjogi elítélés, szabadságvesztés
 demographic: nem, neme, állampolgárság, családi állapot, életkor, születési hely
 online-identifier: ip cím, eszközazonosító, mac cím, hirdetési azonosító

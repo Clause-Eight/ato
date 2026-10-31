@@ -51,8 +51,20 @@ func TestNoFormatLeaksValues(t *testing.T) {
 	}
 }
 
+func TestArticlesNameArt10ForCriminalData(t *testing.T) {
+	for want, specials := range map[string][]string{
+		"GDPR Art. 9":        {"health"},
+		"GDPR Art. 10":       {"criminal-convictions-and-offences"},
+		"GDPR Art. 9 and 10": {"health", "criminal-convictions-and-offences"},
+	} {
+		if got := articles(specials); got != want {
+			t.Errorf("%v: got %q, want %q", specials, got, want)
+		}
+	}
+}
+
 func TestGolden(t *testing.T) {
-	golden(t, "report", withSink(sample()))
+	golden(t, "report", withSink(withCardAuth(sample())))
 	golden(t, "infra", withStore(Report{Tool: "ato", Version: "test", Summary: domain.Summary{FilesScanned: 3}}))
 }
 

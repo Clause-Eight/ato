@@ -54,7 +54,7 @@ const (
 	CategorySpecial     DataCategory = "special-category"
 )
 
-// SpecialCategory is one of the categories of GDPR Art. 9(1).
+// SpecialCategory is one of the categories of GDPR Art. 9(1), or criminal convictions and offences (Art. 10).
 type SpecialCategory string
 
 const (
@@ -66,12 +66,27 @@ const (
 	SpecialReligious    SpecialCategory = "religious-or-philosophical-beliefs"
 	SpecialTradeUnion   SpecialCategory = "trade-union-membership"
 	SpecialSexLife      SpecialCategory = "sex-life-or-sexual-orientation"
+	// SpecialCriminal is data relating to criminal convictions and offences (Art. 10). It is not an Art. 9
+	// category, but may be processed only under official authority or where the law allows it, so it is
+	// reported the same way.
+	SpecialCriminal SpecialCategory = "criminal-convictions-and-offences"
 )
 
 // SpecialCategories lists the Art. 9 categories in the order of the article.
 var SpecialCategories = []SpecialCategory{SpecialRacialEthnic, SpecialPolitical, SpecialReligious, SpecialTradeUnion, SpecialGenetic, SpecialBiometric, SpecialHealth, SpecialSexLife}
 
-// Classification is what a field name says about its data. Special is set only for Art. 9 data, and then
+// Protected lists the Art. 9 categories followed by criminal convictions and offences (Art. 10).
+var Protected = append(append([]SpecialCategory{}, SpecialCategories...), SpecialCriminal)
+
+// Article is the GDPR article that restricts the category: "Art. 10" for criminal data, "Art. 9" otherwise.
+func (s SpecialCategory) Article() string {
+	if s == SpecialCriminal {
+		return "Art. 10"
+	}
+	return "Art. 9"
+}
+
+// Classification is what a field name says about its data. Special is set only for Art. 9 and Art. 10 data, and then
 // Category is CategorySpecial. Matched is the dictionary word that decided it.
 type Classification struct {
 	Category DataCategory

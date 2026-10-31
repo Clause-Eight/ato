@@ -2,10 +2,11 @@
 health: santé, maladie, pathologie, allergie, allergies, groupe sanguin, médicament, médicaments, ordonnance, symptôme, symptômes, handicap, grossesse, patient, vaccination, santé mentale, dossier médical, antécédents médicaux, arrêt maladie, thérapie
 genetic: génétique, génome, adn, gène, génotype
 biometric: biométrique, empreinte digitale, empreintes digitales, gabarit facial, rétine, empreinte vocale
-racial-or-ethnic-origin: race, origine raciale, origine ethnique, ethnie, appartenance ethnique
-political-opinions: opinion politique, opinions politiques, parti politique, appartenance politique
-religious-or-philosophical-beliefs: religion, confession, croyance, conviction religieuse, conviction philosophique
-trade-union-membership: syndicat, appartenance syndicale, adhésion syndicale, syndiqué
-sex-life-or-sexual-orientation: orientation sexuelle, vie sexuelle, sexualité
+racial-or-ethnic-origin: race, origine raciale, origine ethnique, ethnie, appartenance ethnique, ethnicité, groupe ethnique
+political-opinions: opinion politique, opinions politiques, parti politique, appartenance politique, orientation politique, sensibilité politique, affiliation politique, convictions politiques
+religious-or-philosophical-beliefs: religion, confession, croyance, conviction religieuse, conviction philosophique, appartenance religieuse, confession religieuse, croyances religieuses, convictions religieuses, convictions philosophiques
+trade-union-membership: syndicat, appartenance syndicale, adhésion syndicale, syndiqué, adhérent syndical, cotisation syndicale, délégué syndical
+sex-life-or-sexual-orientation: orientation sexuelle, vie sexuelle, sexualité, préférence sexuelle, comportement sexuel
+criminal-convictions-and-offences: casier judiciaire, extrait de casier judiciaire, condamnation, condamnations, condamnation pénale, infraction pénale, infractions pénales, antécédents judiciaires, peine de prison, peine d emprisonnement
 demographic: genre, sexe, nationalité, citoyenneté, situation familiale, état civil, âge, lieu de naissance
 online-identifier: adresse ip, identifiant appareil, adresse mac, identifiant publicitaire

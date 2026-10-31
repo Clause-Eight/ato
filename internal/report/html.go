@@ -78,7 +78,7 @@ func writeInventoryHTML(w io.Writer, inv Inventory) error {
 		row.Count++
 		cat := string(e.Classification.Category)
 		if e.Classification.Special != "" {
-			cat = string(e.Classification.Special) + " (Art. 9)"
+			cat = string(e.Classification.Special) + " (" + e.Classification.Special.Article() + ")"
 			special++
 		}
 		if !containsString(row.Categories, cat) {

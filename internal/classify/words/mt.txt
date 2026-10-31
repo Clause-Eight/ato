@@ -2,10 +2,11 @@
 health: saħħa, mediku, dijanjosi, marda, mard, allerġija, grupp tad-demm, mediċina, mediċini, riċetta, sintomu, sintomi, diżabilità, tqala, pazjent, tilqim, saħħa mentali, rekord mediku, storja medika, leave tal-mard
 genetic: ġenetiku, ġenoma, dna, ġene, ġenotip
 biometric: bijometriku, marka tas-swaba, marki tas-swaba, mudell tal-wiċċ, marka tal-vuċi
-racial-or-ethnic-origin: razza, oriġini razzjali, oriġini etnika, etniċità
-political-opinions: opinjoni politika, opinjonijiet politiċi, partit politiku, affiljazzjoni politika
-religious-or-philosophical-beliefs: reliġjon, twemmin, twemmin reliġjuż, twemmin filosofiku, denominazzjoni
-trade-union-membership: trejdjunjin, unjin, sħubija fit-trejdjunjin
-sex-life-or-sexual-orientation: orjentazzjoni sesswali, ħajja sesswali, sesswalità
+racial-or-ethnic-origin: razza, oriġini razzjali, oriġini etnika, etniċità, grupp etniku
+political-opinions: opinjoni politika, opinjonijiet politiċi, partit politiku, affiljazzjoni politika, twemmin politiku, affiljazzjoni partitika, membru tal partit
+religious-or-philosophical-beliefs: reliġjon, twemmin, twemmin reliġjuż, twemmin filosofiku, denominazzjoni, affiljazzjoni reliġjuża, fidi
+trade-union-membership: trejdjunjin, unjin, sħubija fit-trejdjunjin, membru tat trejdjunjin, sħubija fl unjin
+sex-life-or-sexual-orientation: orjentazzjoni sesswali, ħajja sesswali, sesswalità, imġiba sesswali, preferenza sesswali
+criminal-convictions-and-offences: rekord kriminali, fedina penali, ċertifikat tal kondotta, kundanna, kundanni, kundanna kriminali, reat kriminali, reati kriminali, sentenza ta ħabs
 demographic: ġeneru, sess, nazzjonalità, ċittadinanza, stat ċivili, età, post tat-twelid
 online-identifier: indirizz ip, identifikatur tal-apparat, indirizz mac
