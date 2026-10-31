@@ -1,5 +1,5 @@
 // Package classify reads a field name, such as a column or property name, and says which kind of personal
-// data it holds, flagging the special categories of GDPR Art. 9. Words come from words/<language>.txt and
+// data it holds, flagging the special categories of GDPR Art. 9 and criminal data (Art. 10). Words come from words/<language>.txt and
 // from the detectors' concept keywords, in all 24 EU languages.
 package classify
 
@@ -18,8 +18,8 @@ import (
 //go:embed words/*.txt
 var wordFiles embed.FS
 
-// order lists the categories: special categories always win; otherwise the longest matching phrase does,
-// and on a tie the earlier category.
+// order lists the categories: special categories always win, the longest matching one first; otherwise the
+// longest matching phrase does, and on a tie the earlier category.
 var order = []domain.DataCategory{
 	domain.CategorySpecial, domain.CategoryIdentifier, domain.CategoryFinancial, domain.CategoryBirth,
 	domain.CategoryName, domain.CategoryContact, domain.CategoryAddress, domain.CategoryLocation,
@@ -63,7 +63,7 @@ func load() map[domain.DataCategory][]phrase {
 		out[class.Category] = append(out[class.Category], p)
 	}
 	special := map[string]domain.SpecialCategory{}
-	for _, s := range domain.SpecialCategories {
+	for _, s := range domain.Protected {
 		special[string(s)] = s
 	}
 	for _, lang := range detectors.Languages {
@@ -117,12 +117,15 @@ func Field(name string) (domain.Classification, bool) {
 			return domain.Classification{}, false
 		}
 	}
+	var best phrase
 	for _, p := range phrases[domain.CategorySpecial] {
-		if p.matches(toks) {
-			return p.class, true
+		if len(p.joined) > len(best.joined) && p.matches(toks) {
+			best = p
 		}
 	}
-	var best phrase
+	if best.joined != "" {
+		return best.class, true
+	}
 	for _, cat := range order[1:] {
 		for _, p := range phrases[cat] {
 			if len(p.joined) > len(best.joined) && p.matches(toks) {

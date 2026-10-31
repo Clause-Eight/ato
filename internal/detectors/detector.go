@@ -53,12 +53,36 @@ type Detector struct {
 	KeywordOnLine bool
 	// AlsoIn lists other countries that issue the same identifier (the Czech and Slovak birth number).
 	AlsoIn []string
+	// Context decides values that are personal data only next to something else, such as a card's security code
+	// next to the card number. A candidate it does not fit is dropped.
+	Context func(Around) Fit
 
 	// OwnWords are the folded Keywords; MatchWords add the concept words, except words that are another
 	// detector's own name. Both are set when the registry is read.
 	OwnWords   []string
 	MatchWords []string
 }
+
+// Around is the text around a candidate. Before and After are the rest of its line, or of its cell in a file
+// with columns; Column is the cell's column name. Record is the candidate's line with the few lines above it,
+// as much of a record (a JSON object, a row) as one line can see.
+type Around struct {
+	Before, After string
+	Column        string
+	Record        string
+}
+
+// Fit is what a detector's Context says about a candidate.
+type Fit int
+
+const (
+	// Unfit drops the candidate.
+	Unfit Fit = iota
+	// Fits keeps it.
+	Fits
+	// FitsSample keeps it as sample data: what makes it personal data is itself a published sample value.
+	FitsSample
+)
 
 // Rival describes an identifier that is not personal data but can pass a detector's check. Words are folded
 // when the registry is read.

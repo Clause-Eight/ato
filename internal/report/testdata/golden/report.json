@@ -5,7 +5,7 @@
     "version": "test"
   },
   "summary": {
-    "findings": 5,
+    "findings": 7,
     "files_scanned": 42,
     "files_skipped": [
       {
@@ -117,6 +117,43 @@
           "country": "LT"
         }
       ]
+    },
+    {
+      "kind": "value",
+      "detector": "card-security-code",
+      "label": "Card security code (CVV/CVC)",
+      "country": "EU",
+      "path": "app/config.yml",
+      "line": 5,
+      "column": 8,
+      "confidence": "high",
+      "masked": "•••",
+      "reasons": [
+        "three or four digits under a card security code label, next to a valid card number",
+        "the word \"cvv\" is nearby"
+      ],
+      "sample": false,
+      "test_path": false,
+      "fingerprint": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf"
+    },
+    {
+      "kind": "field",
+      "special_category": "criminal-convictions-and-offences",
+      "data_category": "special-category",
+      "detector": "special-category",
+      "label": "Field holding criminal convictions or offences (GDPR Art. 10)",
+      "country": "EU",
+      "path": "db/002.sql",
+      "line": 6,
+      "column": 3,
+      "confidence": "medium",
+      "masked": "applicants.criminal_record",
+      "reasons": [
+        "the name contains \"criminal record\""
+      ],
+      "sample": false,
+      "test_path": false,
+      "fingerprint": "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"
     },
     {
       "kind": "sink",

@@ -10,7 +10,7 @@ import (
 )
 
 // InventorySchemaVersion is the version of the JSON inventory, versioned like the findings report.
-const InventorySchemaVersion = "2.0"
+const InventorySchemaVersion = "2.1"
 
 // Inventory is a draft record of the personal data a code base declares: field names and where they are, and the
 // data stores its Terraform deploys. Never values.

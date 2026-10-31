@@ -40,16 +40,18 @@ footer{margin-top:40px;color:var(--muted);font-size:12px}
 <div class="meta">ATO test · . · values are masked</div>
 </header>
 <div class="tiles">
-<div class="tile"><b>5</b><span>findings</span></div>
-<div class="tile"><b>5</b><span>files with findings</span></div>
+<div class="tile"><b>7</b><span>findings</span></div>
+<div class="tile"><b>6</b><span>files with findings</span></div>
 <div class="tile"><b>42</b><span>files scanned</span></div>
-<div class="tile"><b>1</b><span>high confidence</span></div>
+<div class="tile"><b>2</b><span>high confidence</span></div>
 </div>
 
 <h2>By kind of data</h2>
 <div class="wrap"><table>
 <tr><th>Kind of data</th><th>Country</th><th>Findings</th></tr>
 <tr><td>Romanian personal number (CNP)</td><td>RO</td><td>2</td></tr>
+<tr><td>Card security code (CVV/CVC)</td><td>EU</td><td>1</td></tr>
+<tr><td>Field holding criminal convictions or offences (GDPR Art. 10)</td><td>EU</td><td>1</td></tr>
 <tr><td>Payment card number</td><td>EU</td><td>1</td></tr>
 <tr><td>Personal data written to a log</td><td>EU</td><td>1</td></tr>
 <tr><td>Possibly Estonian personal code (isikukood) or Lithuanian personal code (asmens kodas)</td><td>EE, LT</td><td>1</td></tr>
@@ -61,6 +63,8 @@ footer{margin-top:40px;color:var(--muted);font-size:12px}
 <tr><td class="mono">tests/fixtures/users.json:14</td><td>Romanian personal number (CNP)<div class="why">date, county code and check digit are valid; in a test, fixture or example path</div></td><td class="mono">•••••••••••••</td><td><span class="conf low">low</span></td></tr>
 <tr><td class="mono">exports/users.csv.gz!/users.csv:2</td><td>Romanian personal number (CNP)<div class="why">date, county code and check digit are valid; the word &#34;cnp&#34; is nearby</div></td><td class="mono">•••••••••••••</td><td><span class="conf medium">medium</span></td></tr>
 <tr><td class="mono">db/seed.sql:8</td><td>Possibly Estonian personal code (isikukood) or Lithuanian personal code (asmens kodas)<div class="why">birth date, century digit and check digit are valid; the whole of a quoted value; just as valid as Lithuanian personal code (asmens kodas); nothing nearby says which</div></td><td class="mono">•••••••••••</td><td><span class="conf medium">medium</span></td></tr>
+<tr><td class="mono">app/config.yml:5</td><td>Card security code (CVV/CVC)<div class="why">three or four digits under a card security code label, next to a valid card number; the word &#34;cvv&#34; is nearby</div></td><td class="mono">•••</td><td><span class="conf high">high</span></td></tr>
+<tr><td class="mono">db/002.sql:6</td><td>Field holding criminal convictions or offences (GDPR Art. 10)<div class="why">the name contains &#34;criminal record&#34;</div></td><td class="mono">applicants.criminal_record</td><td><span class="conf medium">medium</span></td></tr>
 <tr><td class="mono">app/handler.go:12</td><td>Personal data written to a log<div class="why">the name contains &#34;email&#34;; passed to log.Printf, which writes to a log</div></td><td class="mono">user.Email</td><td><span class="conf medium">medium</span></td></tr>
 </table></div>
 

@@ -16,7 +16,7 @@ Personal data written to logs or telemetry:
 
 ## services/clinic
 
-| Store | Categories of personal data | Special categories (Art. 9) | Erasure (Art. 17) | Retention (Art. 5(1)(e)) | Source |
+| Store | Categories of personal data | Special categories (Art. 9, 10) | Erasure (Art. 17) | Retention (Art. 5(1)(e)) | Source |
 |---|---|---|---|---|---|
 | `patients` | name | health | SQL DELETE (`services/clinic/repo.sql:7`) | none found | `services/clinic/db/001.sql:3` |
 

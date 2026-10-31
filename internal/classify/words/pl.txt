@@ -2,10 +2,11 @@
 health: zdrowie, zdrowotny, medyczny, diagnoza, rozpoznanie, choroba, schorzenie, alergia, grupa krwi, lek, leki, recepta, objaw, objawy, niepełnosprawność, ciąża, pacjent, szczepienie, zdrowie psychiczne, dokumentacja medyczna, historia choroby, zwolnienie lekarskie
 genetic: genetyczny, genom, dna, genotyp
 biometric: biometryczny, odcisk palca, odciski palców, wzorzec twarzy, tęczówka, siatkówka, próbka głosu
-racial-or-ethnic-origin: rasa, rasowe, pochodzenie etniczne, grupa etniczna, etniczność
-political-opinions: poglądy polityczne, opinia polityczna, partia polityczna, przynależność partyjna
-religious-or-philosophical-beliefs: religia, wyznanie, przekonania religijne, światopogląd, wiara
-trade-union-membership: związek zawodowy, członkostwo w związku zawodowym, przynależność związkowa
-sex-life-or-sexual-orientation: orientacja seksualna, życie seksualne, seksualność
+racial-or-ethnic-origin: rasa, rasowe, pochodzenie etniczne, grupa etniczna, etniczność, pochodzenie rasowe
+political-opinions: poglądy polityczne, opinia polityczna, partia polityczna, przynależność partyjna, przekonania polityczne, orientacja polityczna, członkostwo w partii, sympatie polityczne
+religious-or-philosophical-beliefs: religia, wyznanie, przekonania religijne, światopogląd, wiara, przynależność religijna, wyznanie religijne, przekonania filozoficzne, przekonania światopoglądowe
+trade-union-membership: związek zawodowy, członkostwo w związku zawodowym, przynależność związkowa, członek związku zawodowego, przynależność do związku zawodowego, składka związkowa
+sex-life-or-sexual-orientation: orientacja seksualna, życie seksualne, seksualność, preferencje seksualne, zachowania seksualne
+criminal-convictions-and-offences: karalność, niekaralność, zaświadczenie o niekaralności, krajowy rejestr karny, rejestr karny, skazanie, skazania, wyrok skazujący, przestępstwo, przestępstwa, kara pozbawienia wolności
 demographic: płeć, narodowość, obywatelstwo, stan cywilny, wiek, miejsce urodzenia
 online-identifier: adres ip, identyfikator urządzenia, adres mac, identyfikator reklamowy
