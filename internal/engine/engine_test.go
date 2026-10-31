@@ -361,4 +361,8 @@ func TestWholeQuotedDistinctIdentifiers(t *testing.T) {
 	if quoted, bare := conf("hu-taj", `{"ref": "`+taj+`"}`), conf("hu-taj", `ref = `+taj); quoted != bare {
 		t.Fatalf("a plain-checksum number is not raised for being quoted: quoted %s, bare %s", quoted, bare)
 	}
+	oib := gen("hr-oib")
+	if quoted, bare := conf("hr-oib", `{"ref": "`+oib+`"}`), conf("hr-oib", `ref = `+oib); quoted != bare {
+		t.Fatalf("an OIB has a plain checksum and is not raised for being quoted: quoted %s, bare %s", quoted, bare)
+	}
 }

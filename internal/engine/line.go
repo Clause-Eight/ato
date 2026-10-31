@@ -585,7 +585,7 @@ func contains(xs []string, x string) bool {
 // distinct are identifiers that a random string of their shape rarely passes: a date of birth and a check digit,
 // or a check letter. Only these are raised for being the whole of a quoted value; numbers with a plain checksum
 // are not, since quoted codes in real data pass them often (#274).
-var distinct = map[string]bool{"ro-cnp": true, "bg-egn": true, "pl-pesel": true, "hr-oib": true, "es-dni": true, "es-nie": true,
+var distinct = map[string]bool{"ro-cnp": true, "bg-egn": true, "pl-pesel": true, "es-dni": true, "es-nie": true,
 	"it-fiscal-code": true, "fr-nir": true, "de-tax-id": true, "be-national-register": true, "ee-isikukood": true, "lt-asmens-kodas": true,
 	"si-emso": true, "fi-hetu": true}
 
