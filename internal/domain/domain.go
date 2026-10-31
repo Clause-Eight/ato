@@ -49,9 +49,10 @@ type Location struct {
 }
 
 // Finding is one detected value, a schema field holding special-category data, a call that writes personal data
-// to a log or telemetry sink, or a data store declared in infrastructure code (Kind says which). Value is the raw
-// text and must never reach a report; reporters use Masked. For a field, Masked is the field's name; for a sink,
-// the expression passed to the call; for a store, its resource address.
+// to a log or telemetry sink, a data store declared in infrastructure code, or a file that holds personal data as
+// a whole (Kind says which). Value is the raw text and must never reach a report; reporters use Masked. For a
+// field, Masked is the field's name; for a sink, the expression passed to the call; for a store, its resource
+// address; for a file, what it holds with any value masked.
 // ColumnName is the data column a value was found in (a CSV or TSV header, a JSON Lines key path or a SQL
 // column), when the file has columns. Span is where a value sits in its line, in bytes, so it can be replaced.
 type Finding struct {

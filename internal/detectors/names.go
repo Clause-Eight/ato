@@ -149,6 +149,15 @@ func validPersonName(s string) bool {
 	return true
 }
 
+// KnownName reports whether a word is a given name or surname in the name list, ignoring case.
+func KnownName(word string) bool {
+	r, n := utf8.DecodeRuneInString(word)
+	if n == 0 {
+		return false
+	}
+	return personNames[string(unicode.ToUpper(r))+strings.ToLower(word[n:])]
+}
+
 // mayHaveNameKey is the prefilter: somewhere on the line a key is followed by a separator and a capital letter.
 func mayHaveNameKey(line string) bool {
 	for i := 0; i < len(line); i++ {

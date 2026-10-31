@@ -152,6 +152,9 @@ func TestFixEveryGenerator(t *testing.T) {
 		if len(d.Keywords) > 0 {
 			word = d.Keywords[0]
 		}
+		if d.NeedsPerson {
+			word = "patient_id: 7, " + word
+		}
 		body.WriteString(word + ": " + generate(t, name, 11) + "\n\n")
 	}
 	writeFile(t, dir, ".ato.toml", cfg.String())
@@ -169,14 +172,15 @@ func TestFixEveryGenerator(t *testing.T) {
 	}
 
 	// Every replacement keeps the format of the value it replaced: length, separators, case and the positions of
-	// letters and digits. A Base58 wallet varies in length and a street address follows its street name.
+	// letters and digits. A Base58 wallet varies in length, a street address follows its street name and a JWT
+	// follows its claims.
 	before := strings.Split(body.String(), "\n")
 	after := strings.Split(readFile(t, dir, "fixtures/all.txt"), "\n")
 	if len(before) != len(after) {
 		t.Fatalf("fix changed the number of lines")
 	}
 	for i, name := range names {
-		if name == "crypto-wallet" || name == "street-address" {
+		if name == "crypto-wallet" || name == "street-address" || name == "jwt-personal" {
 			continue
 		}
 		a, b := []rune(before[2*i]), []rune(after[2*i])

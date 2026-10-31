@@ -30,6 +30,26 @@
               }
             },
             {
+              "id": "card-security-code",
+              "name": "CardSecurityCodeCVV/CVC",
+              "shortDescription": {
+                "text": "Card security code (CVV/CVC)"
+              },
+              "fullDescription": {
+                "text": "Card security code (CVV/CVC) found in the repository. Personal data in code, fixtures and logs is easy to copy and hard to delete."
+              },
+              "help": {
+                "text": "Replace the value with synthetic test data or a reference, and remove it from history if it is real."
+              },
+              "properties": {
+                "tags": [
+                  "privacy",
+                  "gdpr",
+                  "eu"
+                ]
+              }
+            },
+            {
               "id": "ee-isikukood",
               "name": "EstonianPersonalCodeIsikukood",
               "shortDescription": {
@@ -87,6 +107,27 @@
                   "privacy",
                   "gdpr",
                   "ro"
+                ]
+              }
+            },
+            {
+              "id": "special-category/criminal-convictions-and-offences",
+              "name": "FieldHoldingCriminalConvictionsOrOffencesGDPRArt.10",
+              "shortDescription": {
+                "text": "Field holding criminal convictions or offences (GDPR Art. 10)"
+              },
+              "fullDescription": {
+                "text": "Field holding criminal convictions or offences (GDPR Art. 10). Data relating to criminal convictions and offences may be processed only under the control of official authority or where Union or Member State law authorises it."
+              },
+              "help": {
+                "text": "Record the law that authorises processing this field and its safeguards, or remove it if the data is not needed."
+              },
+              "properties": {
+                "tags": [
+                  "privacy",
+                  "gdpr",
+                  "gdpr-art-10",
+                  "criminal-convictions-and-offences"
                 ]
               }
             }
@@ -208,6 +249,66 @@
           "partialFingerprints": {
             "ato/v1": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
             "piiEu/v1": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+          },
+          "properties": {
+            "confidence": "medium",
+            "sample": false,
+            "testPath": false
+          }
+        },
+        {
+          "ruleId": "card-security-code",
+          "level": "error",
+          "message": {
+            "text": "Card security code (CVV/CVC) ••• (high confidence): three or four digits under a card security code label, next to a valid card number; the word \"cvv\" is nearby"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app/config.yml",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 8
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "ato/v1": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+            "piiEu/v1": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf"
+          },
+          "properties": {
+            "confidence": "high",
+            "sample": false,
+            "testPath": false
+          }
+        },
+        {
+          "ruleId": "special-category/criminal-convictions-and-offences",
+          "level": "warning",
+          "message": {
+            "text": "Field holding criminal convictions or offences (GDPR Art. 10) applicants.criminal_record (medium confidence): the name contains \"criminal record\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "db/002.sql",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6,
+                  "startColumn": 3
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "ato/v1": "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+            "piiEu/v1": "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"
           },
           "properties": {
             "confidence": "medium",

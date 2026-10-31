@@ -1,7 +1,7 @@
 // Package lifecycle finds how a code base removes personal data: deletes and anonymising updates that can
-// erase a person's data (GDPR Art. 17), and time-based deletes, TTLs and partition drops that limit how long
-// data is kept (Art. 5(1)(e)). It reads code line by line and never runs it, so it shows that a path exists,
-// not that it is called.
+// erase a person's data (GDPR Art. 17), and time-based deletes, TTLs, partition drops, Redis key expiry and
+// search index policies that limit how long data is kept (Art. 5(1)(e)). It reads code line by line and never
+// runs it, so it shows that a path exists, not that it is called.
 package lifecycle
 
 import (
@@ -24,17 +24,20 @@ const (
 
 // Evidence is one place in the code that removes data from a store.
 type Evidence struct {
-	Kind     string
-	Target   string
-	Parent   string
-	How      string
+	Kind   string
+	Target string
+	Parent string
+	How    string
+	// Engine is set for expiry the store applies itself (DynamoDB, Redis, Search), which a Terraform store of
+	// that kind can show as its retention limit.
+	Engine   string
 	Location domain.Location
 }
 
 // Candidate reports whether a file may hold code that deletes data.
 func Candidate(p string) bool {
 	switch strings.ToLower(path.Ext(p)) {
-	case ".sql", ".py", ".rb", ".go", ".java", ".kt", ".js", ".mjs", ".cjs", ".ts", ".php", ".cs", ".prisma":
+	case ".sql", ".py", ".rb", ".go", ".java", ".kt", ".js", ".mjs", ".cjs", ".ts", ".php", ".cs", ".prisma", ".json":
 		return true
 	}
 	return false
@@ -95,9 +98,13 @@ var (
 
 // Find returns the evidence in one file. Cascades remember the table or model they are declared in.
 func Find(p string, data []byte) []Evidence {
+	text := strings.ReplaceAll(string(data), "\r\n", "\n")
+	if strings.ToLower(path.Ext(p)) == ".json" {
+		return dedupe(findExpiry(p, text))
+	}
 	var out []Evidence
 	container := ""
-	for i, l := range strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n") {
+	for i, l := range strings.Split(text, "\n") {
 		for _, re := range containers {
 			if m := re.FindStringSubmatch(l); m != nil {
 				container = m[1]
@@ -133,7 +140,7 @@ func Find(p string, data []byte) []Evidence {
 			out = append(out, Evidence{Kind: kind, Target: l[m[2*g]:m[2*g+1]], How: r.how, Location: loc(m[2*g])})
 		}
 	}
-	return dedupe(out)
+	return dedupe(append(out, findExpiry(p, text)...))
 }
 
 // firstGroup returns the first submatch from g on that matched, so a rule can name its store in alternative

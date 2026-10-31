@@ -150,13 +150,24 @@ ATO reads exports column by column, so a header like `cnp` raises confidence for
 
 - **CSV and TSV** (`.csv`, `.tsv`, `.tab`): the first line is the header unless it looks like data (a cell with five or more digits); the delimiter (comma, semicolon, tab or pipe) is sniffed from it. Quoted values may hold delimiters and line breaks. Without a header, columns are named `#1`, `#2` and so on.
 - **JSON Lines** (`.jsonl`, `.ndjson`): every string and number is named by its key path, such as `customer.cnp`.
-- **SQL dumps** (`.sql`): `INSERT` values are named by the statement's column list, or by the table's `CREATE TABLE` earlier in the dump; extended inserts and PostgreSQL `COPY ... FROM stdin` blocks work too.
+- **SQL dumps** (`.sql`, and `.dump`, `.bak`, `.pgsql`, `.psql`, `.mysql` when they are text): `INSERT` values are named by the statement's column list, or by the table's `CREATE TABLE` earlier in the dump; extended inserts and PostgreSQL `COPY ... FROM stdin` blocks work too.
 
 Findings carry the column name (`column_name` in JSON), and the JSON summary groups them by file and column with counts per detector (`summary.columns`). Column headers and JSON keys also go into `ato inventory` and, for special categories such as `diagnosis`, into scan findings.
 
 Large data files are sampled: only the first `max_rows` rows of a CSV, TSV or JSON Lines file are read (default 100000; `--max-rows 0` reads every row), and the file is listed under `summary.sampled`. Data files are not skipped by `max_file_size`; SQL dumps are, so raise `max_file_size` for a large dump.
 
 Gzip, tar and zip files (`.gz`, `.tar`, `.tar.gz`, `.tgz`, `.zip`) are scanned inside, archives in archives too, and findings name the entry: `dump.tar.gz!/data/users.csv`. Archives are not skipped by `max_file_size`; each entry is. `exclude` patterns apply to paths inside archives. Against archive bombs, one archive with everything nested in it may produce at most `max_archive_bytes` uncompressed bytes (4 GiB) and `max_archive_entries` entries (1,000,000), nested at most `max_archive_depth` deep (3). Reading stops at a limit, the archive is listed as unreadable with the reason, and the exit code is 3 when nothing else was found.
+
+### Files that are personal data
+
+Some files hold personal data as a whole or in their metadata. They are reported as `file` findings, which name the file and never a value ([ADR 13](docs/adr/0013-binary-metadata.md)):
+
+- **`database-dump`**: a SQL dump (mysqldump, pg_dump plain or custom format, sqlite3 `.dump`, also inside `.gz` and archives) with rows inserted into columns whose names say they hold personal data. The finding names the table and those columns, such as `customers: email, phone`. High confidence when the file says which tool wrote it, medium for 20 rows or more or a pg_dump archive, low for a few rows of seed data.
+- **`document-author`**: a person's name in the author metadata of an office document (`.docx`, `.xlsx`, `.pptx` and their macro and template forms; `.odt`, `.ods`, `.odp`, `.odg`), shown masked. Tool names and generic accounts are left out.
+- **`photo-location`**: a JPEG, TIFF, PNG, WebP or HEIF image with an EXIF GPS position, shown masked.
+- **`id-document-scan`**: an image or PDF whose file name says it is a passport, an identity card, a driving licence or a residence permit, in the EU languages (`passport`, `carte_identite`, `personalausweis`, `buletin`, `dowod_osobisty`, ...). Medium confidence for a word in the file name, low for an ambiguous word or a folder name.
+
+ATO does no OCR: the content of an image is never read as text, so a scan named `IMG_0001.jpg` is not found. A PDF's own text is searched for machine readable zones (`mrz`). Office documents, PDFs and pg_dump archives are still listed as not read in full, since only their metadata, MRZ text or table of contents was read. Switch any of these off under `[detectors]`, such as `photo-location = false`.
 
 ### Container images
 
@@ -168,7 +179,8 @@ A file deleted or replaced in a later layer is still in the image, so it is stil
 
 ATO also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Laravel migrations (`Schema::create`, `Schema::table`), Django, SQLAlchemy, ActiveRecord, GORM, JPA, Doctrine (attributes and annotations), TypeORM and Prisma models, Mongoose schemas, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
 
-- `ato scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
+- `ato scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) or data about criminal convictions and offences (Art. 10) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
+- It also finds the data itself: ICD-10, ICD-11, ATC and Italian AIC codes next to a medical word in a record that names a person (`icd10`, `icd11`, `atc-code`, `it-aic`), and `record` findings for HL7 v2 patient segments, FHIR resources about a patient, VCF and genotype files, and biometric templates such as face embeddings. A code on its own is never reported. See [docs/DETECTORS.md](docs/DETECTORS.md) and [ADR 14](docs/adr/0014-art9-records.md).
 - `ato inventory` writes every personal-data field it finds as CSV (default), HTML (`--format html`) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
 
 ```console
@@ -182,7 +194,7 @@ diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
 
 `ato map` drafts a data map from the code: per component (a folder under `services/`, `apps/`, `packages/` and similar, or a top-level folder), the tables and models holding personal data and their categories, where personal data is written to logs or telemetry, and the third-party services the code names in dependency files, imports and API host names (payments, email, analytics, error tracking, support, AI providers and more; `established_in_eea` says whether the provider is established in the EEA). Every line cites its source file and line. Formats: `markdown` (default), `json` ([schemas/map.schema.json](schemas/map.schema.json)) and `html`.
 
-For each store the map also shows whether the code can erase a person's data (GDPR Art. 17: a delete, an anonymising update, or a cascade from a parent that can be erased) and whether old data is removed (Art. 5(1)(e): a time-based delete, a TTL index or a partition drop), in SQL and the supported ORMs. To report stores without either as findings, switch them on:
+For each store the map also shows whether the code can erase a person's data (GDPR Art. 17: a delete, an anonymising update, or a cascade from a parent that can be erased) and whether old data is removed (Art. 5(1)(e): a time-based delete, a TTL index, a partition drop, a DynamoDB time to live, a Redis key expiry or an Elasticsearch or OpenSearch index policy with a delete phase), in SQL, the supported ORMs and the Redis, DynamoDB and search clients. To report stores without either as findings, switch them on:
 
 ```toml
 [detectors]
@@ -202,7 +214,7 @@ The HTML page is written for a data protection officer. It opens with what chang
 
 ### Data stores in Terraform
 
-ATO reads the databases, buckets, queues, streams, caches and log groups declared in `.tf` files, for AWS, Google Cloud and Azure, without running Terraform: no binary, no providers, no credentials. For each store it reads encryption at rest, retention (lifecycle rules, retention periods, TTL), backups or versioning, public access and the region, following variables with defaults, `terraform.tfvars`, `*.auto.tfvars`, locals and references between resources in the same folder, including the provider block's region.
+ATO reads the databases, buckets, queues, streams, caches and log groups declared in `.tf` files, for AWS, Google Cloud and Azure, without running Terraform: no binary, no providers, no credentials. For each store it reads encryption at rest, retention (lifecycle rules, retention periods, TTL), backups or versioning, public access and the region, following variables with defaults, `terraform.tfvars`, `*.auto.tfvars`, locals and references between resources in the same folder, including the provider block's region. A store also has a retention limit when the code sets one on it: a DynamoDB time to live switched on through the SDK or the CDK for its table, Redis keys named like a cache written with an expiry, or an index policy with a delete phase for indices named like a search domain.
 
 `ato scan` reports four checks as `infra` findings:
 
@@ -234,7 +246,9 @@ infra/main.tf
 
 Each of these also counts when it reaches the call through one local variable in the same function (`v := u.Email` and then `log.Println(v)`, within 30 lines), including inside a string template such as `"#{v}"` or `"${v}"`; the finding then says which variable and on which line it was assigned. A variable that is reassigned, or rebound by a loop or a lambda, is forgotten.
 
-The finding names the sink (`log`, `error-tracker` or `analytics`) and shows the expression passed, never a value. Names that are about a value rather than the value (`isEmail`, `emailTemplate`, `len(user.email)`, `hash(user.phone)`) are left alone, and ambiguous words such as `address` count only on a person (`customer.address`, not `server.address`). Switch these findings off with `log-sink = false` under `[detectors]`.
+Session replay (Hotjar, FullStory, LogRocket, Microsoft Clarity, Smartlook, PostHog, Sentry Replay, Datadog RUM) is a `log-sink` finding with the sink `session-replay` when scripts, pages or templates switch input masking off (`maskAllInputs: false`, `maskAllText: false`, `defaultPrivacyLevel: 'allow'`, Smartlook recording forms), or let one form field out of it (`data-hj-allow`, `data-clarity-unmask="true"`, `fs-unmask`, `data-dd-privacy="allow"`): medium confidence for a setting or a field named like personal data, low for an unnamed field.
+
+The finding names the sink (`log`, `error-tracker`, `analytics` or `session-replay`) and shows the expression passed or the setting, never a value. Names that are about a value rather than the value (`isEmail`, `emailTemplate`, `len(user.email)`, `hash(user.phone)`) are left alone, and ambiguous words such as `address` count only on a person (`customer.address`, not `server.address`). Switch these findings off with `log-sink = false` under `[detectors]`.
 
 ```text
 app/signup.py

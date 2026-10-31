@@ -2,7 +2,8 @@
 // error-tracker or analytics call in Go, Python, JavaScript or TypeScript, Java, Kotlin, Ruby or PHP that is
 // passed a field whose name says it holds personal data, a whole request body or a user-like object. It works
 // line by line with patterns, not a parser, follows a value through one local variable in the same function,
-// and leans towards missing a call rather than reporting one that is harmless.
+// and leans towards missing a call rather than reporting one that is harmless. In scripts, pages and templates
+// it also reports session replay set up to record form inputs (replay.go).
 package sinks
 
 import (
@@ -19,15 +20,17 @@ const Detector = "log-sink"
 
 // Labels are the finding labels per sink.
 var Labels = map[domain.Sink]string{
-	domain.SinkLog:          "Personal data written to a log",
-	domain.SinkErrorTracker: "Personal data sent to an error tracker",
-	domain.SinkAnalytics:    "Personal data sent to analytics",
+	domain.SinkLog:           "Personal data written to a log",
+	domain.SinkErrorTracker:  "Personal data sent to an error tracker",
+	domain.SinkAnalytics:     "Personal data sent to analytics",
+	domain.SinkSessionReplay: "Personal data recorded by session replay",
 }
 
 var sinkWords = map[domain.Sink]string{
-	domain.SinkLog:          "which writes to a log",
-	domain.SinkErrorTracker: "which sends to an error tracker",
-	domain.SinkAnalytics:    "which sends to analytics",
+	domain.SinkLog:           "which writes to a log",
+	domain.SinkErrorTracker:  "which sends to an error tracker",
+	domain.SinkAnalytics:     "which sends to analytics",
+	domain.SinkSessionReplay: "which records the session",
 }
 
 // maxLine skips longer lines, which are usually minified or generated code.
@@ -38,11 +41,12 @@ const maxContinuation = 10
 
 // Scanner reads one file line by line, following a call's arguments onto the next lines.
 type Scanner struct {
-	path string
-	lang language
-	ok   bool
-	open *call
-	vars map[string]binding
+	path   string
+	lang   language
+	ok     bool
+	replay bool
+	open   *call
+	vars   map[string]binding
 }
 
 // call is a sink call whose arguments are being read.
@@ -57,16 +61,25 @@ type call struct {
 	closed bool
 }
 
-// NewScanner returns a scanner for the file at path. Files that are not source code in a known language
-// produce no findings.
+// NewScanner returns a scanner for the file at path. Files that are neither source code in a known language
+// nor pages or templates that may set up session replay produce no findings.
 func NewScanner(path string) *Scanner {
 	l, ok := languageOf(path)
-	return &Scanner{path: path, lang: l, ok: ok}
+	return &Scanner{path: path, lang: l, ok: ok, replay: replayFile(path)}
 }
 
 // Line returns the sink findings on one line. Findings have no fingerprint, and their confidence does not
 // yet account for test paths: the engine adds both.
 func (s *Scanner) Line(number int, line string) []domain.Finding {
+	out := s.calls(number, line)
+	if s.replay && len(line) <= maxLine {
+		out = append(out, s.replayLine(number, line)...)
+	}
+	return out
+}
+
+// calls returns the findings for sink calls on one line.
+func (s *Scanner) calls(number int, line string) []domain.Finding {
 	if !s.ok {
 		return nil
 	}

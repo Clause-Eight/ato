@@ -46,6 +46,10 @@ type Request struct {
 	RetentionFindings bool
 	// Infra names the checks on Terraform data stores to report, such as tf-unencrypted.
 	Infra []string
+	// Files names the file-level detectors to run, such as database-dump (ADR 13).
+	Files []string
+	// Records names the checks on records holding Art. 9 data to run, such as hl7-patient.
+	Records []string
 }
 
 func (r Request) infra() bool { return r.Inventory || r.Lifecycle || len(r.Infra) > 0 }
@@ -64,8 +68,11 @@ type Result struct {
 	Summary domain.Summary
 }
 
-// fileResult is one scanned file or archive entry. Layer and name place an image entry for Shadowed.
+// fileResult is one scanned file or archive entry. Layer and name place an image entry for Shadowed. notRead is
+// set for a file whose metadata was read but whose content was not: it is listed as not read, not as scanned.
 type fileResult struct {
+	rel      string
+	notRead  *domain.Skipped
 	findings []domain.Finding
 	entries  []domain.InventoryEntry
 	sampled  *domain.Skipped
@@ -91,6 +98,10 @@ func (b *batch) add(rel string, fr fileResult, skip *domain.Skipped, err error) 
 	case skip != nil:
 		b.skipped = append(b.skipped, *skip)
 	default:
+		fr.rel = rel
+		if fr.notRead != nil {
+			b.skipped = append(b.skipped, *fr.notRead)
+		}
 		b.files = append(b.files, fr)
 	}
 }
@@ -194,8 +205,13 @@ func fold(batches []batch, req Request) Result {
 	for _, b := range batches {
 		res.Summary.FilesSkipped = append(res.Summary.FilesSkipped, b.skipped...)
 		res.Summary.Unreadable = append(res.Summary.Unreadable, b.unreadable...)
+		if req.file(IDScanDetector) {
+			res.Findings = append(res.Findings, idScanFindings(b)...)
+		}
 		for _, fr := range b.files {
-			res.Summary.FilesScanned++
+			if fr.notRead == nil {
+				res.Summary.FilesScanned++
+			}
 			res.Findings = append(res.Findings, fr.findings...)
 			entries = append(entries, fr.entries...)
 			res.Recipients = append(res.Recipients, fr.uses...)
@@ -215,6 +231,7 @@ func fold(batches []batch, req Request) Result {
 	if len(tfFiles) > 0 {
 		stores := infra.Stores(tfFiles)
 		linkStores(stores, entries)
+		applyExpiry(stores, evidence)
 		res.Findings = append(res.Findings, storeFindings(stores, req.Infra, tfFiles)...)
 		if req.Inventory || req.Lifecycle {
 			res.Stores = stores
@@ -264,6 +281,9 @@ func scanFile(f walk.File, req Request) batch {
 func scanContent(rel string, content io.Reader, req Request) (fileResult, *domain.Skipped, error) {
 	r := bufio.NewReaderSize(content, 64<<10)
 	head, _ := r.Peek(8000)
+	if format := binaryFormat(rel, head, req); format != "" {
+		return scanBinary(format, rel, r, req)
+	}
 	if walk.IsBinary(head) {
 		if walk.Unopened(rel) {
 			return fileResult{}, &domain.Skipped{Path: rel, Reason: "a document format ATO does not open", NotRead: true}, nil
@@ -276,12 +296,12 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 		if err != nil {
 			return fileResult{}, nil, fmt.Errorf("read error: %w", err)
 		}
-		tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, 0, req.Sinks)
-		return fileResult{findings: tr.findings, tf: infra.Parse(rel, data)}, nil, err
+		tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, textOptions{sinks: req.Sinks, records: req.Records})
+		return fileResult{findings: tr.all(req), tf: infra.Parse(rel, data)}, nil, err
 	}
 	if walk.DataKind(rel) != "" {
-		tr, err := scanText(rel, r, req.Detectors, req.MaxRows, false)
-		fr := fileResult{findings: tr.findings}
+		tr, err := scanText(rel, r, req.Detectors, textOptions{maxRows: req.MaxRows, records: req.Records})
+		fr := fileResult{findings: tr.all(req)}
 		if tr.sampled {
 			fr.sampled = &domain.Skipped{Path: rel, Reason: fmt.Sprintf("only the first %d rows were read (max_rows)", req.MaxRows), NotRead: true}
 		}
@@ -296,16 +316,19 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	wantSchema := wantFields && schema.Candidate(rel)
 	wantRecipients := req.Recipients && recipients.Candidate(rel)
 	wantLifecycle := req.Lifecycle && lifecycle.Candidate(rel)
-	if !wantSchema && !wantRecipients && !wantLifecycle {
-		tr, err := scanText(rel, r, req.Detectors, 0, req.Sinks)
-		return fileResult{findings: tr.findings}, nil, err
+	// store-level expiry in the code (a DynamoDB time to live, Redis key expiry) can give a Terraform store its
+	// retention limit, so it is read whenever stores are.
+	wantExpiry := !req.Lifecycle && req.infra() && lifecycle.Candidate(rel)
+	if !wantSchema && !wantRecipients && !wantLifecycle && !wantExpiry {
+		tr, err := scanText(rel, r, req.Detectors, textOptions{sinks: req.Sinks, records: req.Records})
+		return fileResult{findings: tr.all(req)}, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return fileResult{}, nil, fmt.Errorf("read error: %w", err)
 	}
-	tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, 0, req.Sinks)
-	fr := fileResult{findings: tr.findings}
+	tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, textOptions{sinks: req.Sinks, records: req.Records})
+	fr := fileResult{findings: tr.all(req)}
 	if wantSchema {
 		fr.entries = inventory(rel, data)
 		if req.SpecialCategories {
@@ -317,6 +340,8 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	}
 	if wantLifecycle {
 		fr.evidence = lifecycle.Find(rel, data)
+	} else if wantExpiry {
+		fr.evidence = lifecycle.FindExpiry(rel, data)
 	}
 	return fr, nil, err
 }
@@ -324,7 +349,7 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 // ScanReader scans text line by line. path is used for locations, for recognising test folders and for
 // reading data files and SQL dumps by column.
 func ScanReader(path string, r io.Reader, dets []detectors.Detector) ([]domain.Finding, error) {
-	tr, err := scanText(path, r, dets, 0, false)
+	tr, err := scanText(path, r, dets, textOptions{})
 	return tr.findings, err
 }
 
@@ -332,11 +357,29 @@ type textResult struct {
 	findings []domain.Finding
 	fields   []domain.Field
 	sampled  bool
+	dump     []domain.Finding
 }
 
-// scanText scans lines, split into columns where the format has them. With maxRows above zero it stops after
-// that many data rows and reports the file as sampled when more followed.
-func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, sinks bool) (textResult, error) {
+// all is the findings of a text file, with the database-dump findings when that detector is on.
+func (tr textResult) all(req Request) []domain.Finding {
+	if !req.file(DumpDetector) {
+		return tr.findings
+	}
+	return append(tr.findings, tr.dump...)
+}
+
+// textOptions are the checks scanText runs besides the detectors. With maxRows above zero it stops after that
+// many data rows and reports the file as sampled when more followed. sinks looks for log and telemetry calls;
+// records names the checks on records holding Art. 9 data.
+type textOptions struct {
+	maxRows int
+	sinks   bool
+	records []string
+}
+
+// scanText scans lines, split into columns where the format has them.
+func scanText(path string, r io.Reader, dets []detectors.Detector, opt textOptions) (textResult, error) {
+	maxRows := opt.maxRows
 	br, ok := r.(*bufio.Reader)
 	if !ok {
 		br = bufio.NewReaderSize(r, 64<<10)
@@ -346,9 +389,10 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 	ctx := lineContext{path: path, testPath: IsTestPath(path)}
 	rows := 0
 	var calls *sinkScanner
-	if sinks {
+	if opt.sinks {
 		calls = newSinkScanner(path)
 	}
+	recs := newRecordScanner(path, opt.records)
 	for lineNo := 1; ; lineNo++ {
 		line, err := readLine(br)
 		if len(line) > 0 || err == nil {
@@ -368,7 +412,14 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 			if calls != nil {
 				res.findings = append(res.findings, calls.line(ctx)...)
 			}
+			if recs != nil {
+				res.findings = append(res.findings, recs.line(ctx)...)
+			}
 			ctx.previous = line
+			if len(ctx.above) == recordLines {
+				ctx.above = append(ctx.above[:0], ctx.above[1:]...)
+			}
+			ctx.above = append(ctx.above, line[max(0, len(line)-aboveBytes):])
 		}
 		if errors.Is(err, io.EOF) {
 			break
@@ -382,6 +433,12 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 	}
 	if sp != nil {
 		res.fields = sp.fields()
+	}
+	if sd, ok := sp.(*sqlDump); ok {
+		res.dump = dumpFindings(path, sd)
+	}
+	if recs != nil {
+		res.findings = append(res.findings, recs.end()...)
 	}
 	return res, nil
 }
@@ -438,6 +495,6 @@ func sortRecipients(us []domain.RecipientUse) {
 // ScanText scans text line by line for values and, when sinks is set and path names source code, for log and
 // telemetry calls that are passed personal data.
 func ScanText(path string, r io.Reader, dets []detectors.Detector, sinks bool) ([]domain.Finding, error) {
-	tr, err := scanText(path, r, dets, 0, sinks)
+	tr, err := scanText(path, r, dets, textOptions{sinks: sinks})
 	return tr.findings, err
 }

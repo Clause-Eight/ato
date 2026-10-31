@@ -27,7 +27,7 @@ func decodedMatches(ctx *lineContext, seg *segment, start, end int, dets []detec
 	if !ok {
 		return matches
 	}
-	dctx := lineContext{path: ctx.path, testPath: ctx.testPath, number: ctx.number, line: d.text, previous: ctx.previous}
+	dctx := lineContext{path: ctx.path, testPath: ctx.testPath, number: ctx.number, line: d.text, previous: ctx.previous, above: ctx.above}
 	var dseg *segment
 	if seg != nil {
 		dseg = &segment{start: 0, end: len(d.text), column: seg.column, keywords: seg.keywords}

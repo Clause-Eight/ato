@@ -2,10 +2,11 @@
 health: helbred, sundhed, sundhedsdata, medicinsk, diagnose, sygdom, allergi, blodtype, medicin, recept, symptomer, handicap, graviditet, patient, vaccination, mental sundhed, journal, patientjournal, sygemelding
 genetic: genetisk, genom, dna, genotype
 biometric: biometrisk, fingeraftryk, ansigtsskabelon, nethinde, stemmeaftryk
-racial-or-ethnic-origin: race, racemæssig oprindelse, etnisk oprindelse, etnicitet
-political-opinions: politisk holdning, politisk overbevisning, politisk parti, partimedlemskab
-religious-or-philosophical-beliefs: religion, trosretning, tro, religiøs overbevisning, filosofisk overbevisning, folkekirkemedlem
-trade-union-membership: fagforening, fagforeningsmedlemskab, fagforeningsmedlem
-sex-life-or-sexual-orientation: seksuel orientering, seksualliv, seksualitet
+racial-or-ethnic-origin: race, racemæssig oprindelse, etnisk oprindelse, etnicitet, etnisk baggrund, etnisk tilhørsforhold
+political-opinions: politisk holdning, politisk overbevisning, politisk parti, partimedlemskab, politisk tilhørsforhold, politiske holdninger, partimedlem, politisk ståsted
+religious-or-philosophical-beliefs: religion, trosretning, tro, religiøs overbevisning, filosofisk overbevisning, folkekirkemedlem, religiøst tilhørsforhold, trossamfund, livssyn, kirkeskat
+trade-union-membership: fagforening, fagforeningsmedlemskab, fagforeningsmedlem, fagforeningskontingent
+sex-life-or-sexual-orientation: seksuel orientering, seksualliv, seksualitet, seksuel præference, seksuel adfærd
+criminal-convictions-and-offences: straffeattest, børneattest, strafferegister, kriminalregister, straffedom, domfældelse, lovovertrædelse, lovovertrædelser, forbrydelse, fængselsstraf
 demographic: køn, nationalitet, statsborgerskab, civilstand, alder, fødested
 online-identifier: ip adresse, enheds id, mac adresse, reklame id

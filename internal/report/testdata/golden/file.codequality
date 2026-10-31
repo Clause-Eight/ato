@@ -1,0 +1,26 @@
+[
+  {
+    "description": "Database dump with rows of personal data customers: email, phone (high confidence): 120 rows inserted into customers; written by mysqldump; columns holding personal data: email, phone",
+    "check_name": "ato/database-dump",
+    "fingerprint": "11112222333344445555666677778888",
+    "severity": "critical",
+    "location": {
+      "path": "backups/shop.sql.gz!/shop.sql",
+      "lines": {
+        "begin": 41
+      }
+    }
+  },
+  {
+    "description": "Person name in document metadata (author) •••• ••••••• (medium confidence): a person's name in the document's dc:creator",
+    "check_name": "ato/document-author",
+    "fingerprint": "99990000aaaabbbbccccddddeeeeffff",
+    "severity": "major",
+    "location": {
+      "path": "docs/offer.docx",
+      "lines": {
+        "begin": 1
+      }
+    }
+  }
+]

@@ -229,8 +229,8 @@ func originals(t *testing.T) map[string][]string {
 // positions of the original, and its country, brand or class. Values are never printed, only their index.
 func TestReplaceKeepsCountryBrandAndFormat(t *testing.T) {
 	// The case of a mixed-case Ethereum address is its checksum and Base58 addresses vary in length; a street
-	// address is free text whose length follows the street name.
-	loose := map[string]bool{"crypto-wallet": true, "street-address": true}
+	// address is free text whose length follows the street name; a JWT's length follows its claims.
+	loose := map[string]bool{"crypto-wallet": true, "street-address": true, "jwt-personal": true}
 	for name, values := range originals(t) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

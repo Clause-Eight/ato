@@ -31,8 +31,8 @@ func splitterFor(p string) splitter {
 	case "jsonl":
 		return &jsonLines{path: p, seen: map[string]bool{}, folded: map[string]string{}}
 	}
-	if strings.EqualFold(path.Ext(p), ".sql") {
-		return &sqlDump{tables: map[string][]string{}}
+	if sqlExts[strings.ToLower(path.Ext(p))] {
+		return &sqlDump{tables: map[string][]string{}, dumped: map[string]*dumpedTable{}}
 	}
 	return nil
 }
@@ -316,9 +316,38 @@ var (
 	sqlCreate = regexp.MustCompile(`(?i)^\s*create\s+(?:temp(?:orary)?\s+)?table\s+(?:if\s+not\s+exists\s+)?([^\s(]+)\s*\(`)
 )
 
+// sqlExts are the extensions of SQL scripts and plain-text dumps (mysqldump, pg_dump -Fp, sqlite3 .dump).
+var sqlExts = map[string]bool{".sql": true, ".dump": true, ".bak": true, ".pgsql": true, ".psql": true, ".mysql": true}
+
+// dumpTools are comments and statements by which a dump says which tool wrote it.
+var dumpTools = []struct{ marker, tool string }{
+	{"-- MySQL dump", "mysqldump"},
+	{"-- MariaDB dump", "mariadb-dump"},
+	{"-- PostgreSQL database dump", "pg_dump"},
+	{"-- Dumped by pg_dump", "pg_dump"},
+	{"-- phpMyAdmin SQL Dump", "phpMyAdmin"},
+	{"-- HeidiSQL", "HeidiSQL"},
+	{"PRAGMA foreign_keys=OFF;", "sqlite3 .dump"},
+}
+
+// maxDumpTables caps the tables whose rows are counted in one file.
+const maxDumpTables = 10_000
+
+// dumpedTable is a table a SQL file inserts rows into: its columns, how many rows, and the first statement's line.
+type dumpedTable struct {
+	cols []string
+	rows int
+	line int
+}
+
 // sqlDump names the values of SQL dumps by column: INSERT statements with a column list or after the table's
-// CREATE TABLE, single or extended, and PostgreSQL COPY blocks. Other lines are scanned whole.
+// CREATE TABLE, single or extended, and PostgreSQL COPY blocks. Other lines are scanned whole. It also counts
+// the rows inserted into each table, for the database-dump finding.
 type sqlDump struct {
+	dumped   map[string]*dumpedTable
+	order    []string
+	current  *dumpedTable
+	tool     string
 	tables   map[string][]string
 	folded   map[string]string
 	creating string
@@ -334,12 +363,44 @@ type sqlDump struct {
 
 func (s *sqlDump) fields() []domain.Field { return nil }
 
-func (s *sqlDump) split(line string, _ int) ([]segment, bool) {
+// note starts counting the rows of a table; the first statement for a table decides its columns.
+func (s *sqlDump) note(table string, cols []string, line int) {
+	t, ok := s.dumped[table]
+	if !ok && len(s.dumped) < maxDumpTables {
+		t = &dumpedTable{cols: cols, line: line}
+		s.dumped[table] = t
+		s.order = append(s.order, table)
+	}
+	s.current = t
+}
+
+func (s *sqlDump) row() {
+	if s.current != nil {
+		s.current.rows++
+	}
+}
+
+// sniffTool records the dump tool named by a header comment.
+func (s *sqlDump) sniffTool(t string) {
+	if s.tool != "" || t == "" || t[0] != '-' && t[0] != 'P' {
+		return
+	}
+	for _, d := range dumpTools {
+		if strings.HasPrefix(t, d.marker) {
+			s.tool = d.tool
+		}
+	}
+}
+
+func (s *sqlDump) split(line string, number int) ([]segment, bool) {
 	switch {
 	case s.copyCols != nil:
 		if strings.TrimSpace(line) == `\.` {
 			s.copyCols = nil
 			return nil, false
+		}
+		if line != "" {
+			s.row()
 		}
 		return s.copyRow(line), false
 	case s.creating != "":
@@ -347,6 +408,9 @@ func (s *sqlDump) split(line string, _ int) ([]segment, bool) {
 		return nil, false
 	}
 	t := strings.TrimLeft(line, " \t")
+	if !s.values {
+		s.sniffTool(t)
+	}
 	if t == "" || !strings.ContainsRune("iIrRcC", rune(t[0])) {
 		if s.values {
 			return s.tuples(line, 0), false
@@ -363,6 +427,7 @@ func (s *sqlDump) split(line string, _ int) ([]segment, bool) {
 		if s.cols == nil {
 			return nil, false
 		}
+		s.note(tableName(line[m[2]:m[3]]), s.cols, number)
 		s.values, s.depth, s.quote, s.col = true, 0, 0, 0
 		return s.tuples(line, m[1]), false
 	}
@@ -371,6 +436,7 @@ func (s *sqlDump) split(line string, _ int) ([]segment, bool) {
 	}
 	if m := sqlCopy.FindStringSubmatch(line); m != nil {
 		s.copyCols = columnList(m[2])
+		s.note(tableName(m[1]), s.copyCols, number)
 		return nil, false
 	}
 	if m := sqlCreate.FindStringSubmatchIndex(line); m != nil {
@@ -527,6 +593,7 @@ func (s *sqlDump) tuples(line string, from int) []segment {
 		case ')':
 			if s.depth == 1 {
 				emit(i)
+				s.row()
 			}
 			if s.depth > 0 {
 				s.depth--

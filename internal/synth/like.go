@@ -51,6 +51,18 @@ func init() {
 	RegisterLike("licence-plate", likePlate)
 	RegisterLike("driving-licence", likePlate)
 	RegisterLike("postcode", likePlate)
+	RegisterLike("hashed-contact", likeDigest)
+}
+
+// likeDigest keeps the length of a hex digest and where it has letters and digits.
+func likeDigest(sample string) Generator {
+	for i := 0; i < len(sample); i++ {
+		c := sample[i] | 0x20
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return nil
+		}
+	}
+	return func(r *rand.Rand) string { return vary(r, sample, "ABCDEF") }
 }
 
 // alnums keeps the letters and digits of s, in upper case.

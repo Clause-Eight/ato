@@ -117,7 +117,7 @@ func properties(f domain.Finding) map[string]any {
 	return p
 }
 
-// ruleID is the detector name, with the Art. 9 category for special-category fields. Sink calls add the sink;
+// ruleID is the detector name, with the Art. 9 or Art. 10 category for special-category fields. Sink calls add the sink;
 // checks on data stores use the detector name, such as tf-unencrypted.
 func ruleID(f domain.Finding) string {
 	switch f.Kind {
@@ -150,6 +150,16 @@ func ruleFor(f domain.Finding) sarifRule {
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "terraform", "infrastructure"}},
 		}
 	}
+	if f.Kind == domain.KindField && f.Special == domain.SpecialCriminal {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". Data relating to criminal convictions and offences may be processed only under the control of official authority or where Union or Member State law authorises it."},
+			Help:             sarifText{"Record the law that authorises processing this field and its safeguards, or remove it if the data is not needed."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-10", string(f.Special)}},
+		}
+	}
 	if f.Kind == domain.KindField {
 		return sarifRule{
 			ID:               ruleID(f),
@@ -157,6 +167,16 @@ func ruleFor(f domain.Finding) sarifRule {
 			ShortDescription: sarifText{f.Label},
 			FullDescription:  sarifText{f.Label + ". Processing special categories of personal data is prohibited unless an Art. 9(2) condition applies."},
 			Help:             sarifText{"Record the Art. 9(2) condition and the safeguards for this field, or remove it if the data is not needed."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
+		}
+	}
+	if f.Kind == domain.KindRecord {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". The record is about an identified person, and processing special categories of personal data is prohibited unless an Art. 9(2) condition applies."},
+			Help:             sarifText{"Replace the record with synthetic test data, or record the Art. 9(2) condition and the safeguards for keeping it here."},
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "gdpr-art-9", string(f.Special)}},
 		}
 	}
@@ -170,14 +190,33 @@ func ruleFor(f domain.Finding) sarifRule {
 			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "data-lifecycle"}},
 		}
 	}
+	if f.Kind == domain.KindFile {
+		return sarifRule{
+			ID:               ruleID(f),
+			Name:             ruleName(f.Label),
+			ShortDescription: sarifText{f.Label},
+			FullDescription:  sarifText{f.Label + ". A file committed to a repository is copied to every clone, build and backup, and its metadata travels with it."},
+			Help:             sarifText{"Remove the file and replace it with synthetic data, strip its metadata, or move it to a store with access control; remove it from history if it is real."},
+			Properties:       map[string]any{"tags": []string{"privacy", "gdpr", "file"}},
+		}
+	}
 	return sarifRule{
 		ID:               f.Detector,
 		Name:             ruleName(f.Label),
 		ShortDescription: sarifText{f.Label},
 		FullDescription:  sarifText{f.Label + " found in the repository. Personal data in code, fixtures and logs is easy to copy and hard to delete."},
 		Help:             sarifText{"Replace the value with synthetic test data or a reference, and remove it from history if it is real."},
-		Properties:       map[string]any{"tags": []string{"privacy", "gdpr", strings.ToLower(f.Country)}},
+		Properties:       map[string]any{"tags": valueTags(f)},
 	}
+}
+
+// valueTags are a value rule's tags: its country, and the Art. 9 category of a code that reveals one.
+func valueTags(f domain.Finding) []string {
+	tags := []string{"privacy", "gdpr", strings.ToLower(f.Country)}
+	if f.Special != "" {
+		tags = append(tags, "gdpr-art-9", string(f.Special))
+	}
+	return tags
 }
 
 func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarifResult) error {

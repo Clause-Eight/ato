@@ -41,7 +41,7 @@ const (
 var w3wExact = regexp.MustCompile(`^` + w3wWords + `$`)
 
 // w3wNotLast are endings of host and file names, which no address ends with.
-var w3wNotLast = words("com net org io dev eu json yaml yml txt html go internal local svc cluster")
+var w3wNotLast = words(strings.Fields("com net org io dev eu json yaml yml txt html go internal local svc cluster")...)
 
 func validWhat3words(s string) bool {
 	var rest string

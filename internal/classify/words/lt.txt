@@ -2,10 +2,11 @@
 health: sveikata, sveikatos duomenys, medicininis, diagnozė, liga, alergija, kraujo grupė, vaistas, vaistai, receptas, simptomas, simptomai, negalia, nėštumas, pacientas, skiepijimas, psichikos sveikata, ligos istorija, nedarbingumas
 genetic: genetinis, genomas, dnr, genas, genotipas
 biometric: biometrinis, piršto atspaudas, pirštų atspaudai, veido šablonas, rainelė, tinklainė, balso atspaudas
-racial-or-ethnic-origin: rasė, rasinė kilmė, etninė kilmė, tautybė
-political-opinions: politinės pažiūros, politinė partija, partinė priklausomybė
-religious-or-philosophical-beliefs: religija, tikėjimas, konfesija, religiniai įsitikinimai, filosofiniai įsitikinimai
-trade-union-membership: profesinė sąjunga, narystė profesinėje sąjungoje, profsąjunga
-sex-life-or-sexual-orientation: seksualinė orientacija, lytinis gyvenimas, seksualumas
+racial-or-ethnic-origin: rasė, rasinė kilmė, etninė kilmė, tautybė, etninė grupė
+political-opinions: politinės pažiūros, politinė partija, partinė priklausomybė, politiniai įsitikinimai, politinė orientacija, partijos narystė, partijos narys
+religious-or-philosophical-beliefs: religija, tikėjimas, konfesija, religiniai įsitikinimai, filosofiniai įsitikinimai, religinė priklausomybė, tikyba
+trade-union-membership: profesinė sąjunga, narystė profesinėje sąjungoje, profsąjunga, profesinės sąjungos narys, narystė profsąjungoje
+sex-life-or-sexual-orientation: seksualinė orientacija, lytinis gyvenimas, seksualumas, seksualinis elgesys, seksualinis gyvenimas
+criminal-convictions-and-offences: teistumas, teistumo pažyma, nuosprendis, apkaltinamasis nuosprendis, nusikaltimas, nusikaltimai, nusikalstama veika, laisvės atėmimas
 demographic: lytis, pilietybė, šeiminė padėtis, amžius, gimimo vieta
 online-identifier: ip adresas, įrenginio id, mac adresas, reklamos id
