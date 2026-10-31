@@ -45,7 +45,7 @@ National identifiers by country:
 | GR | – | `gr-afm` | `gr-amka` | – |
 | HR | `hr-oib` | – | `hr-mbo` | – |
 | HU | `hu-personal-id` | `hu-tax-id` | `hu-taj` | – |
-| IE | `ie-ppsn` | – | – | – |
+| IE | `ie-ppsn` | – | – | `ie-eircode` |
 | IT | – | `it-fiscal-code` | – | – |
 | LT | `lt-asmens-kodas` | – | – | – |
 | LU | `lu-national-id` | – | – | – |

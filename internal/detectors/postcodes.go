@@ -45,13 +45,13 @@ func init() {
 }
 
 // postcodeWords are the postcode concept's words in every language without the bare "zip", which in code
-// is far more often an archive or a function than a postcode.
+// is far more often an archive or a function than a postcode, and without "eircode", which ie-eircode owns.
 var postcodeWords = []string{
-	"postcode", "postal_code", "zip_code", "zipcode", "plz", "eircode", "post code", "postal code", "zip code",
+	"postcode", "postal_code", "zip_code", "zipcode", "plz", "post code", "postal code", "zip code",
 	"postleitzahl", "code postal", "codice postale", "código postal", "cod poștal", "kod pocztowy", "psč",
 	"poštovní směrovací číslo", "poštové smerovacie číslo", "irányítószám", "пощенски код", "ταχυδρομικός κώδικας",
 	"τκ", "postnummer", "postinumero", "postiindeks", "sihtnumber", "pasta indekss", "pašto kodas",
-	"poštanski broj", "poštna številka", "kodiċi postali", "éirchód", "cód poist",
+	"poštanski broj", "poštna številka", "kodiċi postali", "cód poist",
 }
 
 const eircodeChars = "0-9ACDEFHKNPRTVWXY"
