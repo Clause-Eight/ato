@@ -54,6 +54,23 @@ func (c *lineContext) lineText() string {
 	return *c.own
 }
 
+// keywordReach is how far, in bytes, a keyword may sit before or after a value that needs its keyword close by.
+// It spans a key and its separator, as in "passport_number": , and keeps a word elsewhere on a long minified
+// line from counting.
+const keywordReach = 48
+
+// near is the text around line[start:end] within keywordReach, cut at character boundaries.
+func near(line string, start, end int) string {
+	from, to := max(0, start-keywordReach), min(len(line), end+keywordReach)
+	for from > 0 && !utf8.RuneStart(line[from]) {
+		from--
+	}
+	for to < len(line) && !utf8.RuneStart(line[to]) {
+		to++
+	}
+	return line[from:to]
+}
+
 type match struct {
 	det        detectors.Detector
 	start, end int
@@ -329,7 +346,7 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	} else {
 		context, own = ctx.keywordText(), ctx.lineText()
 		if d.KeywordOnLine {
-			context = own
+			context = detectors.Fold(near(ctx.line, start, end))
 		}
 	}
 	if r := d.Rival; r != nil && r.Valid(value) && keyword(own, r.Words) != "" {

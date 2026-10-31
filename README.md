@@ -40,7 +40,7 @@ National identifiers by country:
 | DK | `dk-cpr`* | – | – | – |
 | EE | `ee-isikukood` | – | – | – |
 | ES | `es-dni`, `es-nie` | – | `es-nss` | `es-cadastral-reference`, `es-ccc`, `es-cups` |
-| FI | `fi-hetu` | `fi-veronumero` | – | – |
+| FI | `fi-hetu` | – | – | `fi-veronumero` |
 | FR | – | `fr-spi` | `fr-nir` | `fr-id-card` |
 | GR | – | `gr-afm` | `gr-amka` | `gr-id-card` |
 | HR | `hr-oib` | – | `hr-mbo` | – |
