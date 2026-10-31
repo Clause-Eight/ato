@@ -301,6 +301,16 @@ func enabledInfra(cfg config.Config) []string {
 	return out
 }
 
+func enabledFiles(cfg config.Config) []string {
+	var out []string
+	for _, name := range engine.FileDetectors() {
+		if cfg.Enabled(name, []string{domain.CrossBorder}, true) {
+			out = append(out, name)
+		}
+	}
+	return out
+}
+
 func runScan(args []string, stdout, stderr io.Writer) (int, error) {
 	f, root, err := parseScanFlags(args, stderr)
 	if err != nil {
@@ -370,6 +380,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 		ErasureFindings:   erasure,
 		RetentionFindings: retention,
 		Infra:             enabledInfra(cfg),
+		Files:             enabledFiles(cfg),
 		MaxRows:           cfg.MaxRows,
 	}
 	scan := engine.Scan
@@ -391,7 +402,7 @@ func collect(f scanFlags, root string) (engine.Result, config.Config, error) {
 // them on or off like a detector.
 var engineDetector = func() map[string]bool {
 	m := map[string]bool{engine.SpecialCategoryDetector: true, engine.SinkDetector: true, engine.NoErasureDetector: true, engine.NoRetentionDetector: true}
-	for _, name := range engine.InfraDetectors() {
+	for _, name := range append(engine.InfraDetectors(), engine.FileDetectors()...) {
 		m[name] = true
 	}
 	return m
@@ -634,6 +645,7 @@ func DetectorTable() string {
 	b.WriteString("Schema and model fields whose names say they hold special-category data (GDPR Art. 9: health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) are reported as `special-category` findings at medium confidence. Switch them off with `special-category = false` under `[detectors]`.\n\n")
 	b.WriteString("Tables and models holding personal data can also be checked for an erasure path (GDPR Art. 17: a delete, an anonymising update or a cascade from an erasable parent) and a retention limit (Art. 5(1)(e): a time-based delete, a TTL or a partition drop). Switch the `no-erasure-path` and `no-retention` findings on under `[detectors]`; they are off by default because data can be removed in ways the code does not show. `ato map` always shows both.\n\n")
 	b.WriteString("Log, print, error-tracker and analytics calls in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP that are passed a field whose name says it holds personal data (`user.email`), a whole request body (`req.body`) or a user-like object (`currentUser`) are reported as `log-sink` findings, with the sink (log, error-tracker or analytics) and the data category: medium confidence for a named field or a request body, low for a whole object or an online identifier. Switch them off with `log-sink = false` under `[detectors]`.\n\n")
+	b.WriteString("Files that hold personal data as a whole are reported as file findings: `database-dump` for SQL dumps (mysqldump, pg_dump plain and custom format, sqlite3 `.dump`, `.sql`, `.dump`, `.bak`, also inside `.gz`) with rows inserted into columns whose names say they hold personal data, naming the table and columns, never a value (high confidence when the file names the tool that wrote it, medium for 20 or more rows, low for a few rows of seed data); `document-author` for a person's name in the author metadata of Office Open XML and OpenDocument files, masked; `photo-location` for JPEG, TIFF, PNG, WebP and HEIF images with an EXIF GPS position, masked; and `id-document-scan` for images and PDFs whose file name says they are a passport, an identity card, a driving licence or a residence permit, in the EU languages (medium confidence, low for an ambiguous word or a folder name). ATO does no OCR: the content of an image is never read as text, and a PDF's text is searched only for machine readable zones (`mrz`). Office documents, PDFs and pg_dump archives stay listed as not read in full. Switch any of them off under `[detectors]`.\n\n")
 	b.WriteString("| Name | Country | Identifier | How a match is confirmed | Base confidence | Keywords | Concepts |\n|---|---|---|---|---|---|---|\n")
 	for _, d := range detectors.All() {
 		kws := make([]string, 0, len(d.Keywords))

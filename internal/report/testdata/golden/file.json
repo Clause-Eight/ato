@@ -1,0 +1,61 @@
+{
+  "schema_version": "2.2",
+  "tool": {
+    "name": "ato",
+    "version": "test"
+  },
+  "summary": {
+    "findings": 2,
+    "files_scanned": 7,
+    "files_skipped": [
+      {
+        "path": "docs/offer.docx",
+        "reason": "a document format ATO does not open; only its author metadata was read",
+        "not_read": true
+      }
+    ],
+    "unreadable": [],
+    "ignored": 0,
+    "baselined": 0
+  },
+  "findings": [
+    {
+      "kind": "file",
+      "data_category": "contact",
+      "detector": "database-dump",
+      "label": "Database dump with rows of personal data",
+      "country": "EU",
+      "path": "backups/shop.sql.gz!/shop.sql",
+      "line": 41,
+      "column": 1,
+      "confidence": "high",
+      "masked": "customers: email, phone",
+      "reasons": [
+        "120 rows inserted into customers",
+        "written by mysqldump",
+        "columns holding personal data: email, phone"
+      ],
+      "sample": false,
+      "test_path": false,
+      "fingerprint": "11112222333344445555666677778888"
+    },
+    {
+      "kind": "file",
+      "data_category": "name",
+      "detector": "document-author",
+      "label": "Person name in document metadata (author)",
+      "country": "EU",
+      "path": "docs/offer.docx",
+      "line": 1,
+      "column": 1,
+      "confidence": "medium",
+      "masked": "•••• •••••••",
+      "reasons": [
+        "a person's name in the document's dc:creator"
+      ],
+      "sample": false,
+      "test_path": false,
+      "fingerprint": "99990000aaaabbbbccccddddeeeeffff"
+    }
+  ]
+}
