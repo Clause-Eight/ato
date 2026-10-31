@@ -86,7 +86,6 @@ var socialReserved = map[string]map[string]bool{
 	"tiktok": nil,
 }
 
-
 // splitProfile returns the subdomain, the site's name (linkedin, facebook, ...) and the path with its query.
 func splitProfile(s string) (sub, site, path string, ok bool) {
 	s = strings.TrimPrefix(strings.TrimPrefix(s, "https://"), "http://")

@@ -198,12 +198,18 @@ func build(r *rand.Rand, n int) []line {
 	return out
 }
 
+// withContext writes a value under its keyword or a neutral name. A code that is personal data only in a record
+// about someone, such as a diagnosis code, is written in a record with a patient key.
 func withContext(r *rand.Rand, name, value string) string {
 	d, _ := detectors.Get(name)
-	if r.Intn(2) == 0 && len(d.Keywords) > 0 {
-		return fmt.Sprintf("  %s: %q", d.Keywords[0], value)
+	record := "  "
+	if d.NeedsPerson {
+		record = fmt.Sprintf("  patient_id: %d, ", r.Intn(1000))
 	}
-	return fmt.Sprintf("  value_%d = %q", r.Intn(1000), value)
+	if r.Intn(2) == 0 && len(d.Keywords) > 0 {
+		return fmt.Sprintf("%s%s: %q", record, d.Keywords[0], value)
+	}
+	return fmt.Sprintf("%svalue_%d = %q", record, r.Intn(1000), value)
 }
 
 func digits(r *rand.Rand, n int) string { return synth.Digits(r, n) }
