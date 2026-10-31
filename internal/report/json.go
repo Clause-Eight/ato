@@ -8,7 +8,7 @@ import (
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "2.0"
+const SchemaVersion = "2.1"
 
 func init() { register("json", writeJSON) }
 
@@ -55,24 +55,32 @@ type jsonSkipped struct {
 }
 
 type jsonFinding struct {
-	Kind            string     `json:"kind"`
-	SpecialCategory string     `json:"special_category,omitempty"`
-	Sink            string     `json:"sink,omitempty"`
-	DataCategory    string     `json:"data_category,omitempty"`
-	Detector        string     `json:"detector"`
-	Label           string     `json:"label"`
-	Country         string     `json:"country"`
-	Path            string     `json:"path"`
-	Line            int        `json:"line"`
-	Column          int        `json:"column"`
-	ColumnName      string     `json:"column_name,omitempty"`
-	Confidence      string     `json:"confidence"`
-	Masked          string     `json:"masked"`
-	Reasons         []string   `json:"reasons"`
-	Sample          bool       `json:"sample"`
-	TestPath        bool       `json:"test_path"`
-	Fingerprint     string     `json:"fingerprint"`
-	Store           *jsonStore `json:"store,omitempty"`
+	Kind            string         `json:"kind"`
+	SpecialCategory string         `json:"special_category,omitempty"`
+	Sink            string         `json:"sink,omitempty"`
+	DataCategory    string         `json:"data_category,omitempty"`
+	Detector        string         `json:"detector"`
+	Label           string         `json:"label"`
+	Country         string         `json:"country"`
+	Path            string         `json:"path"`
+	Line            int            `json:"line"`
+	Column          int            `json:"column"`
+	ColumnName      string         `json:"column_name,omitempty"`
+	Confidence      string         `json:"confidence"`
+	Masked          string         `json:"masked"`
+	Reasons         []string       `json:"reasons"`
+	Sample          bool           `json:"sample"`
+	TestPath        bool           `json:"test_path"`
+	Fingerprint     string         `json:"fingerprint"`
+	Store           *jsonStore     `json:"store,omitempty"`
+	Possible        []jsonPossible `json:"possible,omitempty"`
+}
+
+// jsonPossible is another identifier a value is just as valid for.
+type jsonPossible struct {
+	Detector string `json:"detector"`
+	Label    string `json:"label"`
+	Country  string `json:"country"`
 }
 
 // jsonStore names the data store an infra finding is about.
@@ -119,6 +127,7 @@ func writeJSON(w io.Writer, r Report, _ Options) error {
 			Path: f.Location.Path, Line: f.Location.Line, Column: f.Location.Column, ColumnName: f.ColumnName,
 			Confidence: f.Confidence.String(), Masked: f.Masked, Reasons: nonNilStrings(f.Reasons),
 			Sample: f.Sample, TestPath: f.TestPath, Fingerprint: f.Fingerprint, Store: storeRef(f.Store),
+			Possible: possible(f.Possible),
 		})
 	}
 	enc := json.NewEncoder(w)
@@ -178,4 +187,12 @@ func nonNilStrings(s []string) []string {
 		return []string{}
 	}
 	return s
+}
+
+func possible(ps []domain.Possible) []jsonPossible {
+	var out []jsonPossible
+	for _, p := range ps {
+		out = append(out, jsonPossible{Detector: p.Detector, Label: p.Label, Country: p.Country})
+	}
+	return out
 }
