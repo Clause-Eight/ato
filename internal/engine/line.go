@@ -64,6 +64,7 @@ type match struct {
 	keyword    bool
 	ownWord    bool
 	column     string
+	possible   []detectors.Detector
 }
 
 // personalField finds a field name that holds personal data in the same record: a name, an address, a birth
@@ -493,7 +494,9 @@ func lower1(c domain.Confidence) domain.Confidence {
 	return c
 }
 
-// dedupe keeps one match per overlapping span: the most confident, then the most specific base.
+// dedupe keeps one match per overlapping span: the most confident, then the most specific base. A match on the
+// same span that is just as confident, with the same keyword evidence, is listed as possible: nothing near the
+// value says which identifier it is.
 func dedupe(ms []match) []match {
 	sort.SliceStable(ms, func(i, j int) bool {
 		if ms[i].confidence != ms[j].confidence {
@@ -513,7 +516,12 @@ func dedupe(ms []match) []match {
 		for i, k := range kept {
 			if m.start < k.end && k.start < m.end {
 				overlaps = true
-				if m.start == k.start && m.end == k.end {
+				switch {
+				case m.start != k.start || m.end != k.end || m.det.Name == k.det.Name:
+				case m.confidence == k.confidence && m.ownWord == k.ownWord && !m.sample && !k.sample:
+					kept[i].possible = append(kept[i].possible, m.det)
+					kept[i].reasons = append(kept[i].reasons, "just as valid as "+m.det.Label+"; nothing nearby says which")
+				default:
 					kept[i].reasons = append(kept[i].reasons, "also valid as "+m.det.Label+"; reported once, as the more likely")
 				}
 				break
@@ -550,6 +558,7 @@ func toFindings(ctx lineContext, ms []match) []domain.Finding {
 			TestPath:    ctx.testPath,
 			Keyword:     m.keyword,
 			Fingerprint: fingerprint(m.det.Name, ctx.path, shape, i),
+			Possible:    possible(m.possible),
 		})
 	}
 	return out
@@ -566,6 +575,14 @@ func lineShape(line string, ms []match) string {
 	}
 	b.WriteString(line[last:])
 	return strings.TrimSpace(b.String())
+}
+
+func possible(ds []detectors.Detector) []domain.Possible {
+	var out []domain.Possible
+	for _, d := range ds {
+		out = append(out, domain.Possible{Detector: d.Name, Label: d.Label, Country: d.Country})
+	}
+	return out
 }
 
 func fingerprint(detector, path, shape string, index int) string {

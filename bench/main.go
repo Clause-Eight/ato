@@ -62,6 +62,10 @@ func corpusText(seed int64, n int) ([]line, string) {
 // docs/BENCHMARKS.md can be checked against it in CI.
 func results(corpus []line, body string, found []domain.Finding, seed int64) string {
 	baseline, _ := engine.ScanReader("corpus/data.txt", strings.NewReader(body), patternOnly())
+	// A regex scanner reports one name per match, so the baseline is scored without the possible identifiers.
+	for i := range baseline {
+		baseline[i].Possible = nil
+	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "Corpus: %d lines (%d with a value, %d without), %.1f MB, seed %d\n\n", len(corpus), positives(corpus), len(corpus)-positives(corpus), float64(len(body))/1e6, seed)
 	b.WriteString("| Detector | Values | Recall (medium) | Precision (medium) | False positives (medium) | Recall (low) | Precision (low) | Pattern-only precision |\n")
@@ -140,22 +144,22 @@ func pct(v float64) string {
 }
 
 // score counts, for one detector (or all when name is ""), how many labelled lines were found by that
-// detector at or above min, and how many findings landed on lines labelled otherwise.
+// detector at or above min, and how many findings landed on lines labelled otherwise. A finding that names
+// several possible identifiers is right when one of them is the labelled one.
 func score(corpus []line, found []domain.Finding, name string, min domain.Confidence) counts {
 	var c counts
 	hit := map[int]bool{}
 	for _, f := range found {
-		if f.Confidence < min || (name != "" && f.Detector != name) {
+		if f.Confidence < min || (name != "" && f.Detector != name && !possibly(f, name)) {
 			continue
 		}
 		want := corpus[f.Location.Line-1].detector
-		if want == f.Detector {
-			if !hit[f.Location.Line] {
-				c.tp++
-				hit[f.Location.Line] = true
-			}
-		} else {
+		switch {
+		case want != f.Detector && !possibly(f, want):
 			c.fp++
+		case (name == "" || want == name) && !hit[f.Location.Line]:
+			c.tp++
+			hit[f.Location.Line] = true
 		}
 	}
 	for _, l := range corpus {
@@ -164,6 +168,16 @@ func score(corpus []line, found []domain.Finding, name string, min domain.Confid
 		}
 	}
 	return c
+}
+
+// possibly reports whether a finding names the detector among the identifiers the value could equally be.
+func possibly(f domain.Finding, name string) bool {
+	for _, p := range f.Possible {
+		if p.Detector == name {
+			return true
+		}
+	}
+	return false
 }
 
 func build(r *rand.Rand, n int) []line {

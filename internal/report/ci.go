@@ -23,7 +23,7 @@ func writeGitHub(w io.Writer, r Report, _ Options) error {
 			cmd = "notice"
 		}
 		fmt.Fprintf(&b, "::%s file=%s,line=%d,col=%d,title=%s::%s\n",
-			cmd, escapeProperty(f.Location.Path), f.Location.Line, f.Location.Column, escapeProperty("ato: "+f.Label), escapeData(message(f)))
+			cmd, escapeProperty(f.Location.Path), f.Location.Line, f.Location.Column, escapeProperty("ato: "+f.Title()), escapeData(message(f)))
 	}
 	fmt.Fprintf(&b, "%s\n", summaryLine(r, countFiles(r.Findings)))
 	_, err := io.WriteString(w, b.String())
