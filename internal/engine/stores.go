@@ -7,6 +7,7 @@ import (
 
 	"github.com/Clause-Eight/ato/v2/internal/domain"
 	"github.com/Clause-Eight/ato/v2/internal/infra"
+	"github.com/Clause-Eight/ato/v2/internal/lifecycle"
 )
 
 // InfraDetectors are the names of the checks on Terraform data stores. Each can be switched off in settings
@@ -61,6 +62,31 @@ func linkStores(stores []domain.Store, entries []domain.InventoryEntry) {
 				s.PersonalWhy = fmt.Sprintf("its name matches %q, which holds personal data in %s", c.name, c.path)
 				break
 			}
+		}
+	}
+}
+
+// expiryServices are the store services that expire data themselves once the code tells them to, by the
+// engine of the evidence.
+var expiryServices = map[string]string{lifecycle.DynamoDB: "key-value", lifecycle.Redis: "cache", lifecycle.Search: "search"}
+
+// applyExpiry gives a store a retention limit when the code sets one on it: a DynamoDB time to live on its
+// table, a Redis key expiry for keys named like the cache, or an index policy with a delete phase for indices
+// named like the search domain. Names are matched word by word, allowing a plural.
+func applyExpiry(stores []domain.Store, evidence []lifecycle.Evidence) {
+	for i := range stores {
+		s := &stores[i]
+		if s.Module != "" || s.Retention.State == domain.Yes {
+			continue
+		}
+		candidates := runs(append([]string{s.Name}, s.Names...))
+		for _, e := range evidence {
+			key := strings.Join(words(e.Target), "")
+			if e.Kind != lifecycle.Retention || expiryServices[e.Engine] != s.Service || len(key) < minContainer || !matchesAny(key, candidates) {
+				continue
+			}
+			s.Retention = domain.Setting{State: domain.Yes, Why: fmt.Sprintf("%s for %s, set in the code at %s:%d", e.How, e.Target, e.Location.Path, e.Location.Line)}
+			break
 		}
 	}
 }

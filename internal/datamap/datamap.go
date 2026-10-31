@@ -40,8 +40,8 @@ type Infra struct {
 	Location domain.Location
 }
 
-// Store is a table, model or message that holds personal data. Special lists the Art. 9 categories, which are
-// not repeated in Categories.
+// Store is a table, model or message that holds personal data. Special lists the Art. 9 and Art. 10 categories,
+// which are not repeated in Categories.
 type Store struct {
 	Name       string
 	Categories []string

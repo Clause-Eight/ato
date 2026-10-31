@@ -41,7 +41,7 @@ func (r rule) admits(lower string) bool {
 
 const (
 	trackerWords   = "sentry raven bugsnag rollbar honeybadger airbrake newrelic crashlytics raygun appsignal datadogrum"
-	analyticsWords = "analytics mixpanel amplitude posthog fullstory braze appboy klaviyo customerio countly clevertap appsflyer kissmetrics woopra heap fs umami rudder"
+	analyticsWords = "analytics mixpanel amplitude posthog fullstory braze appboy klaviyo customerio countly clevertap appsflyer kissmetrics woopra heap fs umami rudder logrocket hotjar clarity smartlook ttq"
 	logWords       = "log console zap sugar pino winston bunyan timber"
 )
 
@@ -62,7 +62,7 @@ const trackerMethod = `(?i:capture_?exception|capture_?message|capture_?event|se
 	`add_?custom_?attributes?|set_?custom_?data|set_?custom_?attribute|context|set_?context|add_?metadata|add_?action|set_?global_?context_?property)`
 
 // analyticsName allows a prefix (myAnalytics) only for names too long to be part of an unrelated word.
-const analyticsName = `(?:\w*(?i:analytics|mixpanel|amplitude|posthog|fullstory|braze|appboy|klaviyo|customerio|countly|clevertap|appsflyer|kissmetrics|woopra)|(?i:heap|fs|umami|rudder)\b)`
+const analyticsName = `(?:\w*(?i:analytics|mixpanel|amplitude|posthog|fullstory|braze|appboy|klaviyo|customerio|countly|clevertap|appsflyer|kissmetrics|woopra|logrocket|hotjar|smartlook)|(?i:heap|fs|umami|rudder|clarity|ttq)\b)`
 
 const analyticsMethod = `(?i:track|identify|page|screen|group|alias|capture|people\.set(?:_once)?|set_?user_?properties|set_?user_?id|log_?event|add_?user_?properties|set_?user_?vars|record|track_?event|record_?event|set_?profile|profile_?set|on_?user_?login|enqueue|register)`
 
@@ -72,7 +72,7 @@ var common = []rule{
 	newRule(domain.SinkErrorTracker, trackerWords, `(?:^|[^\w$@.>:])[$@]?`+chain+`[\w$]*`+trackerName+`\w*(?:\(\))?\s*`+`(?:(?:\.|->|::|\\)\s*[\w$]+(?:\(\))?\s*)*?(?:\.|->|::|\\)\s*`+trackerMethod+`\s*\(`),
 	newRule(domain.SinkErrorTracker, "scope hub", `(?:^|[^\w$@.>:])(?i:scope|hub)\s*(?:\.|->)\s*(?i:set_?user|set_?extras?|set_?context|set_?tags?)\s*\(`),
 	newRule(domain.SinkAnalytics, analyticsWords, `(?:^|[^\w$@.>:])[$@]?`+chain+analyticsName+`(?:\(\))?\s*(?:\.|->|::)\s*`+analyticsMethod+`\s*\(`),
-	newRule(domain.SinkAnalytics, "gtag plausible intercom datalayer _paq _kmq", `(?:^|[^\w$@.>:])(?:gtag|plausible|Intercom|dataLayer\.push|_paq\.push|_kmq\.push)\s*\(`),
+	newRule(domain.SinkAnalytics, "gtag plausible intercom datalayer _paq _kmq fbq hj clarity smartlook _mfq _uxa lintrk", `(?:^|[^\w$@.>:])(?:gtag|plausible|Intercom|dataLayer\.push|_paq\.push|_kmq\.push|fbq|hj|clarity|smartlook|_mfq\.push|_uxa\.push|lintrk)\s*\(`),
 	newRule(domain.SinkLog, logWords, `(?:^|[^\w$@.>:])`+chain+logReceiver+`\s*(?:\.|\?\.|->|::)\s*`+logMethod+`\s*\(`),
 }
 

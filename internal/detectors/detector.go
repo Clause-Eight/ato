@@ -53,12 +53,42 @@ type Detector struct {
 	KeywordOnLine bool
 	// AlsoIn lists other countries that issue the same identifier (the Czech and Slovak birth number).
 	AlsoIn []string
+	// Context decides values that are personal data only next to something else, such as a card's security code
+	// next to the card number. A candidate it does not fit is dropped.
+	Context func(Around) Fit
+	// NeedsPerson drops a match unless its record is about a person: a personal field or a patient key on the
+	// line or the line before (in the row, in a file with columns), or another personal-data value on the same
+	// line. It is for codes that say something about a person only next to one, such as a diagnosis code.
+	NeedsPerson bool
+	// Special is the GDPR Art. 9 category a value reveals, such as health for a diagnosis code.
+	Special domain.SpecialCategory
 
 	// OwnWords are the folded Keywords; MatchWords add the concept words, except words that are another
 	// detector's own name. Both are set when the registry is read.
 	OwnWords   []string
 	MatchWords []string
 }
+
+// Around is the text around a candidate. Before and After are the rest of its line, or of its cell in a file
+// with columns; Column is the cell's column name. Record is the candidate's line with the few lines above it,
+// as much of a record (a JSON object, a row) as one line can see.
+type Around struct {
+	Before, After string
+	Column        string
+	Record        string
+}
+
+// Fit is what a detector's Context says about a candidate.
+type Fit int
+
+const (
+	// Unfit drops the candidate.
+	Unfit Fit = iota
+	// Fits keeps it.
+	Fits
+	// FitsSample keeps it as sample data: what makes it personal data is itself a published sample value.
+	FitsSample
+)
 
 // Rival describes an identifier that is not personal data but can pass a detector's check. Words are folded
 // when the registry is read.

@@ -21,11 +21,14 @@ type lineContext struct {
 	number   int
 	line     string
 	previous string
+	// above are the lines just above, the nearest last, for detectors whose values depend on their record.
+	above    []string
 	segments []segment
 	folded   *string
 	uuids    *[][]int
 	record   *string
 	own      *string
+	lines    *string
 }
 
 // segment is one value of a line in a file with columns: a CSV cell, a JSON Lines value or a SQL value. Its
@@ -170,6 +173,97 @@ func (c *lineContext) recordField(seg *segment) string {
 	return *c.record
 }
 
+// personKey finds a field naming the person a record is about: a patient, a member or an insured person, a
+// medical record number, or a national number by its usual key.
+var personKey = regexp.MustCompile(`(?i)(?:^|[^a-z0-9_])(patient(?:_?(?:id|no|nr|number|key|ref|uuid))?|paziente|patient_?name|person_?id|member_?id|insured_?(?:id|number|person)|mrn|medical_?record_?(?:number|no|id)|ssn|national_?id|nhs_?(?:number|no)|kvnr|cnp|pesel|codice_?fiscale|fiscal_?code)["']?\s*(?::|=>|=)`)
+
+// withPerson drops the matches of detectors that need a person, such as a diagnosis code, when nothing in their
+// record names one, and gives the others the reason. Another value on the line that is personal data on its own
+// counts, as do a person key or a personal field on the line or the line before, or in any column of the row.
+func withPerson(ctx *lineContext, ms []match) []match {
+	need := false
+	for _, m := range ms {
+		need = need || m.det.NeedsPerson
+	}
+	if !need {
+		return ms
+	}
+	out := make([]match, 0, len(ms))
+	for _, m := range ms {
+		if m.det.NeedsPerson {
+			if insideOther(m, ms) {
+				continue
+			}
+			who := ctx.person(m, ms)
+			if who == "" {
+				continue
+			}
+			m.reasons = append(m.reasons, "in a record about a person: next to "+who)
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
+// insideOther reports whether a code overlaps a value of another detector, such as the first group of an IBAN
+// read as an ICD-11 code: the value is that identifier, not a code.
+func insideOther(code match, ms []match) bool {
+	for _, m := range ms {
+		if !m.det.NeedsPerson && m.start < code.end && code.start < m.end {
+			return true
+		}
+	}
+	return false
+}
+
+// codeKeyReach is how far before a code its medical word may be; recordReach is how far around it the rest of
+// its record may be, on a long line such as minified JSON or a fuzzing corpus.
+const (
+	codeKeyReach = 60
+	recordReach  = 300
+)
+
+// near is the text up to reach bytes before start and after end on the line, and the line before when the
+// window reaches the start of the line.
+func (c *lineContext) near(start, end, reach int) string {
+	from, to := max(start-reach, 0), min(end+reach, len(c.line))
+	text := c.line[from:to]
+	if from == 0 && c.previous != "" {
+		text = c.previous[max(len(c.previous)-reach, 0):] + "\n" + text
+	}
+	return text
+}
+
+// person names what makes the record of a code about a person, or returns "" when nothing does: another value,
+// a person key or a personal field. On a line without columns only what lies near the code counts.
+func (c *lineContext) person(code match, ms []match) string {
+	for _, m := range ms {
+		if m.det.NeedsPerson || m.sample {
+			continue
+		}
+		if c.segments != nil || m.end > code.start-recordReach && m.start < code.end+recordReach {
+			return m.det.Label
+		}
+	}
+	var texts []string
+	if c.segments != nil {
+		for _, s := range c.segments {
+			texts = append(texts, s.column+":")
+		}
+	} else {
+		texts = []string{c.near(code.start, code.end, recordReach)}
+	}
+	for _, t := range texts {
+		if f := personKey.FindStringSubmatch(t); f != nil {
+			return "the field " + f[1]
+		}
+		if f := personalField.FindStringSubmatch(t); f != nil {
+			return "the field " + f[1]
+		}
+	}
+	return ""
+}
+
 // timeLabel finds names that usually hold a time: created_at, updatedAt, ts, timestamp, time, date.
 var timeLabel = regexp.MustCompile(`(?i)(_at|At|_on|_ts)\b|\b(ts|time|timestamp|date|datetime|epoch|millis|ms)\b`)
 
@@ -210,7 +304,7 @@ func scanLine(ctx lineContext, dets []detectors.Detector) []domain.Finding {
 		matches = scanSegment(&ctx, s, s.start, s.end, dets, matches)
 		matches = decodedMatches(&ctx, s, s.start, s.end, dets, matches)
 	}
-	matches = dedupe(matches)
+	matches = dedupe(withPerson(&ctx, matches))
 	findings := toFindings(ctx, matches)
 	applyIgnore(findings, ctx)
 	return findings
@@ -329,6 +423,12 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	}
 	value := d.Normalize(ctx.line[start:end])
 	m := match{det: d, start: start, end: end, value: value, confidence: d.Base}
+	fit := detectors.Fits
+	if d.Context != nil {
+		if fit = d.Context(ctx.around(seg, start, end)); fit == detectors.Unfit {
+			return match{}, false
+		}
+	}
 	if d.Validate != nil {
 		m.reasons = append(m.reasons, d.Validation)
 	}
@@ -343,6 +443,8 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	context, own, text := "", "", ctx.line
 	if seg != nil {
 		context, own, text, m.column = seg.keywords, seg.keywords, ctx.line[seg.start:seg.end], seg.column
+	} else if d.NeedsPerson {
+		context, own = detectors.Fold(ctx.near(start, end, codeKeyReach)), ctx.lineText()
 	} else {
 		context, own = ctx.keywordText(), ctx.lineText()
 		if d.KeywordOnLine {
@@ -358,7 +460,8 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	}
 	// A keyword counts on the line before too; a word that labels other numbers only on the value's own line.
 	// Context can lower a valid value by one step at most, however many signals agree; every signal is still
-	// listed as a reason.
+	// listed as a reason. A detector with its own Context has already judged the key before the value (a hash
+	// under phone is a hashed phone number), so the key is not read as another kind of value.
 	demoted := false
 	demote := func(reason string) {
 		if !demoted {
@@ -374,7 +477,7 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
 	} else if w := keyword(own, d.Unlikely); w != "" {
 		demote(fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
-	} else if k := otherKind(ctx.line[:start], d.Name); k != "" {
+	} else if k := otherKind(ctx.line[:start], d.Name); k != "" && d.Context == nil {
 		demote(fmt.Sprintf("its own name %q says it is another kind of value", k))
 	} else if distinct[d.Name] && wholeQuoted(ctx.line, start, end) && !demoted {
 		m.confidence = raise(m.confidence)
@@ -383,7 +486,11 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("next to another personal field (%s), as in a record about a person", f))
 	}
-	if d.Samples[value] {
+	if fit == detectors.FitsSample {
+		m.sample = true
+		m.confidence = domain.Low
+		m.reasons = append(m.reasons, "next to a published sample value")
+	} else if d.Samples[value] {
 		m.sample = true
 		m.confidence = domain.Low
 		m.reasons = append(m.reasons, "a published sample value")
@@ -413,6 +520,27 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		}
 	}
 	return m, true
+}
+
+// recordLines is how many lines above a value a detector's Context sees, and aboveBytes how much of the end of
+// each, so that minified files do not make every candidate's record long.
+const recordLines, aboveBytes = 6, 4096
+
+// around is the text a detector's Context judges: the rest of the value's cell or line, its column, and the
+// line with the lines above it.
+func (c *lineContext) around(seg *segment, start, end int) detectors.Around {
+	lo, hi := 0, len(c.line)
+	var a detectors.Around
+	if seg != nil {
+		lo, hi, a.Column = seg.start, seg.end, seg.column
+	}
+	a.Before, a.After = c.line[lo:start], c.line[end:hi]
+	if c.lines == nil {
+		r := strings.Join(append(append([]string{}, c.above...), c.line), "\n")
+		c.lines = &r
+	}
+	a.Record = *c.lines
+	return a
 }
 
 // validEnd returns where a valid value ends, trimming trailing groups when the detector allows it.
@@ -562,7 +690,13 @@ func toFindings(ctx lineContext, ms []match) []domain.Finding {
 	shape := lineShape(ctx.line, ms)
 	out := make([]domain.Finding, 0, len(ms))
 	for i, m := range ms {
+		category := domain.DataCategory("")
+		if m.det.Special != "" {
+			category = domain.CategorySpecial
+		}
 		out = append(out, domain.Finding{
+			Category:    category,
+			Special:     m.det.Special,
 			Kind:        domain.KindValue,
 			Detector:    m.det.Name,
 			Label:       m.det.Label,

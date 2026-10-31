@@ -2,6 +2,7 @@ package infra
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/Clause-Eight/ato/v2/internal/domain"
@@ -87,6 +88,7 @@ func init() {
 	for _, typ := range []string{"aws_opensearch_domain", "aws_elasticsearch_domain"} {
 		aws(typ, "search", []string{"domain_name"}, func(c *check) {
 			c.s.Encryption = c.flag(c.r, "encrypt_at_rest.enabled", domain.Yes, domain.No, setting(domain.Unknown, "encrypt_at_rest is not set; the default depends on the engine version"))
+			c.s.Retention = c.indexPolicy()
 			if len(blocksNamed(c.r.body, "vpc_options")) > 0 {
 				c.s.Public = setting(domain.No, "the domain runs inside a VPC")
 			} else {
@@ -106,6 +108,85 @@ func init() {
 	aws("aws_efs_file_system", "file-storage", []string{"creation_token"}, func(c *check) {
 		c.s.Encryption = c.flag(c.r, "encrypted", domain.Yes, domain.No, setting(domain.No, "encrypted is not set; EFS leaves file systems unencrypted by default"))
 	})
+}
+
+// indexPolicyTypes are the resources of the OpenSearch and Elasticsearch providers that hold an index state or
+// lifecycle policy, with the attribute that holds the policy document; elasticstack writes it as blocks.
+var indexPolicyTypes = map[string]string{
+	"opensearch_ism_policy":                      "body",
+	"elasticsearch_opensearch_ism_policy":        "body",
+	"elasticsearch_opendistro_ism_policy":        "body",
+	"elasticsearch_index_lifecycle_policy":       "body",
+	"elasticsearch_xpack_index_lifecycle_policy": "body",
+	"elasticstack_elasticsearch_index_lifecycle": "",
+}
+
+// deleteAction matches a delete action or phase in a policy document, in JSON or in HCL inside jsonencode.
+var deleteAction = regexp.MustCompile(`(?i)["']?\bdelete["']?\s*[:=]\s*\{`)
+
+// indexPolicy looks for an index policy that deletes indices. A policy counts for the domain when the folder
+// declares no other search domain, or when the provider that applies it points at this domain.
+func (c *check) indexPolicy() domain.Setting {
+	domains := 0
+	for _, r := range c.m.order {
+		if r.typ == "aws_opensearch_domain" || r.typ == "aws_elasticsearch_domain" {
+			domains++
+		}
+	}
+	policies, deletes := 0, false
+	var line int
+	var source *resource
+	for _, r := range c.m.order {
+		attr, ok := indexPolicyTypes[r.typ]
+		if !ok || domains > 1 && !c.appliedHere(r) {
+			continue
+		}
+		policies++
+		if attr == "" {
+			if d := blocksNamed(r.body, "delete"); len(d) > 0 {
+				deletes, line, source = true, d[0].line, r
+				break
+			}
+			continue
+		}
+		a := r.body.attrs[attr]
+		if a == nil {
+			continue
+		}
+		text := a.val.src
+		if v := c.m.eval(a.val); v.known {
+			text += v.s
+		}
+		if deleteAction.MatchString(text) {
+			deletes, line, source = true, a.line, r
+			break
+		}
+	}
+	switch {
+	case deletes:
+		return domain.Setting{State: domain.Yes, Why: c.where(source, "an index policy deletes indices"), Line: c.on(source, line)}
+	case policies > 0:
+		return setting(domain.No, "the index policies in this folder never delete indices")
+	}
+	return setting(domain.Unknown, "no index policy in this folder; index retention is often set through the search API")
+}
+
+// appliedHere reports whether a policy resource uses a provider block whose url refers to this domain.
+func (c *check) appliedHere(r *resource) bool {
+	key := strings.SplitN(r.typ, "_", 2)[0]
+	if a := r.body.attrs["provider"]; a != nil && a.val.kind == eRef && len(a.val.ref) == 2 {
+		key = a.val.ref[0] + "." + a.val.ref[1]
+	}
+	p := c.m.providers[key]
+	if p == nil {
+		return false
+	}
+	for _, name := range []string{"url", "endpoints"} {
+		if a := p.attrs[name]; a != nil && c.m.target(a.val) == c.r {
+			return true
+		}
+	}
+	return false
 }
 
 // inherited is the setting for an unset encryption attribute: unknown when the store is created from a

@@ -10,11 +10,11 @@ import (
 	"github.com/Clause-Eight/ato/v2/internal/schema"
 )
 
-// SpecialCategoryDetector names the findings for schema fields holding GDPR Art. 9 data. It can be switched
+// SpecialCategoryDetector names the findings for schema fields holding GDPR Art. 9 or Art. 10 data. It can be switched
 // off in settings like a detector.
 const SpecialCategoryDetector = "special-category"
 
-// specialLabels are the finding labels per Art. 9 category.
+// specialLabels are the finding labels per Art. 9 category and for criminal data (Art. 10).
 var specialLabels = map[domain.SpecialCategory]string{
 	domain.SpecialHealth:       "Field holding health data (GDPR Art. 9)",
 	domain.SpecialGenetic:      "Field holding genetic data (GDPR Art. 9)",
@@ -24,6 +24,7 @@ var specialLabels = map[domain.SpecialCategory]string{
 	domain.SpecialReligious:    "Field holding religious or philosophical beliefs (GDPR Art. 9)",
 	domain.SpecialTradeUnion:   "Field holding trade union membership (GDPR Art. 9)",
 	domain.SpecialSexLife:      "Field holding sex life or sexual orientation (GDPR Art. 9)",
+	domain.SpecialCriminal:     "Field holding criminal convictions or offences (GDPR Art. 10)",
 }
 
 // inventory classifies the fields declared in one file; fields that hold no personal data are left out.

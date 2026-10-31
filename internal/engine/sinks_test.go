@@ -18,6 +18,16 @@ func scanSource(t *testing.T, path, code string) []domain.Finding {
 	return fs
 }
 
+func TestSessionReplayInPages(t *testing.T) {
+	fs := scanSource(t, "templates/signup.html", "<form>\n  <input type=\"text\" name=\"phone_number\" data-hj-allow>\n</form>\n")
+	if len(fs) != 1 || fs[0].Sink != domain.SinkSessionReplay || fs[0].Location.Line != 2 || fs[0].Fingerprint == "" {
+		t.Fatalf("got %+v", fs)
+	}
+	if fs := scanSource(t, "templates/signup.html", "<!-- ato:ignore the field is masked by the vendor setting -->\n<input name=\"email\" data-hj-allow>\n"); len(fs) != 1 || !fs[0].Ignored {
+		t.Fatalf("an ignore comment applies: %+v", fs)
+	}
+}
+
 func TestSinkFindings(t *testing.T) {
 	code := "package app\n\nfunc h(u User) {\n\tlog.Printf(\"signup %s\", u.Email)\n}\n"
 	fs := scanSource(t, "app/handler.go", code)

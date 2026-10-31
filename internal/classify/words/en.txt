@@ -2,11 +2,12 @@
 health: diagnosis, disease, illness, allergy, allergies, blood type, blood group, medication, medications, prescription, disability, pregnancy, pregnant, patient, vaccination, vaccine status, mental health, health record, medical record, medical history, icd10, icd code, sick leave, hiv, medical treatment, health data, health condition, health information, medical condition, medical data, medical notes, symptom description
 genetic: genetic, genome, genomic, dna, genotype, genetic test
 biometric: biometric, biometrics, fingerprint template, face template, facial template, face embedding, voiceprint, palm print, iris scan, retina scan
-racial-or-ethnic-origin: race, racial, ethnicity, ethnic origin, ethnic group
-political-opinions: political opinion, political opinions, political party, party affiliation, party membership, political affiliation, voting intention
-religious-or-philosophical-beliefs: religion, religious, faith, religious belief, denomination, philosophical belief, church membership
-trade-union-membership: trade union, union member, union membership, labour union, labor union
-sex-life-or-sexual-orientation: sexual orientation, sexuality, sex life, sexual preference
+racial-or-ethnic-origin: race, racial, ethnicity, ethnic origin, ethnic group, racial origin, ethnic background, ethnic identity
+political-opinions: political opinion, political opinions, political party, party affiliation, party membership, political affiliation, voting intention, political view, political views, political orientation, political leaning, political belief, party member
+religious-or-philosophical-beliefs: religion, religious, faith, religious belief, denomination, philosophical belief, church membership, religious affiliation, religious denomination, philosophical beliefs, belief system, church member, church tax
+trade-union-membership: trade union, union member, union membership, labour union, labor union, union dues, trade union member, union affiliation
+sex-life-or-sexual-orientation: sexual orientation, sexuality, sex life, sexual preference, sexual behaviour, sexual behavior, sexual history, sexual activity, sexual partners, lgbt, lgbtq
+criminal-convictions-and-offences: criminal record, criminal history, criminal conviction, conviction, convictions, criminal offence, criminal offense, offence, offences, offense record, offense history, criminal charge, criminal charges, police record, police check, police clearance, police certificate, background check result, criminal background check, dbs check, dbs certificate, certificate of good conduct, good conduct certificate, arrest record, arrest history, prison sentence, criminal sentence, custodial sentence, sex offender
 demographic: gender, sex, nationality, citizenship, marital status, age, place of birth
 online-identifier: ip address, ip addr, client ip, remote addr, device id, imei, mac address, advertising id, idfa, gaid, cookie id, user agent
 not: health check, healthcheck, health status code, health endpoint, container health, health probe, condition type, race condition, union all, union type, sex appeal

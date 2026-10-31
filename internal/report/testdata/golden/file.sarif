@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ATO",
+          "version": "test",
+          "informationUri": "https://github.com/Clause-Eight/ato",
+          "rules": [
+            {
+              "id": "database-dump",
+              "name": "DatabaseDumpWithRowsOfPersonalData",
+              "shortDescription": {
+                "text": "Database dump with rows of personal data"
+              },
+              "fullDescription": {
+                "text": "Database dump with rows of personal data. A file committed to a repository is copied to every clone, build and backup, and its metadata travels with it."
+              },
+              "help": {
+                "text": "Remove the file and replace it with synthetic data, strip its metadata, or move it to a store with access control; remove it from history if it is real."
+              },
+              "properties": {
+                "tags": [
+                  "privacy",
+                  "gdpr",
+                  "file"
+                ]
+              }
+            },
+            {
+              "id": "document-author",
+              "name": "PersonNameInDocumentMetadataAuthor",
+              "shortDescription": {
+                "text": "Person name in document metadata (author)"
+              },
+              "fullDescription": {
+                "text": "Person name in document metadata (author). A file committed to a repository is copied to every clone, build and backup, and its metadata travels with it."
+              },
+              "help": {
+                "text": "Remove the file and replace it with synthetic data, strip its metadata, or move it to a store with access control; remove it from history if it is real."
+              },
+              "properties": {
+                "tags": [
+                  "privacy",
+                  "gdpr",
+                  "file"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "database-dump",
+          "level": "error",
+          "message": {
+            "text": "Database dump with rows of personal data customers: email, phone (high confidence): 120 rows inserted into customers; written by mysqldump; columns holding personal data: email, phone"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "backups/shop.sql.gz!/shop.sql",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 41,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "ato/v1": "11112222333344445555666677778888",
+            "piiEu/v1": "11112222333344445555666677778888"
+          },
+          "properties": {
+            "confidence": "high",
+            "sample": false,
+            "testPath": false
+          }
+        },
+        {
+          "ruleId": "document-author",
+          "level": "warning",
+          "message": {
+            "text": "Person name in document metadata (author) •••• ••••••• (medium confidence): a person's name in the document's dc:creator"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/offer.docx",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "ato/v1": "99990000aaaabbbbccccddddeeeeffff",
+            "piiEu/v1": "99990000aaaabbbbccccddddeeeeffff"
+          },
+          "properties": {
+            "confidence": "medium",
+            "sample": false,
+            "testPath": false
+          }
+        }
+      ]
+    }
+  ]
+}

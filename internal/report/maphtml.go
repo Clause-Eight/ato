@@ -69,7 +69,7 @@ type mapPage struct {
 	Components                           []componentView
 	Stores, Recipients, Sinks, Infra     int
 	Kinds                                string
-	Special                              string
+	Special, SpecialLaw                  string
 	ChangeCount, AddedCount, RemoveCount int
 }
 
@@ -82,11 +82,11 @@ type componentView struct {
 }
 
 type storeView struct {
-	Name, Kinds, Special string
-	Erasure, Retention   string
-	ErasureAt            []place
-	RetentionAt          []place
-	Fields               []fieldView
+	Name, Kinds, Special, SpecialLaw string
+	Erasure, Retention               string
+	ErasureAt                        []place
+	RetentionAt                      []place
+	Fields                           []fieldView
 }
 
 type fieldView struct {
@@ -134,6 +134,26 @@ var specialText = map[string]string{
 	string(domain.SpecialReligious):    "religious or philosophical beliefs",
 	string(domain.SpecialTradeUnion):   "trade union membership",
 	string(domain.SpecialSexLife):      "sex life or sexual orientation",
+	string(domain.SpecialCriminal):     "criminal convictions and offences",
+}
+
+// articles names the GDPR articles that restrict the special categories: Art. 9, and Art. 10 for criminal data.
+func articles(specials []string) string {
+	nine, ten := false, false
+	for _, sp := range specials {
+		if domain.SpecialCategory(sp) == domain.SpecialCriminal {
+			ten = true
+		} else {
+			nine = true
+		}
+	}
+	switch {
+	case ten && nine:
+		return "GDPR Art. 9 and 10"
+	case ten:
+		return "GDPR Art. 10"
+	}
+	return "GDPR Art. 9"
 }
 
 func categoryWords(c string) string {
@@ -197,7 +217,7 @@ func writeMapHTML(w io.Writer, m DataMap) error {
 			cats = append(cats, c)
 		}
 	}
-	page.Kinds, page.Special = wordList(cats, categoryWords), wordList(specials, specialWords)
+	page.Kinds, page.Special, page.SpecialLaw = wordList(cats, categoryWords), wordList(specials, specialWords), articles(specials)
 	for _, c := range m.Map.Components {
 		page.Stores += len(c.Stores)
 		page.Recipients += len(c.Recipients)
@@ -240,7 +260,7 @@ func removalWords(assessed bool, rs []domain.Removal, none string) (string, []pl
 func componentPage(c datamap.Component) componentView {
 	out := componentView{Name: c.Name}
 	for _, s := range c.Stores {
-		sv := storeView{Name: s.Name, Kinds: wordList(s.Categories, categoryWords), Special: wordList(s.Special, specialWords)}
+		sv := storeView{Name: s.Name, Kinds: wordList(s.Categories, categoryWords), Special: wordList(s.Special, specialWords), SpecialLaw: articles(s.Special)}
 		sv.Erasure, sv.ErasureAt = removalWords(s.Assessed, s.Erasure, "No code found that erases a person's data.")
 		sv.Retention, sv.RetentionAt = removalWords(s.Assessed, s.Retention, "No code found that removes old data.")
 		for _, f := range s.Fields {
@@ -379,7 +399,7 @@ var lostText = map[string]string{
 func changeGroups(previous, current datamap.Map, cmp datamap.Comparison) []changeGroup {
 	groups := []changeGroup{
 		{Title: "New kinds of personal data"},
-		{Title: "New special-category data (GDPR Art. 9)"},
+		{Title: "New special-category data"},
 		{Title: "New outside companies that may receive data"},
 		{Title: "New stores, and stores that lost a protection"},
 		{Title: "New places personal data is written to logs"},
@@ -423,6 +443,13 @@ func changeGroups(previous, current datamap.Map, cmp datamap.Comparison) []chang
 		}
 		groups[5].Items = append(groups[5].Items, changeItem{text, evidence(previous, ch)})
 	}
+	var added []string
+	for _, ch := range cmp.Added {
+		if ch.Kind == datamap.NewSpecial {
+			added = append(added, ch.Name)
+		}
+	}
+	groups[1].Title += " (" + articles(added) + ")"
 	out := groups[:0]
 	for _, g := range groups {
 		if len(g.Items) > 0 {
@@ -459,6 +486,14 @@ func categoryDecision(ch datamap.Change, where []place) decision {
 
 func specialDecision(comp, sp string, where []place) decision {
 	words := specialWords(sp)
+	if domain.SpecialCategory(sp) == domain.SpecialCriminal {
+		return decision{
+			Title:  "Criminal data: " + words + " in " + comp,
+			Why:    upperFirst(words) + " may only be processed under the control of official authority or where the law authorises it (GDPR Art. 10).",
+			Decide: "Decide the purpose, which law authorises the processing and whether a data protection impact assessment is needed.",
+			Where:  where,
+		}
+	}
 	return decision{
 		Title:  "Special-category data: " + words + " in " + comp,
 		Why:    upperFirst(words) + " is special-category data (GDPR Art. 9), which may only be processed under one of the exceptions in Art. 9(2).",

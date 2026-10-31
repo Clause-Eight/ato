@@ -2,10 +2,11 @@
 health: saúde, doença, patologia, alergia, alergias, grupo sanguíneo, medicamento, medicamentos, receita, sintoma, sintomas, deficiência, incapacidade, gravidez, paciente, utente, vacinação, saúde mental, processo clínico, historial clínico, baixa médica
 genetic: genético, genoma, adn, dna, genótipo
 biometric: biométrico, impressão digital, impressões digitais, modelo facial, impressão vocal
-racial-or-ethnic-origin: raça, origem racial, origem étnica, etnia
-political-opinions: opinião política, opiniões políticas, partido político, filiação partidária
-religious-or-philosophical-beliefs: religião, confissão religiosa, crença, convicções religiosas, convicções filosóficas
-trade-union-membership: sindicato, filiação sindical, sindicalizado
-sex-life-or-sexual-orientation: orientação sexual, vida sexual, sexualidade
+racial-or-ethnic-origin: raça, origem racial, origem étnica, etnia, etnicidade, grupo étnico
+political-opinions: opinião política, opiniões políticas, partido político, filiação partidária, orientação política, ideologia política, filiação política
+religious-or-philosophical-beliefs: religião, confissão religiosa, crença, convicções religiosas, convicções filosóficas, crença religiosa, filiação religiosa, credo
+trade-union-membership: sindicato, filiação sindical, sindicalizado, sócio sindical, quota sindical
+sex-life-or-sexual-orientation: orientação sexual, vida sexual, sexualidade, preferência sexual, comportamento sexual
+criminal-convictions-and-offences: registo criminal, registro criminal, certificado de registo criminal, antecedentes criminais, condenação, condenações, condenação penal, infração penal, pena de prisão
 demographic: género, sexo, nacionalidade, cidadania, estado civil, idade, local de nascimento
 online-identifier: endereço ip, id do dispositivo, endereço mac, id de publicidade

@@ -1,0 +1,10 @@
+backups/shop.sql.gz!/shop.sql
+  41:1  high    Database dump with rows of personal data  customers: email, phone
+          120 rows inserted into customers; written by mysqldump; columns holding personal data: email, phone
+
+docs/offer.docx
+  1:1  medium  Person name in document metadata (author)  •••• •••••••
+          a person's name in the document's dc:creator
+
+2 findings in 2 files · 7 files scanned · 1 skipped · 1 not read in full
+ato: did not read all of docs/offer.docx (a document format ATO does not open; only its author metadata was read)

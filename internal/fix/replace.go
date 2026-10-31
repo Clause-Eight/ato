@@ -37,9 +37,9 @@ const shapeTries = 64
 const shapeBudget = 8 * maxTries
 
 // unmarkable are detectors whose generated values cannot carry the synthetic mark (names from a list, dates of
-// birth, street addresses); a search for one would run to maxTries without finding a marked value, so theirs
+// birth, street addresses) or have too few values to hold one (card security codes and expiry dates); a search for one would run to maxTries without finding a marked value, so theirs
 // stop after unmarkedTries.
-var unmarkable = map[string]bool{"person-name": true, "birth-date": true, "street-address": true}
+var unmarkable = map[string]bool{"person-name": true, "birth-date": true, "street-address": true, "card-security-code": true, "card-expiry": true}
 
 const unmarkedTries = 1 << 12
 

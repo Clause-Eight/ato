@@ -2,10 +2,11 @@
 health: sănătate, boală, boli, afecțiune, alergie, alergii, grupa sanguină, grupă sanguină, medicament, medicamente, rețetă, simptom, simptome, dizabilitate, handicap, sarcină, pacient, vaccinare, sănătate mintală, fișă medicală, istoric medical, concediu medical
 genetic: genetic, genom, adn, genă, genotip
 biometric: biometric, biometrice, amprentă, amprente, șablon facial, retină, amprentă vocală
-racial-or-ethnic-origin: rasă, etnie, origine etnică, naționalitate etnică
-political-opinions: opinie politică, opinii politice, partid politic, afiliere politică, apartenență politică
-religious-or-philosophical-beliefs: religie, religios, religioasă, confesiune, credință, cult religios
-trade-union-membership: sindicat, membru de sindicat, apartenență sindicală
-sex-life-or-sexual-orientation: orientare sexuală, viață sexuală, sexualitate
+racial-or-ethnic-origin: rasă, etnie, origine etnică, naționalitate etnică, origine rasială, apartenență etnică, etnicitate
+political-opinions: opinie politică, opinii politice, partid politic, afiliere politică, apartenență politică, orientare politică, convingeri politice, membru de partid, apartenență la partid
+religious-or-philosophical-beliefs: religie, religios, religioasă, confesiune, credință, cult religios, apartenență religioasă, convingeri religioase, convingeri filozofice, confesiune religioasă
+trade-union-membership: sindicat, membru de sindicat, apartenență sindicală, membru sindical, cotizație sindicală, afiliere sindicală
+sex-life-or-sexual-orientation: orientare sexuală, viață sexuală, sexualitate, preferință sexuală, comportament sexual
+criminal-convictions-and-offences: cazier judiciar, cazier, certificat de cazier, antecedente penale, condamnare, condamnări, condamnare penală, infracțiune, infracțiuni, pedeapsă cu închisoarea
 demographic: sex, naționalitate, cetățenie, stare civilă, vârstă, locul nașterii, loc naștere
 online-identifier: adresă ip, id dispozitiv, adresă mac, identificator publicitar
