@@ -52,7 +52,7 @@ func validNOFnr(s string) bool {
 		month -= 40
 	}
 	century := noFnrCentury(d[6]*100+d[7]*10+d[8], yy)
-	if century == 0 || !ValidDate(century+yy, month, day) {
+	if century == 0 || !ValidBirthDate(century+yy, month, day) {
 		return false
 	}
 	return noFnrCheck(d, noFnrWeights1) && noFnrCheck(d, noFnrWeights2)

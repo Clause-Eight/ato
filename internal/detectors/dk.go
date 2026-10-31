@@ -35,7 +35,7 @@ func validCPR(s string) bool {
 		return false
 	}
 	day, month, yy := d[0]*10+d[1], d[2]*10+d[3], d[4]*10+d[5]
-	return ValidDate(cprCentury(d[6], yy)+yy, month, day)
+	return ValidBirthDate(cprCentury(d[6], yy)+yy, month, day)
 }
 
 func cprCentury(seventh, yy int) int {
