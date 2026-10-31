@@ -299,7 +299,7 @@ SAMPLE_IBAN = "RO49AAAA1B31007593840000"  # ato:ignore documented example from t
     sarif: ato.sarif      # optional; upload it with github/codeql-action/upload-sarif
 ```
 
-Findings appear as annotations on the pull request; the step fails on findings unless `fail-on-findings: "false"`.
+Findings appear as annotations on the pull request; the step fails on findings unless `fail-on-findings: "false"`. Add `license: ${{ secrets.ATO_LICENSE }}` with your license in a repository or organisation secret.
 
 **pre-commit**
 
@@ -311,7 +311,18 @@ repos:
       - id: ato
 ```
 
-**GitLab and Bitbucket**: [ci/gitlab/ato.gitlab-ci.yml](ci/gitlab/ato.gitlab-ci.yml) (Code Quality widget) and [ci/bitbucket/bitbucket-pipelines.yml](ci/bitbucket/bitbucket-pipelines.yml).
+**GitLab and Bitbucket**: [ci/gitlab/ato.gitlab-ci.yml](ci/gitlab/ato.gitlab-ci.yml) (Code Quality widget) and [ci/bitbucket/bitbucket-pipelines.yml](ci/bitbucket/bitbucket-pipelines.yml). Set your license as a masked, protected CI variable named `ATO_LICENSE`.
+
+## Your license
+
+ATO checks its license on your machine and never contacts a server. Install the license file you received once per machine:
+
+```sh
+ato license install acme.license   # checks it and copies it to your config folder
+ato license                        # who it is for, the plan and how many days are left
+```
+
+In CI, put the license (the line starting `ato-license-v1.`, or the path of the file) in the `ATO_LICENSE` variable instead. A license keeps working for 30 days after its end date, with a notice. Without one ATO still runs, as an evaluation, and says so in one line on stderr; reports and exit codes are the same. How licenses work: [ADR 15](docs/adr/0015-licensing.md).
 
 ## How it decides
 

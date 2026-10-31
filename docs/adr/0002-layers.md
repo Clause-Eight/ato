@@ -16,6 +16,7 @@ The tool will grow by adding detectors and output formats. Those additions must 
 - `art9` (health, genetic and biometric records, ADR 14): imports `domain` only.
 - `engine`: runs detectors over files; imports `domain`, `detectors`, `walk`, `schema`, `classify`, `infra`,
   `binmeta` and `art9`.
+- `license` (license tokens and the public keys that check them, ADR 15): imports nothing from this module.
 - `cli`: the only package that reads arguments, prints and chooses exit codes.
 
 `internal/archtest` fails the build when an import breaks these rules.

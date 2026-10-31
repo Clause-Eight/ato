@@ -42,6 +42,8 @@ func TestCoverageGapDetectors(t *testing.T) {
 		{"cz-bank-account", "prefix, root and bank", "19-2000145399/0800", true},
 		{"cz-bank-account", "without a prefix", "2000145399/0800", true},
 		{"cz-bank-account", "bank code not assigned", "2000145399/0801", false},
+		{"cz-bank-account", "root longer than ten digits", "120002000145399/0800", false},
+		{"cz-bank-account", "prefix longer than ten digits", "12345678901-2000145399/0800", false},
 		{"cz-bank-account", "root fails mod 11", "2000145398/0800", false},
 		{"cz-bank-account", "root of zeros", "0000000000/0800", false},
 
