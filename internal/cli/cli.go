@@ -45,6 +45,10 @@ func Run(args []string, stdout, stderr io.Writer) int {
 	var code int
 	var err error
 	switch args[0] {
+	case "scan", "baseline", "inventory", "map", "fix":
+		licenseNotice(stderr)
+	}
+	switch args[0] {
 	case "scan":
 		code, err = runScan(args[1:], stdout, stderr)
 	case "baseline":
@@ -57,6 +61,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		code, err = runMap(args[1:], stdout, stderr)
 	case "fix":
 		code, err = runFix(args[1:], stdout, stderr)
+	case "license":
+		code, err = runLicense(args[1:], stdout, stderr)
 	case "version", "--version", "-v":
 		fmt.Fprintf(stdout, "ato %s\n", Version)
 	case "help", "--help", "-h":
@@ -89,6 +95,8 @@ Usage:
   ato map [flags] [path]       draft a data map: stores, logged personal data and third-party recipients
   ato fix [flags] [path]       replace found values in test, fixture and example files with synthetic ones
   ato detectors [--markdown]   list what can be detected
+  ato license [status]         show the license this machine uses
+  ato license install FILE     check a license file and install it for this user
   ato version                  print the version
 
 Scan flags:

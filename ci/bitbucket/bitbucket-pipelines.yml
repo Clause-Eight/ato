@@ -1,5 +1,6 @@
 # Example step for Bitbucket Pipelines that scans with ATO. Set ATO_VERSION to a release tag or commit
 # (default: main). PII_EU_VERSION is deprecated and still read when ATO_VERSION is not set.
+# Set ATO_LICENSE as a secured repository or workspace variable holding your license.
 definitions:
   steps:
     - step: &ato

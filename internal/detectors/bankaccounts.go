@@ -111,7 +111,10 @@ func validCZBankAccount(s string) bool {
 }
 
 func czAccountPart(s string) bool {
-	d, ok := Digits(strings.Repeat("0", 10-len(s)) + s)
+	if len(s) > len(czAccountWeights) {
+		return false
+	}
+	d, ok := Digits(strings.Repeat("0", len(czAccountWeights)-len(s)) + s)
 	if !ok {
 		return false
 	}
