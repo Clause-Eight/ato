@@ -215,6 +215,7 @@ func fold(batches []batch, req Request) Result {
 	if len(tfFiles) > 0 {
 		stores := infra.Stores(tfFiles)
 		linkStores(stores, entries)
+		applyExpiry(stores, evidence)
 		res.Findings = append(res.Findings, storeFindings(stores, req.Infra, tfFiles)...)
 		if req.Inventory || req.Lifecycle {
 			res.Stores = stores
@@ -296,7 +297,10 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	wantSchema := wantFields && schema.Candidate(rel)
 	wantRecipients := req.Recipients && recipients.Candidate(rel)
 	wantLifecycle := req.Lifecycle && lifecycle.Candidate(rel)
-	if !wantSchema && !wantRecipients && !wantLifecycle {
+	// store-level expiry in the code (a DynamoDB time to live, Redis key expiry) can give a Terraform store its
+	// retention limit, so it is read whenever stores are.
+	wantExpiry := !req.Lifecycle && req.infra() && lifecycle.Candidate(rel)
+	if !wantSchema && !wantRecipients && !wantLifecycle && !wantExpiry {
 		tr, err := scanText(rel, r, req.Detectors, 0, req.Sinks)
 		return fileResult{findings: tr.findings}, nil, err
 	}
@@ -317,6 +321,8 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	}
 	if wantLifecycle {
 		fr.evidence = lifecycle.Find(rel, data)
+	} else if wantExpiry {
+		fr.evidence = lifecycle.FindExpiry(rel, data)
 	}
 	return fr, nil, err
 }

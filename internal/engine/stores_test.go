@@ -202,6 +202,57 @@ func TestStoreNamesMatchInventory(t *testing.T) {
 	}
 }
 
+func TestCodeExpiryGivesStoresRetention(t *testing.T) {
+	files := map[string]string{
+		"infra/main.tf": `provider "aws" {
+  region = "eu-central-1"
+}
+resource "aws_dynamodb_table" "sessions" {
+  name = "app-sessions"
+}
+resource "aws_dynamodb_table" "orders" {
+  name = "orders"
+}
+resource "aws_elasticache_replication_group" "carts" {
+  replication_group_id = "carts"
+}
+resource "aws_db_instance" "visits" {
+  identifier = "visits"
+}`,
+		"app/ttl.py":   "client.update_time_to_live(\n    TableName=\"app-sessions\",\n    TimeToLiveSpecification={\"Enabled\": True, \"AttributeName\": \"ttl\"},\n)\n",
+		"app/cache.py": "import redis\nr = redis.Redis()\nr.setex(\"cart:\" + cid, 3600, body)\nr.setex(\"visit:\" + vid, 3600, body)\n",
+	}
+	for _, req := range []Request{{Infra: InfraDetectors()}, {Infra: InfraDetectors(), Inventory: true, Lifecycle: true}} {
+		res := scanTree(t, files, req)
+		got := infraFindings(res)
+		if f, ok := got["tf-no-retention aws_dynamodb_table.sessions"]; ok {
+			t.Errorf("the SDK sets a time to live on the table: %+v", f)
+		}
+		if _, ok := got["tf-no-retention aws_dynamodb_table.orders"]; !ok {
+			t.Errorf("orders has no time to live: %v", keysOf(got))
+		}
+		if !req.Inventory {
+			continue
+		}
+		for _, s := range res.Stores {
+			switch s.Address() {
+			case "aws_dynamodb_table.sessions":
+				if s.Retention.State != domain.Yes || !strings.Contains(s.Retention.Why, "app/ttl.py:2") {
+					t.Errorf("sessions: %+v", s.Retention)
+				}
+			case "aws_elasticache_replication_group.carts":
+				if s.Retention.State != domain.Yes || !strings.Contains(s.Retention.Why, "Redis key expiry") {
+					t.Errorf("carts: %+v", s.Retention)
+				}
+			case "aws_db_instance.visits":
+				if s.Retention.State != domain.NotApplicable {
+					t.Errorf("a Redis key does not give a database a retention limit: %+v", s.Retention)
+				}
+			}
+		}
+	}
+}
+
 func keysOf(m map[string]domain.Finding) []string {
 	var out []string
 	for k := range m {

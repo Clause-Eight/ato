@@ -57,13 +57,15 @@ func Catalog() []Recipient {
 	return out
 }
 
-// Candidate reports whether a file may name a recipient: a dependency file or source code.
+// Candidate reports whether a file may name a recipient: a dependency file, source code, or a page or template
+// that loads a tracking script.
 func Candidate(p string) bool {
 	if dependencyFile(path.Base(p)) {
 		return true
 	}
 	switch strings.ToLower(path.Ext(p)) {
-	case ".go", ".py", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".java", ".kt", ".rb", ".php", ".cs", ".yml", ".yaml", ".env", ".json", ".toml", ".tf":
+	case ".go", ".py", ".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".java", ".kt", ".rb", ".php", ".cs", ".yml", ".yaml", ".env", ".json", ".toml", ".tf",
+		".swift", ".m", ".mm", ".html", ".htm", ".vue", ".svelte", ".astro", ".ejs", ".hbs", ".erb", ".twig", ".liquid", ".njk", ".cshtml":
 		return true
 	}
 	return false
@@ -137,7 +139,7 @@ func lookupImport(tok string) *Recipient {
 
 func dependencyFile(name string) bool {
 	switch name {
-	case "package.json", "go.mod", "requirements.txt", "pyproject.toml", "Pipfile", "Gemfile", "composer.json", "pom.xml", "build.gradle", "build.gradle.kts", "setup.py", "setup.cfg":
+	case "package.json", "go.mod", "requirements.txt", "pyproject.toml", "Pipfile", "Gemfile", "composer.json", "pom.xml", "build.gradle", "build.gradle.kts", "setup.py", "setup.cfg", "Podfile":
 		return true
 	}
 	return strings.HasPrefix(name, "requirements") && strings.HasSuffix(name, ".txt")
@@ -207,6 +209,7 @@ var importPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`^\s*require\s+["']([\w/-]+)["']`),
 	regexp.MustCompile(`^\s*use\s+([\w\\]+)`),
 	regexp.MustCompile(`^\s*using\s+([\w.]+)\s*;`),
+	regexp.MustCompile(`^\s*(?:@import\s+(\w+)\s*;|#import\s+<(\w+)/)`),
 }
 
 type imported struct {
