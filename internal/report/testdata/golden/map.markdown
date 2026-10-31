@@ -1,6 +1,6 @@
 # Data map
 
-Drafted by pii-eu test from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention periods, which code cannot show. Erasure and retention show whether the code has a path that removes the data, not that it runs.
+Drafted by ATO test from the code. It is a starting point for the record of processing activities (GDPR Art. 30): review purposes, legal bases and retention periods, which code cannot show. Erasure and retention show whether the code has a path that removes the data, not that it runs.
 
 Categories of personal data: name, special-category/health.
 

@@ -1,0 +1,28 @@
+# Include this file, or copy the job, to scan merge requests for EU personal data with ATO.
+# Findings appear in the merge request's Code Quality widget. Set ATO_VERSION to a release tag or commit
+# (default: main) and ATO_MIN_CONFIDENCE to low, medium or high (default: medium). PII_EU_VERSION and
+# PII_EU_MIN_CONFIDENCE are deprecated and still read when the ATO_ variables are not set.
+ato:
+  stage: test
+  image: golang:1.24
+  script:
+    - |
+      if [ -z "${ATO_VERSION:-}" ] && [ -n "${PII_EU_VERSION:-}" ]; then
+        echo "ato: PII_EU_VERSION is deprecated; set ATO_VERSION" >&2
+        ATO_VERSION="$PII_EU_VERSION"
+      fi
+      if [ -z "${ATO_MIN_CONFIDENCE:-}" ] && [ -n "${PII_EU_MIN_CONFIDENCE:-}" ]; then
+        echo "ato: PII_EU_MIN_CONFIDENCE is deprecated; set ATO_MIN_CONFIDENCE" >&2
+        ATO_MIN_CONFIDENCE="$PII_EU_MIN_CONFIDENCE"
+      fi
+      export ATO_VERSION="${ATO_VERSION:-main}" ATO_MIN_CONFIDENCE="${ATO_MIN_CONFIDENCE:-medium}"
+    - go install "github.com/Clause-Eight/ato/v2/cmd/ato@${ATO_VERSION}"
+    - ato scan --format codequality --output gl-code-quality-report.json --min-confidence "$ATO_MIN_CONFIDENCE" . || true
+    - ato scan --min-confidence "$ATO_MIN_CONFIDENCE" .
+  artifacts:
+    when: always
+    reports:
+      codequality: gl-code-quality-report.json
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

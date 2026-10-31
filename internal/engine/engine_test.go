@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/synth"
-	"github.com/Clause-Eight/pii-eu/internal/walk"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/synth"
+	"github.com/Clause-Eight/ato/v2/internal/walk"
 )
 
 // sevens is a fake detector: seven-digit numbers that end in 7.
@@ -158,17 +158,28 @@ func TestVeryLongLinesDoNotFail(t *testing.T) {
 }
 
 func TestIgnoreComments(t *testing.T) {
-	fs := scan(t, "a.go", "x := 1234567 // pii-eu:ignore synthetic test value\n")
+	fs := scan(t, "a.go", "x := 1234567 // ato:ignore synthetic test value\n")
 	if len(fs) != 1 || !fs[0].Ignored {
 		t.Fatalf("same-line ignore: %+v", fs)
 	}
-	fs = scan(t, "a.py", "# pii-eu:ignore: documented example\nx = 1234567\n")
+	fs = scan(t, "a.py", "# ato:ignore: documented example\nx = 1234567\n")
 	if len(fs) != 1 || !fs[0].Ignored {
 		t.Fatalf("previous-line ignore: %+v", fs)
 	}
-	fs = scan(t, "a.html", "<!-- pii-eu:ignore -->\n1234567\n")
+	fs = scan(t, "a.html", "<!-- ato:ignore -->\n1234567\n")
 	if len(fs) != 1 || fs[0].Ignored || !strings.Contains(strings.Join(fs[0].Reasons, ";"), "no reason") {
 		t.Fatalf("an ignore without a reason must not apply: %+v", fs)
+	}
+	fs = scan(t, "a.go", "x := 1234567 // pii-eu:ignore synthetic test value\n")
+	if len(fs) != 1 || !fs[0].Ignored || !fs[0].LegacyIgnore {
+		t.Fatalf("the deprecated pii-eu:ignore form: %+v", fs)
+	}
+	if fs = scan(t, "a.go", "x := 1234567 // ato:ignore synthetic test value\n"); fs[0].LegacyIgnore {
+		t.Fatal("ato:ignore is not the legacy form")
+	}
+	fs = scan(t, "a.go", "x := 1234567 // potato:ignore synthetic test value\n")
+	if len(fs) != 1 || fs[0].Ignored {
+		t.Fatalf("ato:ignore must start a word: %+v", fs)
 	}
 }
 

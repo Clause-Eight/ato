@@ -3,8 +3,8 @@ package engine
 import (
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/sinks"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/sinks"
 )
 
 // SinkDetector names the findings for log, error-tracker and analytics calls that are passed personal data.

@@ -1,4 +1,4 @@
-// Package config loads `.pii-eu.toml` and merges command-line overrides.
+// Package config loads `.ato.toml` and merges command-line overrides.
 package config
 
 import (
@@ -10,11 +10,15 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // FileName is the configuration file looked up in the scanned folder.
-const FileName = ".pii-eu.toml"
+const FileName = ".ato.toml"
+
+// LegacyFileName is the settings file name before the rename to ATO. It is read, with a warning, when FileName
+// is absent; deprecated in 2.0.
+const LegacyFileName = ".pii-eu.toml"
 
 // DefaultMaxFileSize skips files larger than 5 MiB.
 const DefaultMaxFileSize = 5 << 20

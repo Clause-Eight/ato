@@ -11,8 +11,8 @@ import (
 	"math/rand"
 	"unicode"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/synth"
 )
 
 // maxTries bounds the search for a marked value: about eight times the expected number of tries, so a detector
@@ -172,7 +172,8 @@ func classes(s string) string {
 }
 
 // seed derives the generator's seed from the detector and the value, so the same value maps to the same
-// replacement in every file and every run.
+// replacement in every file and every run. The salt keeps the former product name so replacements stay the same
+// as in 1.x.
 func seed(detector, canonical string) int64 {
 	sum := sha256.Sum256([]byte("pii-eu fix\x00" + detector + "\x00" + canonical))
 	return int64(binary.BigEndian.Uint64(sum[:8]))

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // SchemaVersion is the version of the JSON report. A new optional field is a minor bump; a removed or changed field is a major bump.
-const SchemaVersion = "1.3"
+const SchemaVersion = "2.0"
 
 func init() { register("json", writeJSON) }
 

@@ -1,4 +1,4 @@
-// Command bench measures pii-eu on a synthetic corpus: precision and recall per detector, against a
+// Command bench measures ATO on a synthetic corpus: precision and recall per detector, against a
 // pattern-only baseline that skips validation. Every value is generated here and belongs to nobody.
 //
 //	go run ./bench -lines 20000
@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/engine"
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/engine"
+	"github.com/Clause-Eight/ato/v2/internal/synth"
 )
 
 type line struct {

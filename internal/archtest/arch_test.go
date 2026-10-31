@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const module = "github.com/Clause-Eight/pii-eu/internal/"
+const module = "github.com/Clause-Eight/ato/v2/internal/"
 
 var allowed = map[string][]string{
 	"domain":     {},

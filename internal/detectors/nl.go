@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Dutch citizen service number (burgerservicenummer, BSN; formerly the sofinummer): nine digits s0..s8 for which

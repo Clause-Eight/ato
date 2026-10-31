@@ -11,8 +11,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 type lineContext struct {
@@ -232,21 +232,26 @@ func countDigits(s string) int {
 	return n
 }
 
-const ignoreMarker = "pii-eu:ignore"
+const ignoreMarker = "ato:ignore"
 
-// applyIgnore honours `pii-eu:ignore <reason>` on the same line or the line before. Without a reason the comment does not apply.
+// legacyIgnoreMarker is the form written before the rename to ATO. It is deprecated and still honoured in 2.x.
+const legacyIgnoreMarker = "pii-eu:ignore"
+
+// applyIgnore honours `ato:ignore <reason>`, or the deprecated `pii-eu:ignore <reason>`, on the same line or the
+// line before. Without a reason the comment does not apply.
 func applyIgnore(fs []domain.Finding, ctx lineContext) {
 	if len(fs) == 0 {
 		return
 	}
-	found, reason := ignoreReason(ctx.line)
+	found, legacy, reason := ignoreReason(ctx.line)
 	if !found {
-		found, reason = ignoreReason(ctx.previous)
+		found, legacy, reason = ignoreReason(ctx.previous)
 	}
 	if !found {
 		return
 	}
 	for i := range fs {
+		fs[i].LegacyIgnore = legacy
 		if reason == "" {
 			fs[i].Reasons = append(fs[i].Reasons, "the ignore comment has no reason, so it does not apply")
 			continue
@@ -255,18 +260,40 @@ func applyIgnore(fs []domain.Finding, ctx lineContext) {
 	}
 }
 
-func ignoreReason(line string) (bool, string) {
-	i := strings.Index(line, ignoreMarker)
+func ignoreReason(line string) (found, legacy bool, reason string) {
+	i, n := markerIndex(line, ignoreMarker), len(ignoreMarker)
 	if i < 0 {
-		return false, ""
+		i, n, legacy = strings.Index(line, legacyIgnoreMarker), len(legacyIgnoreMarker), true
 	}
-	rest := line[i+len(ignoreMarker):]
+	if i < 0 {
+		return false, false, ""
+	}
+	rest := line[i+n:]
 	for _, end := range []string{"*/", "-->", "#}", "%}"} {
 		if j := strings.Index(rest, end); j >= 0 {
 			rest = rest[:j]
 		}
 	}
-	return true, strings.TrimSpace(strings.TrimLeft(rest, " :\t-"))
+	return true, legacy, strings.TrimSpace(strings.TrimLeft(rest, " :\t-"))
+}
+
+// markerIndex finds marker where it starts a word, so that a longer word ending in "ato" does not count.
+func markerIndex(line, marker string) int {
+	for from := 0; ; {
+		i := strings.Index(line[from:], marker)
+		if i < 0 {
+			return -1
+		}
+		i += from
+		if i == 0 || !isWordByte(line[i-1]) {
+			return i
+		}
+		from = i + 1
+	}
+}
+
+func isWordByte(b byte) bool {
+	return b == '_' || b == '-' || b >= '0' && b <= '9' || b >= 'a' && b <= 'z' || b >= 'A' && b <= 'Z'
 }
 
 // evaluate checks one candidate. In a segment the column name gives the keywords and the segment is the text
@@ -342,7 +369,7 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	} else if detectors.Synthetic(ctx.line[start:end]) {
 		m.sample = true
 		m.confidence = domain.Low
-		m.reasons = append(m.reasons, "carries the mark of a synthetic value written by pii-eu fix")
+		m.reasons = append(m.reasons, "carries the mark of a synthetic value written by ato fix")
 	}
 	if m.sample {
 		return m, true

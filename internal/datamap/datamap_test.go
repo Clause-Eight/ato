@@ -3,7 +3,7 @@ package datamap
 import (
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 func entry(p, container, name string, cat domain.DataCategory, special domain.SpecialCategory) domain.InventoryEntry {

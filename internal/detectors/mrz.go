@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Machine readable zone (MRZ) of passports and ID cards, ICAO Doc 9303 parts 3, 4 and 5

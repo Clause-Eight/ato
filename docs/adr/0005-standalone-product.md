@@ -2,6 +2,8 @@
 
 Date: 2026-10-27 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 pii-eu started as a scanner inside Clause Eight. Its inventory, data map and erasure checks are useful to DPOs

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Limits protect against archive bombs. They apply to one archive or image with everything nested in it. A
@@ -82,12 +82,12 @@ func IsArchive(name string) bool {
 	return strings.HasSuffix(n, ".tar") || strings.HasSuffix(n, ".tgz") || strings.HasSuffix(n, ".gz") || strings.HasSuffix(n, ".zip")
 }
 
-// unopened are formats that often hold personal data and that pii-eu does not open: office documents, PDFs and
+// unopened are formats that often hold personal data and that ATO does not open: office documents, PDFs and
 // compression formats other than gzip, tar and zip. Skipping one makes a scan incomplete.
 var unopened = []string{".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm", ".ppt", ".pptx", ".odt", ".ods", ".odp", ".rtf",
 	".7z", ".rar", ".bz2", ".xz", ".zst", ".lz4", ".sqlite", ".db", ".mdb", ".accdb", ".parquet", ".avro"}
 
-// Unopened reports whether a file is in a format pii-eu does not open but that often holds personal data.
+// Unopened reports whether a file is in a format ATO does not open but that often holds personal data.
 func Unopened(name string) bool {
 	n := strings.ToLower(name)
 	for _, ext := range unopened {

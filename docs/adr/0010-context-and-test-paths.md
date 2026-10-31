@@ -2,6 +2,8 @@
 
 Date: 2026-10-30 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 A value starts at its detector's base confidence and moves with its context: its own keyword raises it, an

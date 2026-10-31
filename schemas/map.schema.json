@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Clause-Eight/pii-eu/schemas/map.schema.json",
-  "title": "pii-eu data map",
-  "description": "Output of `pii-eu map --format json`: per component, the stores of personal data, where personal data is logged and the third parties the code names. Field names and locations only, never values.",
+  "$id": "https://github.com/Clause-Eight/ato/schemas/map.schema.json",
+  "title": "ATO data map",
+  "description": "Output of `ato map --format json`: per component, the stores of personal data, where personal data is logged and the third parties the code names. Field names and locations only, never values.",
   "type": "object",
   "required": [
     "schema_version",
@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.1",
-      "description": "1.1 added module_source on infrastructure entries; a 1.0 map is a 1.1 map without it."
+      "const": "2.0",
+      "description": "2.0 renamed the tool from pii-eu to ato (tool.name is ato) and changed no field; 1.1 added module_source on infrastructure entries. `ato map --diff` still reads 1.x maps."
     },
     "tool": {
       "type": "object",
@@ -24,7 +24,8 @@
       ],
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The command that wrote the file: ato from 2.0, pii-eu before."
         },
         "version": {
           "type": "string"
@@ -304,7 +305,7 @@
         },
         "module_source": {
           "type": "string",
-          "description": "For a module call (address module.<name>) that pii-eu does not read inside: the module's source. Its settings are unknown."
+          "description": "For a module call (address module.<name>) that ATO does not read inside: the module's source. Its settings are unknown."
         },
         "path": {
           "type": "string"

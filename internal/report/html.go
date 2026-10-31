@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 //go:embed html/*
@@ -51,7 +51,7 @@ func writeHTML(w io.Writer, r Report, _ Options) error {
 		return byLabel[i].Label < byLabel[j].Label
 	})
 	return htmlTemplates.ExecuteTemplate(w, "findings.html", map[string]any{
-		"CSS": htmlCSS(), "Tool": r.Tool, "Version": r.Version, "Root": r.Root, "Findings": r.Findings,
+		"CSS": htmlCSS(), "Tool": Product, "Version": r.Version, "Root": r.Root, "Findings": r.Findings,
 		"Files": len(files), "Scanned": r.Summary.FilesScanned, "High": high, "ByLabel": byLabel, "Unreadable": r.Summary.Unreadable,
 	})
 }
@@ -92,7 +92,7 @@ func writeInventoryHTML(w io.Writer, inv Inventory) error {
 	}
 	sort.Slice(containers, func(i, j int) bool { return containers[i].Name < containers[j].Name })
 	return htmlTemplates.ExecuteTemplate(w, "inventory.html", map[string]any{
-		"CSS": htmlCSS(), "Tool": inv.Tool, "Version": inv.Version, "Entries": inv.Entries,
+		"CSS": htmlCSS(), "Tool": Product, "Version": inv.Version, "Entries": inv.Entries,
 		"Containers": containers, "Special": special, "Files": inv.Files,
 	})
 }

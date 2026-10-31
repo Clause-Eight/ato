@@ -9,8 +9,8 @@ import (
 	"testing"
 	"unicode"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/synth"
 )
 
 func generate(t *testing.T, detector string, seed int64) string {
@@ -154,7 +154,7 @@ func TestFixEveryGenerator(t *testing.T) {
 		}
 		body.WriteString(word + ": " + generate(t, name, 11) + "\n\n")
 	}
-	writeFile(t, dir, ".pii-eu.toml", cfg.String())
+	writeFile(t, dir, ".ato.toml", cfg.String())
 	writeFile(t, dir, "fixtures/all.txt", body.String())
 	code, out, errOut := run("fix", "--no-git", "--min-confidence", "low", dir)
 	if code != ExitClean {

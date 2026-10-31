@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Austrian social insurance number (Sozialversicherungsnummer, SVNR or VSNR): ten digits LLL P TT MM JJ. LLL is a

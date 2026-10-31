@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Icelandic national identity number (kennitala): DDMMYY-RRCM. RR are two serial digits, C is the check digit

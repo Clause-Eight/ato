@@ -6,12 +6,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/engine"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/engine"
 )
 
 // TestBenchmarkTableIsUpToDate regenerates the per-detector precision and recall in docs/BENCHMARKS.md, so the
-// published numbers always match the code. Run PII_EU_UPDATE_GOLDEN=1 go test ./bench after changing a detector.
+// published numbers always match the code. Run ATO_UPDATE_GOLDEN=1 go test ./bench after changing a detector.
 func TestBenchmarkTableIsUpToDate(t *testing.T) {
 	const seed, lines = 1, 30000
 	corpus, body := corpusText(seed, lines)
@@ -32,13 +32,13 @@ func TestBenchmarkTableIsUpToDate(t *testing.T) {
 		t.Fatal("docs/BENCHMARKS.md has no bench markers")
 	}
 	want := text[:i+len(start)] + got + text[j:]
-	if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+	if os.Getenv("ATO_UPDATE_GOLDEN") == "1" {
 		if err := os.WriteFile(path, []byte(want), 0o644); err != nil {
 			t.Fatal(err)
 		}
 		return
 	}
 	if text != want {
-		t.Fatal("the benchmark table in docs/BENCHMARKS.md is out of date: run PII_EU_UPDATE_GOLDEN=1 go test ./bench")
+		t.Fatal("the benchmark table in docs/BENCHMARKS.md is out of date: run ATO_UPDATE_GOLDEN=1 go test ./bench")
 	}
 }

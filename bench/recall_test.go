@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/config"
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/engine"
+	"github.com/Clause-Eight/ato/v2/internal/config"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/engine"
 )
 
 // recallDetectors are the identifiers inserted into the application-style corpus, as in bench/compare.
