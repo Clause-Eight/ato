@@ -354,6 +354,268 @@ resource "azurerm_mssql_database" "db" {
   location                      = "swedencentral"
   public_network_access_enabled = true
 }`, "azurerm_postgresql_flexible_server.p", public, domain.Yes, ""},
+		{"postgres flexible open firewall", `resource "azurerm_postgresql_flexible_server" "p" {
+  location = "swedencentral"
+}
+resource "azurerm_postgresql_flexible_server_firewall_rule" "all" {
+  server_id        = azurerm_postgresql_flexible_server.p.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "255.255.255.255"
+}`, "azurerm_postgresql_flexible_server.p", public, domain.Yes, "firewall rule"},
+		{"postgres flexible azure services rule is not public", `resource "azurerm_postgresql_flexible_server" "p" {
+  location                      = "swedencentral"
+  public_network_access_enabled = false
+}
+resource "azurerm_postgresql_flexible_server_firewall_rule" "azure" {
+  server_id        = azurerm_postgresql_flexible_server.p.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}`, "azurerm_postgresql_flexible_server.p", public, domain.No, "= false"},
+		{"mysql flexible encrypted", `resource "azurerm_mysql_flexible_server" "m" {
+  location = "francecentral"
+}`, "azurerm_mysql_flexible_server.m", encryption, domain.Yes, "MySQL"},
+		{"mysql flexible in a delegated subnet", `resource "azurerm_mysql_flexible_server" "m" {
+  location            = "francecentral"
+  delegated_subnet_id = azurerm_subnet.db.id
+}`, "azurerm_mysql_flexible_server.m", public, domain.No, "delegated subnet"},
+		{"azure sql public through a firewall rule", `resource "azurerm_mssql_server" "s" {
+  location = "westeurope"
+}
+resource "azurerm_mssql_firewall_rule" "all" {
+  server_id        = azurerm_mssql_server.s.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "255.255.255.255"
+}
+resource "azurerm_mssql_database" "db" {
+  server_id = azurerm_mssql_server.s.id
+}`, "azurerm_mssql_database.db", public, domain.Yes, "firewall rule"},
+		{"azure sql server closed", `resource "azurerm_mssql_server" "s" {
+  location                      = "westeurope"
+  public_network_access_enabled = false
+}
+resource "azurerm_mssql_database" "db" {
+  server_id = azurerm_mssql_server.s.id
+}`, "azurerm_mssql_database.db", public, domain.No, "in azurerm_mssql_server.s"},
+		{"azure sql server default", `resource "azurerm_mssql_server" "s" {
+  location = "westeurope"
+}
+resource "azurerm_mssql_database" "db" {
+  server_id = azurerm_mssql_server.s.id
+}`, "azurerm_mssql_database.db", public, domain.Unknown, "on by default"},
+		{"cosmos backups", `resource "azurerm_cosmosdb_account" "c" {
+  geo_location {
+    location = "westeurope"
+  }
+}`, "azurerm_cosmosdb_account.c", backup, domain.Yes, "periodic"},
+		{"container private by default", `resource "azurerm_storage_account" "a" {
+  name     = "exportsacct"
+  location = "westeurope"
+}
+resource "azurerm_storage_container" "c" {
+  name               = "exports"
+  storage_account_id = azurerm_storage_account.a.id
+}`, "azurerm_storage_container.c", public, domain.No, "default is private"},
+		{"container public blobs", `resource "azurerm_storage_account" "a" {
+  name     = "exportsacct"
+  location = "westeurope"
+}
+resource "azurerm_storage_container" "c" {
+  name                  = "exports"
+  storage_account_name  = azurerm_storage_account.a.name
+  container_access_type = "blob"
+}`, "azurerm_storage_container.c", public, domain.Yes, "blob"},
+		{"container public blocked by the account", `resource "azurerm_storage_account" "a" {
+  name                            = "exportsacct"
+  location                        = "westeurope"
+  allow_nested_items_to_be_public = false
+}
+resource "azurerm_storage_container" "c" {
+  name                  = "exports"
+  storage_account_name  = "exportsacct"
+  container_access_type = "container"
+}`, "azurerm_storage_container.c", public, domain.No, "allow_nested_items_to_be_public = false"},
+		{"container region from the account", `resource "azurerm_storage_account" "a" {
+  location = "eastus"
+}
+resource "azurerm_storage_container" "c" {
+  storage_account_id = azurerm_storage_account.a.id
+}`, "azurerm_storage_container.c", inEEA, domain.No, "eastus"},
+		{"container retention from the account policy", `resource "azurerm_storage_account" "a" {
+  location = "westeurope"
+}
+resource "azurerm_storage_management_policy" "p" {
+  storage_account_id = azurerm_storage_account.a.id
+  rule {
+    actions {
+      base_blob {
+        delete_after_days_since_modification_greater_than = 90
+      }
+    }
+  }
+}
+resource "azurerm_storage_container" "c" {
+  storage_account_id = azurerm_storage_account.a.id
+}`, "azurerm_storage_container.c", retention, domain.Yes, "management policy"},
+		{"container without its account", `resource "azurerm_storage_container" "c" {
+  storage_account_name = var.account
+}`, "azurerm_storage_container.c", retention, domain.Unknown, "not declared"},
+		{"redis cache default", `resource "azurerm_redis_cache" "r" {
+  location = "northeurope"
+}`, "azurerm_redis_cache.r", public, domain.Unknown, "on by default"},
+		{"redis cache private", `resource "azurerm_redis_cache" "r" {
+  location                      = "northeurope"
+  public_network_access_enabled = false
+}`, "azurerm_redis_cache.r", public, domain.No, ""},
+		{"redis cache backups", `resource "azurerm_redis_cache" "r" {
+  location = "northeurope"
+  redis_configuration {
+    rdb_backup_enabled = true
+  }
+}`, "azurerm_redis_cache.r", backup, domain.Yes, ""},
+		{"redis cache outside the eea", `resource "azurerm_redis_cache" "r" {
+  location = "westus2"
+}`, "azurerm_redis_cache.r", inEEA, domain.No, "westus2"},
+		{"firestore without ttl", `resource "google_firestore_database" "db" {
+  name        = "(default)"
+  location_id = "eur3"
+}`, "google_firestore_database.db", retention, domain.No, "kept forever"},
+		{"firestore ttl on the default database", `resource "google_firestore_database" "db" {
+  name        = "(default)"
+  location_id = "eur3"
+}
+resource "google_firestore_field" "expiry" {
+  collection = "sessions"
+  field      = "expires_at"
+  ttl_config {}
+}`, "google_firestore_database.db", retention, domain.Yes, "sessions.expires_at"},
+		{"firestore ttl on another database does not count", `resource "google_firestore_database" "db" {
+  name        = "orders"
+  location_id = "eur3"
+}
+resource "google_firestore_field" "expiry" {
+  collection = "sessions"
+  field      = "expires_at"
+  ttl_config {}
+}`, "google_firestore_database.db", retention, domain.No, ""},
+		{"firestore ttl by reference", `resource "google_firestore_database" "db" {
+  name        = "orders"
+  location_id = "europe-west3"
+}
+resource "google_firestore_field" "expiry" {
+  database   = google_firestore_database.db.name
+  collection = "carts"
+  field      = "expires_at"
+  ttl_config {}
+}`, "google_firestore_database.db", retention, domain.Yes, ""},
+		{"firestore in the us", `resource "google_firestore_database" "db" {
+  name        = "(default)"
+  location_id = "nam5"
+}`, "google_firestore_database.db", inEEA, domain.No, "nam5"},
+		{"firestore in the eu multi-region", `resource "google_firestore_database" "db" {
+  location_id = "eur3"
+}`, "google_firestore_database.db", inEEA, domain.Yes, ""},
+		{"firestore point in time recovery", `resource "google_firestore_database" "db" {
+  location_id                       = "eur3"
+  point_in_time_recovery_enablement = "POINT_IN_TIME_RECOVERY_ENABLED"
+}`, "google_firestore_database.db", backup, domain.Yes, ""},
+		{"firestore encrypted", `resource "google_firestore_database" "db" {
+  location_id = "eur3"
+}`, "google_firestore_database.db", encryption, domain.Yes, ""},
+		{"memorystore region from the provider", `provider "google" {
+  region = "us-central1"
+}
+resource "google_redis_instance" "cache" {
+  name           = "sessions"
+  memory_size_gb = 1
+}`, "google_redis_instance.cache", inEEA, domain.No, "us-central1"},
+		{"memorystore private", `resource "google_redis_instance" "cache" {
+  region = "europe-west1"
+}`, "google_redis_instance.cache", public, domain.No, "private"},
+		{"memorystore rdb snapshots", `resource "google_redis_instance" "cache" {
+  region = "europe-west1"
+  persistence_config {
+    persistence_mode = "RDB"
+  }
+}`, "google_redis_instance.cache", backup, domain.Yes, ""},
+		{"memorystore without persistence", `resource "google_redis_instance" "cache" {
+  region = "europe-west1"
+}`, "google_redis_instance.cache", backup, domain.No, ""},
+		{"spanner regional europe", `resource "google_spanner_instance" "s" {
+  config = "regional-europe-west1"
+}`, "google_spanner_instance.s", inEEA, domain.Yes, "europe-west1"},
+		{"spanner multi-region us", `resource "google_spanner_instance" "s" {
+  config = "nam3"
+}`, "google_spanner_instance.s", inEEA, domain.No, "nam3"},
+		{"spanner multi-region with london", `resource "google_spanner_instance" "s" {
+  config = "eur5"
+}`, "google_spanner_instance.s", inEEA, domain.No, "eur5"},
+		{"spanner encrypted", `resource "google_spanner_instance" "s" {
+  config = "eur6"
+}`, "google_spanner_instance.s", encryption, domain.Yes, ""},
+		{"bucket public through an access control", `resource "google_storage_bucket" "b" {
+  name     = "exports"
+  location = "EU"
+}
+resource "google_storage_bucket_access_control" "all" {
+  bucket = google_storage_bucket.b.name
+  role   = "READER"
+  entity = "allUsers"
+}`, "google_storage_bucket.b", public, domain.Yes, "allUsers"},
+		{"opensearch without index policy", `resource "aws_opensearch_domain" "o" {
+  domain_name = "search"
+}`, "aws_opensearch_domain.o", retention, domain.Unknown, "no index policy"},
+		{"opensearch ism policy deletes", `resource "aws_opensearch_domain" "o" {
+  domain_name = "search"
+}
+resource "opensearch_ism_policy" "logs" {
+  policy_id = "logs"
+  body = jsonencode({
+    policy = {
+      states = [{
+        name    = "delete"
+        actions = [{ delete = {} }]
+      }]
+    }
+  })
+}`, "aws_opensearch_domain.o", retention, domain.Yes, "index policy deletes"},
+		{"opensearch ism policy in a heredoc", `resource "aws_opensearch_domain" "o" {}
+resource "opensearch_ism_policy" "logs" {
+  policy_id = "logs"
+  body      = <<EOF
+{"policy": {"states": [{"name": "hot", "actions": [{"delete": {}}]}]}}
+EOF
+}`, "aws_opensearch_domain.o", retention, domain.Yes, ""},
+		{"opensearch policy that only rolls over", `resource "aws_opensearch_domain" "o" {}
+resource "opensearch_ism_policy" "logs" {
+  policy_id = "logs"
+  body      = jsonencode({ policy = { states = [{ name = "hot", actions = [{ rollover = { min_size = "30gb" } }] }] } })
+}`, "aws_opensearch_domain.o", retention, domain.No, "never delete"},
+		{"elasticstack ilm delete phase", `resource "aws_elasticsearch_domain" "e" {}
+resource "elasticstack_elasticsearch_index_lifecycle" "logs" {
+  name = "logs"
+  delete {
+    min_age = "30d"
+    delete {}
+  }
+}`, "aws_elasticsearch_domain.e", retention, domain.Yes, ""},
+		{"index policy for another domain", `provider "opensearch" {
+  url = "https://${aws_opensearch_domain.other.endpoint}"
+}
+resource "aws_opensearch_domain" "o" {}
+resource "aws_opensearch_domain" "other" {}
+resource "opensearch_ism_policy" "logs" {
+  policy_id = "logs"
+  body      = jsonencode({ policy = { states = [{ actions = [{ delete = {} }] }] } })
+}`, "aws_opensearch_domain.o", retention, domain.Unknown, "no index policy"},
+		{"index policy through the provider url", `provider "opensearch" {
+  url = "https://${aws_opensearch_domain.o.endpoint}"
+}
+resource "aws_opensearch_domain" "o" {}
+resource "aws_opensearch_domain" "other" {}
+resource "opensearch_ism_policy" "logs" {
+  policy_id = "logs"
+  body      = jsonencode({ policy = { states = [{ actions = [{ delete = {} }] }] } })
+}`, "aws_opensearch_domain.o", retention, domain.Yes, ""},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

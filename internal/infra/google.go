@@ -33,7 +33,7 @@ func init() {
 	google("google_storage_bucket", "object-storage", []string{"name"}, locationAttr, func(c *check) {
 		c.s.Retention = c.gcsRetention()
 		c.s.Backup = c.flag(c.r, "versioning.enabled", domain.Yes, domain.No, setting(domain.No, "versioning is not enabled"))
-		c.s.Public = c.publicGrant([]string{"google_storage_bucket_iam_member", "google_storage_bucket_iam_binding"}, "bucket")
+		c.s.Public = c.publicGrant([]string{"google_storage_bucket_iam_member", "google_storage_bucket_iam_binding", "google_storage_bucket_access_control"}, "bucket")
 		if c.s.Public.State != domain.Yes {
 			if s, a, ok := c.text(c.r, "public_access_prevention"); a != nil && ok && s == "enforced" {
 				c.s.Public = domain.Setting{State: domain.No, Why: `public_access_prevention = "enforced"`, Line: a.line}
@@ -70,6 +70,40 @@ func init() {
 		}
 		c.s.Retention = c.firstPositive([]string{"expiration_time", "time_partitioning.expiration_ms"}, inherited)
 	})
+	google("google_firestore_database", "database", []string{"name"}, func(c *check) ([]string, domain.Setting) {
+		return c.regionAttr("location_id", nil)
+	}, func(c *check) {
+		c.s.Retention = c.firestoreTTL()
+		c.s.Backup = c.enumSetting("point_in_time_recovery_enablement", map[string]domain.Tri{"POINT_IN_TIME_RECOVERY_ENABLED": domain.Yes, "POINT_IN_TIME_RECOVERY_DISABLED": domain.No}, setting(domain.No, "point_in_time_recovery_enablement is not set; it is off by default"))
+		if c.s.Backup.State != domain.Yes {
+			if bs := c.related("google_firestore_backup_schedule", "database"); len(bs) > 0 {
+				c.s.Backup = domain.Setting{State: domain.Yes, Why: c.where(bs[0], "a backup schedule backs up the database"), Line: c.on(bs[0], bs[0].body.line)}
+			}
+		}
+	})
+	google("google_redis_instance", "cache", []string{"name"}, func(c *check) ([]string, domain.Setting) {
+		return c.regionAttr("region", c.providerRegion)
+	}, func(c *check) {
+		c.s.Public = setting(domain.No, "Memorystore instances have only private addresses in their VPC network")
+		mode, a, ok := c.text(c.r, "persistence_config.persistence_mode")
+		switch {
+		case a == nil:
+			c.s.Backup = setting(domain.No, "persistence_config is not set, so there are no snapshots")
+		case !ok:
+			c.s.Backup = domain.Setting{State: domain.Unknown, Why: unresolved("persistence_config.persistence_mode", a), Line: a.line}
+		case strings.EqualFold(mode, "RDB"):
+			c.s.Backup = domain.Setting{State: domain.Yes, Why: `persistence_config.persistence_mode = "RDB"`, Line: a.line}
+		default:
+			c.s.Backup = domain.Setting{State: domain.No, Why: fmt.Sprintf("persistence_config.persistence_mode = %q", mode), Line: a.line}
+		}
+	})
+	google("google_spanner_instance", "database", []string{"name"}, func(c *check) ([]string, domain.Setting) {
+		regions, found := c.regionAttr("config", nil)
+		for i, r := range regions {
+			regions[i] = strings.TrimPrefix(r[strings.LastIndex(r, "/")+1:], "regional-")
+		}
+		return regions, found
+	}, func(c *check) {})
 	google("google_pubsub_topic", "topic", []string{"name"}, func(c *check) ([]string, domain.Setting) {
 		a, dynamic := lookup(c.r.body, "message_storage_policy.allowed_persistence_regions")
 		if a == nil {
@@ -92,6 +126,30 @@ func init() {
 	}, func(c *check) {
 		c.s.Retention = c.number(c.r, "retention_days", "days", setting(domain.Yes, "retention_days is not set; the default is 30 days"))
 	})
+}
+
+// firestoreTTL looks for a field with a TTL policy in this database: Firestore deletes a document some time after
+// the timestamp in that field has passed. A field without a database argument belongs to "(default)".
+func (c *check) firestoreTTL() domain.Setting {
+	fields := c.related("google_firestore_field", "database")
+	if contains(c.s.Names, "(default)") {
+		for _, r := range c.m.order {
+			if r.typ == "google_firestore_field" && r.body.attrs["database"] == nil {
+				fields = append(fields, r)
+			}
+		}
+	}
+	for _, f := range fields {
+		if ttl := blocksNamed(f.body, "ttl_config"); len(ttl) > 0 {
+			coll, _, _ := c.text(f, "collection")
+			field, _, _ := c.text(f, "field")
+			return domain.Setting{State: domain.Yes, Why: c.where(f, fmt.Sprintf("a TTL policy on %s.%s deletes expired documents", coll, field)), Line: c.on(f, ttl[0].line)}
+		}
+		if dynamicNamed(f.body, "ttl_config") {
+			return setting(domain.Unknown, c.where(f, "ttl_config comes from a dynamic block"))
+		}
+	}
+	return setting(domain.No, "no google_firestore_field sets a TTL policy, so documents are kept forever")
 }
 
 // firstPositive is Yes for the first numeric attribute above zero. Otherwise an unreadable attribute makes it
@@ -150,7 +208,7 @@ var publicMembers = []string{"allUsers", "allAuthenticatedUsers"}
 func (c *check) publicGrant(types []string, attr string) domain.Setting {
 	for _, typ := range types {
 		for _, r := range c.related(typ, attr) {
-			for _, name := range []string{"member", "members"} {
+			for _, name := range []string{"member", "members", "entity"} {
 				a := r.body.attrs[name]
 				if a == nil {
 					continue

@@ -30,10 +30,34 @@ func TestFind(t *testing.T) {
 		{"client.rb", "require 'twilio-ruby'\n", ""},
 		{"config.yml", "endpoint: https://api-eu.mixpanel.com/track\nwebhook: https://hooks.slack.com/services/T000/B000/XXXX\n", "Mixpanel/host,Slack/host"},
 		{"notes.go", "// see https://example.test/stripe.com.html\nvar x = \"notstripe\"\n", ""},
+		{"package.json", `{"dependencies": {"logrocket": "^9.0.0", "@fullstory/browser": "^2.0.0", "@microsoft/clarity": "^1.0.0", "smartlook-client": "^10.0.0", "react-facebook-pixel": "^1.0.4", "react-gtm-module": "^2.0.11", "tiktok-pixel": "^2.0.0", "react-linkedin-insight": "^0.1.3", "@heap/react-native-heap": "^0.22.0"}}`,
+			"LogRocket/dependency,FullStory/dependency,Microsoft Clarity/dependency,Smartlook/dependency,Meta Pixel and Conversions API/dependency,Google Analytics/dependency,TikTok Pixel and Events API/dependency,LinkedIn Insight Tag/dependency,Heap/dependency"},
+		{"index.html", "<script async src=\"https://www.googletagmanager.com/gtag/js?id=G-XXXX\"></script>\n<script src=\"https://snap.licdn.com/li.lms-analytics/insight.min.js\"></script>\n", "Google Analytics/host,LinkedIn Insight Tag/host"},
+		{"layout.html", "<script>(function(c,l,a,r,i,t,y){t=l.createElement(r);t.src=\"https://www.clarity.ms/tag/\"+i;})(window,document,\"clarity\",\"script\",\"abc\");</script>", "Microsoft Clarity/host"},
+		{"base.html.twig", "r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;})(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');", "Hotjar/host"},
+		{"App.vue", "window['_fs_host'] = 'fullstory.com';\nn.src = 'https://edge.fullstory.com/s/fs.js';\n", "FullStory/host"},
+		{"pixel.erb", "s.src='https://connect.facebook.net/en_US/fbevents.js';\nt.src='https://analytics.tiktok.com/i18n/pixel/events.js';\n", "Meta Pixel and Conversions API/host,TikTok Pixel and Events API/host"},
+		{"tag.html", "<script src=\"//cdn.mouseflow.com/projects/abc.js\"></script><script src=\"https://t.contentsquare.net/uxa/abc.js\"></script>", "Mouseflow/host,Contentsquare/host"},
+		{"snippet.js", "!function(){window.heap=window.heap||[];var r=document.createElement('script');r.src='https://cdn.us.heap-api.com/config/'+e+'/heap_config.js'}()", "Heap/host"},
+		{"snippet.js", "posthog.init('phc_x', { api_host: 'https://eu.i.posthog.com' });\np.src = 'https://us-assets.i.posthog.com/static/array.js';\n", "PostHog/host"},
+		{"build.gradle", "implementation 'com.mixpanel.android:mixpanel-android:7.5.0'\nimplementation 'com.amplitude:analytics-android:1.16.0'\nimplementation 'com.microsoft.clarity:clarity:3.0.0'\n", "Mixpanel/dependency,Amplitude/dependency,Microsoft Clarity/dependency"},
+		{"Track.kt", "import com.smartlook.android.core.api.Smartlook\nimport com.contentsquare.android.Contentsquare\nimport com.logrocket.core.SDK\nimport androidx.core.app.ActivityCompat\n", "Smartlook/import,Contentsquare/import,LogRocket/import"},
+		{"Podfile", "platform :ios, '15.0'\npod 'Mixpanel-swift'\npod 'FBSDKCoreKit'\npod 'Alamofire'\n", "Mixpanel/dependency,Meta Pixel and Conversions API/dependency"},
+		{"AppDelegate.swift", "import UIKit\nimport FullStory\nimport AmplitudeSwift\nimport SmartlookAnalytics\n", "FullStory/import,Amplitude/import,Smartlook/import"},
+		{"AppDelegate.m", "#import <UIKit/UIKit.h>\n#import <FBSDKCoreKit/FBSDKCoreKit.h>\n@import FullStory;\n", "Meta Pixel and Conversions API/import,FullStory/import"},
+		{"about.html", "<p>We do not use heatmaps or session recording.</p>\n", ""},
 	}
 	for _, c := range cases {
 		if got := names(c.path, c.text); got != c.want {
 			t.Errorf("%s: got %q, want %q", c.path, got, c.want)
+		}
+	}
+}
+
+func TestCandidate(t *testing.T) {
+	for p, want := range map[string]bool{"index.html": true, "views/layout.erb": true, "App.vue": true, "ios/AppDelegate.swift": true, "ios/Podfile": true, "package.json": true, "notes.txt": false, "logo.svg": false} {
+		if Candidate(p) != want {
+			t.Errorf("%s: want %v", p, want)
 		}
 	}
 }

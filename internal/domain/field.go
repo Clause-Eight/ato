@@ -22,10 +22,12 @@ const (
 	SinkLog          Sink = "log"
 	SinkErrorTracker Sink = "error-tracker"
 	SinkAnalytics    Sink = "analytics"
+	// SinkSessionReplay is a session replay tool set up to record form inputs or page text.
+	SinkSessionReplay Sink = "session-replay"
 )
 
 // Sinks lists the sink kinds.
-var Sinks = []Sink{SinkLog, SinkErrorTracker, SinkAnalytics}
+var Sinks = []Sink{SinkLog, SinkErrorTracker, SinkAnalytics, SinkSessionReplay}
 
 // Field is a named place in a schema or model that holds data: a table column, a model attribute, an API or
 // JSON Schema property, a protobuf message field or a dbt column.
