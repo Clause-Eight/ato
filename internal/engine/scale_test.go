@@ -114,6 +114,14 @@ func TestKeywordGatedDetectorNeedsAKeyword(t *testing.T) {
 	if fs, _ := ScanReader("a.txt", strings.NewReader("serial:\n123456\n"), []detectors.Detector{d}); len(fs) != 1 {
 		t.Fatalf("a keyword on the line before must allow it: %+v", fs)
 	}
+	d.KeywordOnLine = true
+	if fs, _ := ScanReader("a.txt", strings.NewReader("serial: 123456\n123456\n"), []detectors.Detector{d}); len(fs) != 1 || fs[0].Location.Line != 1 {
+		t.Fatalf("with KeywordOnLine only the value on the keyword's line counts: %+v", fs)
+	}
+	long := `["serial", ` + strings.Repeat(`"word", `, 20) + `"123456"]` + "\n"
+	if fs, _ := ScanReader("a.json", strings.NewReader(long), []detectors.Detector{d}); len(fs) != 0 {
+		t.Fatalf("with KeywordOnLine a keyword far along a long line does not count: %+v", fs)
+	}
 }
 
 func TestUnlikelyWordLowersConfidence(t *testing.T) {
