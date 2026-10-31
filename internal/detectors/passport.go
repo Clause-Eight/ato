@@ -40,19 +40,20 @@ import (
 // Validate checks them against the table.
 func init() {
 	Register(Detector{
-		Name:         "passport",
-		Label:        "Passport number",
-		Country:      domain.CrossBorder,
-		OnByDefault:  true,
-		Pattern:      regexp.MustCompile(`[A-Z] [0-9]{7}|[A-Z0-9]{7,10}`),
-		Normalize:    func(s string) string { return strings.ReplaceAll(s, " ", "") },
-		Validate:     validPassport,
-		Keywords:     []string{"passport no", "passportno", "passportnumber", "passportnr", "passnr", "pass nr", "reisepassnr", "reisepass nr", "n° de passeport", "nr paszportu", "číslo cestovního pasu", "номер на паспорта", "αρ. διαβατηρίου"},
-		Concepts:     []Concept{Passport},
-		Base:         domain.Low,
-		Validation:   "fits an issuing state's passport number layout; there is no control digit, except the German one, verified when written",
-		NeedsKeyword: true,
-		Needs:        Needs{Digits: 1, Check: namesPassport},
+		Name:          "passport",
+		Label:         "Passport number",
+		Country:       domain.CrossBorder,
+		OnByDefault:   true,
+		Pattern:       regexp.MustCompile(`[A-Z] [0-9]{7}|[A-Z0-9]{7,10}`),
+		Normalize:     func(s string) string { return strings.ReplaceAll(s, " ", "") },
+		Validate:      validPassport,
+		Keywords:      []string{"passport no", "passportno", "passportnumber", "passportnr", "passnr", "pass nr", "reisepassnr", "reisepass nr", "n° de passeport", "nr paszportu", "číslo cestovního pasu", "номер на паспорта", "αρ. διαβατηρίου"},
+		Concepts:      []Concept{Passport},
+		Base:          domain.Low,
+		Validation:    "fits an issuing state's passport number layout; there is no control digit, except the German one, verified when written",
+		NeedsKeyword:  true,
+		KeywordOnLine: true,
+		Needs:         Needs{Digits: 1, Check: namesPassport},
 	})
 }
 
@@ -122,7 +123,7 @@ var passportWords = []string{"pas", "Pas", "PAS", "паспорт", "Паспо�
 	"putovnic", "Putovnic", "PUTOVNIC", "útlevél", "Útlevél", "ÚTLEVÉL", "utlevel", "Utlevel", "UTLEVEL",
 	"potni", "Potni", "POTNI", "ravel doc", "RAVEL DOC"}
 
-// namesPassport is the prefilter: the line itself must name a passport.
+// namesPassport is the prefilter: a line that names no passport in any language cannot hold a keyword.
 func namesPassport(line string) bool {
 	for _, w := range passportWords {
 		if strings.Contains(line, w) {

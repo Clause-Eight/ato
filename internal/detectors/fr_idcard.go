@@ -20,18 +20,19 @@ import (
 // the card.
 func init() {
 	Register(Detector{
-		Name:         "fr-id-card",
-		Label:        "French national identity card number (CNI)",
-		Country:      "FR",
-		OnByDefault:  true,
-		Pattern:      regexp.MustCompile(`[0-9]{4}[0-9A-Z]{3}[0-9]{5}|[0-9A-Z]{9}`),
-		Validate:     validFRIDCard,
-		Keywords:     []string{"numéro de carte d'identité", "numéro de la carte d'identité", "numéro cni", "n° cni", "no cni"},
-		Concepts:     []Concept{IDCard},
-		Base:         domain.Low,
-		Validation:   "month of issue is valid (1995 card) or letters and digits are mixed (2021 card); there is no control digit",
-		NeedsKeyword: true,
-		Needs:        Needs{Check: frNamesCard},
+		Name:          "fr-id-card",
+		Label:         "French national identity card number (CNI)",
+		Country:       "FR",
+		OnByDefault:   true,
+		Pattern:       regexp.MustCompile(`[0-9]{4}[0-9A-Z]{3}[0-9]{5}|[0-9A-Z]{9}`),
+		Validate:      validFRIDCard,
+		Keywords:      []string{"numéro de carte d'identité", "numéro de la carte d'identité", "numéro cni", "n° cni", "no cni"},
+		Concepts:      []Concept{IDCard},
+		Base:          domain.Low,
+		Validation:    "month of issue is valid (1995 card) or letters and digits are mixed (2021 card); there is no control digit",
+		NeedsKeyword:  true,
+		KeywordOnLine: true,
+		Needs:         Needs{Check: frNamesCard},
 	})
 }
 
@@ -52,7 +53,7 @@ func validFRIDCard(s string) bool {
 
 var frCardWords = []string{"identit", "Identit", "IDENTIT", "cni", "Cni", "CNI"}
 
-// frNamesCard is the prefilter: the line itself must name the card.
+// frNamesCard is the prefilter: a line that does not name the card cannot hold a keyword.
 func frNamesCard(line string) bool {
 	for _, w := range frCardWords {
 		if strings.Contains(line, w) {

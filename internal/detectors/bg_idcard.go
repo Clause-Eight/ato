@@ -16,23 +16,24 @@ import (
 // name the card.
 func init() {
 	Register(Detector{
-		Name:         "bg-id-card",
-		Label:        "Bulgarian identity card number (лична карта)",
-		Country:      "BG",
-		OnByDefault:  true,
-		Pattern:      regexp.MustCompile(`\d{9}`),
-		Keywords:     []string{"номер на лична карта", "номер на личната карта", "лична карта №", "лична карта номер"},
-		Concepts:     []Concept{IDCard},
-		Base:         domain.Low,
-		Validation:   "nine digits on a line naming the card; there is no control digit",
-		NeedsKeyword: true,
-		Needs:        Needs{Check: bgNamesCard},
+		Name:          "bg-id-card",
+		Label:         "Bulgarian identity card number (лична карта)",
+		Country:       "BG",
+		OnByDefault:   true,
+		Pattern:       regexp.MustCompile(`\d{9}`),
+		Keywords:      []string{"номер на лична карта", "номер на личната карта", "лична карта №", "лична карта номер"},
+		Concepts:      []Concept{IDCard},
+		Base:          domain.Low,
+		Validation:    "nine digits on a line naming the card; there is no control digit",
+		NeedsKeyword:  true,
+		KeywordOnLine: true,
+		Needs:         Needs{Check: bgNamesCard},
 	})
 }
 
 var bgCardWords = []string{"лична", "Лична", "ЛИЧНА"}
 
-// bgNamesCard is the prefilter: the line itself must name the card.
+// bgNamesCard is the prefilter: a line that does not name the card cannot hold a keyword.
 func bgNamesCard(line string) bool {
 	for _, w := range bgCardWords {
 		if strings.Contains(line, w) {
