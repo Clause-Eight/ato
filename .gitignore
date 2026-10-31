@@ -4,3 +4,8 @@
 *.test
 *.out
 __pycache__/
+
+# License signing keys never belong in the repository; only keys/<id>.pub does.
+*.key
+*.license
+/ato-license
