@@ -13,7 +13,7 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "2.1",
+      "const": "2.2",
       "description": "2.1 added possible on findings; 2.0 renamed the tool from pii-eu to ato (tool.name is ato) and changed no field; 1.3 added not_read on skipped and sampled files; 1.2 added the kinds sink, infra and lifecycle, the store object and sink, data_category and column_name on findings, and sampled and columns in the summary; 1.1 added kind and special_category. Older 1.x reports are 2.0 reports without those fields."
     },
     "tool": {
@@ -153,9 +153,10 @@
               "field",
               "sink",
               "infra",
-              "lifecycle"
+              "lifecycle",
+              "record"
             ],
-            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9); masked then holds the field name. sink: a log, error-tracker or analytics call that is passed personal data; masked then holds the expression passed, never a value. infra: a data store declared in Terraform without encryption, a retention limit or EU residency, or open to the public; masked then holds the resource address. lifecycle: a table or model holding personal data with no erasure path or no retention limit in the code; masked then holds its name."
+            "description": "value: personal data found in text. field: a schema or model field whose name says it holds special-category data (GDPR Art. 9); masked then holds the field name. sink: a log, error-tracker or analytics call that is passed personal data; masked then holds the expression passed, never a value. infra: a data store declared in Terraform without encryption, a retention limit or EU residency, or open to the public; masked then holds the resource address. lifecycle: a table or model holding personal data with no erasure path or no retention limit in the code; masked then holds its name. record: a record or file whose structure says it holds special-category data about a person (an HL7 patient segment, a FHIR resource about a patient, a VCF or genotype file, a biometric template); masked then describes the record, never a value."
           },
           "special_category": {
             "enum": [
@@ -168,7 +169,7 @@
               "health",
               "sex-life-or-sexual-orientation"
             ],
-            "description": "The GDPR Art. 9 category, for kind field, and for kind sink when the data is special-category data."
+            "description": "The GDPR Art. 9 category, for kinds field and record, for kind sink when the data is special-category data, and for kind value when the value is a code that reveals one, such as a diagnosis code."
           },
           "sink": {
             "enum": [

@@ -153,6 +153,76 @@ func (c *lineContext) recordField(seg *segment) string {
 	return *c.record
 }
 
+// personKey finds a field naming the person a record is about: a patient, a member or an insured person, a
+// medical record number, or a national number by its usual key.
+var personKey = regexp.MustCompile(`(?i)(?:^|[^a-z0-9_])(patient(?:_?(?:id|no|nr|number|key|ref|uuid))?|paziente|patient_?name|person_?id|member_?id|insured_?(?:id|number|person)|mrn|medical_?record_?(?:number|no|id)|ssn|national_?id|nhs_?(?:number|no)|kvnr|cnp|pesel|codice_?fiscale|fiscal_?code)["']?\s*(?::|=>|=)`)
+
+// withPerson drops the matches of detectors that need a person, such as a diagnosis code, when nothing in their
+// record names one, and gives the others the reason. Another value on the line that is personal data on its own
+// counts, as do a person key or a personal field on the line or the line before, or in any column of the row.
+func withPerson(ctx *lineContext, ms []match) []match {
+	need := false
+	for _, m := range ms {
+		need = need || m.det.NeedsPerson
+	}
+	if !need {
+		return ms
+	}
+	out := make([]match, 0, len(ms))
+	for _, m := range ms {
+		if m.det.NeedsPerson {
+			if insideOther(m, ms) {
+				continue
+			}
+			who := ctx.person(ms)
+			if who == "" {
+				continue
+			}
+			m.reasons = append(m.reasons, "in a record about a person: next to "+who)
+		}
+		out = append(out, m)
+	}
+	return out
+}
+
+// insideOther reports whether a code overlaps a value of another detector, such as the first group of an IBAN
+// read as an ICD-11 code: the value is that identifier, not a code.
+func insideOther(code match, ms []match) bool {
+	for _, m := range ms {
+		if !m.det.NeedsPerson && m.start < code.end && code.start < m.end {
+			return true
+		}
+	}
+	return false
+}
+
+// person names what makes a line's record about a person, or returns "" when nothing does: another value,
+// a person key or a personal field.
+func (c *lineContext) person(ms []match) string {
+	for _, m := range ms {
+		if !m.det.NeedsPerson && !m.sample {
+			return m.det.Label
+		}
+	}
+	var texts []string
+	if c.segments != nil {
+		for _, s := range c.segments {
+			texts = append(texts, s.column+":")
+		}
+	} else {
+		texts = []string{c.previous + "\n" + c.line}
+	}
+	for _, t := range texts {
+		if f := personKey.FindStringSubmatch(t); f != nil {
+			return "the field " + f[1]
+		}
+		if f := personalField.FindStringSubmatch(t); f != nil {
+			return "the field " + f[1]
+		}
+	}
+	return ""
+}
+
 // timeLabel finds names that usually hold a time: created_at, updatedAt, ts, timestamp, time, date.
 var timeLabel = regexp.MustCompile(`(?i)(_at|At|_on|_ts)\b|\b(ts|time|timestamp|date|datetime|epoch|millis|ms)\b`)
 
@@ -193,7 +263,7 @@ func scanLine(ctx lineContext, dets []detectors.Detector) []domain.Finding {
 		matches = scanSegment(&ctx, s, s.start, s.end, dets, matches)
 		matches = decodedMatches(&ctx, s, s.start, s.end, dets, matches)
 	}
-	matches = dedupe(matches)
+	matches = dedupe(withPerson(&ctx, matches))
 	findings := toFindings(ctx, matches)
 	applyIgnore(findings, ctx)
 	return findings
@@ -542,7 +612,13 @@ func toFindings(ctx lineContext, ms []match) []domain.Finding {
 	shape := lineShape(ctx.line, ms)
 	out := make([]domain.Finding, 0, len(ms))
 	for i, m := range ms {
+		category := domain.DataCategory("")
+		if m.det.Special != "" {
+			category = domain.CategorySpecial
+		}
 		out = append(out, domain.Finding{
+			Category:    category,
+			Special:     m.det.Special,
 			Kind:        domain.KindValue,
 			Detector:    m.det.Name,
 			Label:       m.det.Label,
