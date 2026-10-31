@@ -32,8 +32,8 @@ National identifiers by country:
 | Country | Personal number | Tax ID | Social security or health | ID card or passport |
 |---|---|---|---|---|
 | AT | – | `at-tax-number` | `at-social-insurance` | – |
-| BE | `be-national-register` | – | – | – |
-| BG | `bg-egn`, `bg-lnch` | – | – | – |
+| BE | `be-national-register` | – | – | `be-id-card` |
+| BG | `bg-egn`, `bg-lnch` | – | – | `bg-id-card` |
 | CY | – | `cy-tic` | – | `cy-id-card` |
 | CZ | `cz-birth-number` | – | – | `cz-bank-account` |
 | DE | – | `de-tax-id` | `de-kvnr`, `de-pension` | `de-id-card` |
@@ -41,17 +41,17 @@ National identifiers by country:
 | EE | `ee-isikukood` | – | – | – |
 | ES | `es-dni`, `es-nie` | – | `es-nss` | `es-cadastral-reference`, `es-ccc`, `es-cups` |
 | FI | `fi-hetu` | – | – | – |
-| FR | – | `fr-spi` | `fr-nir` | – |
-| GR | – | `gr-afm` | `gr-amka` | – |
+| FR | – | `fr-spi` | `fr-nir` | `fr-id-card` |
+| GR | – | `gr-afm` | `gr-amka` | `gr-id-card` |
 | HR | `hr-oib` | – | – | – |
-| HU | `hu-personal-id` | `hu-tax-id` | `hu-taj` | – |
+| HU | `hu-personal-id` | `hu-tax-id` | `hu-taj` | `hu-id-card` |
 | IE | `ie-ppsn` | – | – | – |
 | IT | – | `it-fiscal-code` | – | – |
 | LT | `lt-asmens-kodas` | – | – | – |
 | LU | `lu-national-id` | – | – | – |
 | LV | `lv-personal-code`, `lv-personal-code-new` | – | – | – |
 | MT | – | – | – | `mt-id-card` |
-| NL | `nl-bsn` | – | – | `nl-onderwijsnummer` |
+| NL | `nl-bsn` | – | – | `nl-id-card`, `nl-onderwijsnummer` |
 | PL | `pl-pesel` | `pl-nip` | – | `pl-id-card`, `pl-nrb`, `pl-regon` |
 | PT | – | `pt-nif` | `pt-niss` | `pt-citizen-card` |
 | RO | `ro-cnp` | – | – | `ro-id-card` |
