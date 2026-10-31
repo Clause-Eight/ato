@@ -198,7 +198,7 @@ func writeLog(w io.Writer, r Report, rules map[string]sarifRule, results []sarif
 }
 
 func message(f domain.Finding) string {
-	msg := f.Label + " " + f.Masked
+	msg := f.Title() + " " + f.Masked
 	if f.ColumnName != "" {
 		msg += " in column " + strconv.Quote(f.ColumnName)
 	}

@@ -28,7 +28,7 @@
 <h2>Findings</h2>
 <div class="wrap"><table>
 <tr><th>Where</th><th>What</th><th>Value</th><th>Confidence</th></tr>
-{{range .Findings}}<tr><td class="mono">{{.Location.Path}}:{{.Location.Line}}</td><td>{{.Label}}<div class="why">{{join .Reasons "; "}}</div></td><td class="mono">{{.Masked}}</td><td><span class="conf {{.Confidence}}">{{.Confidence}}</span></td></tr>
+{{range .Findings}}<tr><td class="mono">{{.Location.Path}}:{{.Location.Line}}</td><td>{{.Title}}<div class="why">{{join .Reasons "; "}}</div></td><td class="mono">{{.Masked}}</td><td><span class="conf {{.Confidence}}">{{.Confidence}}</span></td></tr>
 {{end}}</table></div>
 {{else}}
 <p class="empty">No personal data found.</p>
