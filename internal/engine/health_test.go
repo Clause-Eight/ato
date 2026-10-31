@@ -73,6 +73,9 @@ func TestCodesWithoutAPersonAreNotReported(t *testing.T) {
 		{"iban next to a patient key", "app/pay.yml", "patient_id: 1\nvalue = \"" + iban(r) + "\"\n"},
 		{"aic without a medicine word", "app/ids.json", `{"patient_id": 7, "ref": "012345676"}` + "\n"},
 		{"room next to a patient", "app/ward.json", `{"patient_id": 7, "room": "B12"}` + "\n"},
+		{"svg offset next to a name", "app/font.svg", `<text dx="E11" first_name="Ana">` + "\n"},
+		{"medical word far from the code", "app/min.json", `{"patient_id": 7, "diagnosis": "x", "` + strings.Repeat("k", 80) + `": "E11"}` + "\n"},
+		{"person far from the code on a long line", "app/min.json", `{"first_name": "Ana", "` + strings.Repeat("k", 400) + `": 1, "diagnosis": "E11"}` + "\n"},
 	}
 	for _, c := range cases {
 		for _, f := range scanAll(t, c.path, c.text) {

@@ -174,7 +174,7 @@ func withPerson(ctx *lineContext, ms []match) []match {
 			if insideOther(m, ms) {
 				continue
 			}
-			who := ctx.person(ms)
+			who := ctx.person(m, ms)
 			if who == "" {
 				continue
 			}
@@ -196,11 +196,32 @@ func insideOther(code match, ms []match) bool {
 	return false
 }
 
-// person names what makes a line's record about a person, or returns "" when nothing does: another value,
-// a person key or a personal field.
-func (c *lineContext) person(ms []match) string {
+// codeKeyReach is how far before a code its medical word may be; recordReach is how far around it the rest of
+// its record may be, on a long line such as minified JSON or a fuzzing corpus.
+const (
+	codeKeyReach = 60
+	recordReach  = 300
+)
+
+// near is the text up to reach bytes before start and after end on the line, and the line before when the
+// window reaches the start of the line.
+func (c *lineContext) near(start, end, reach int) string {
+	from, to := max(start-reach, 0), min(end+reach, len(c.line))
+	text := c.line[from:to]
+	if from == 0 && c.previous != "" {
+		text = c.previous[max(len(c.previous)-reach, 0):] + "\n" + text
+	}
+	return text
+}
+
+// person names what makes the record of a code about a person, or returns "" when nothing does: another value,
+// a person key or a personal field. On a line without columns only what lies near the code counts.
+func (c *lineContext) person(code match, ms []match) string {
 	for _, m := range ms {
-		if !m.det.NeedsPerson && !m.sample {
+		if m.det.NeedsPerson || m.sample {
+			continue
+		}
+		if c.segments != nil || m.end > code.start-recordReach && m.start < code.end+recordReach {
 			return m.det.Label
 		}
 	}
@@ -210,7 +231,7 @@ func (c *lineContext) person(ms []match) string {
 			texts = append(texts, s.column+":")
 		}
 	} else {
-		texts = []string{c.previous + "\n" + c.line}
+		texts = []string{c.near(code.start, code.end, recordReach)}
 	}
 	for _, t := range texts {
 		if f := personKey.FindStringSubmatch(t); f != nil {
@@ -396,6 +417,8 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	context, own, text := "", "", ctx.line
 	if seg != nil {
 		context, own, text, m.column = seg.keywords, seg.keywords, ctx.line[seg.start:seg.end], seg.column
+	} else if d.NeedsPerson {
+		context, own = detectors.Fold(ctx.near(start, end, codeKeyReach)), ctx.lineText()
 	} else {
 		context, own = ctx.keywordText(), ctx.lineText()
 	}

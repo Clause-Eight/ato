@@ -19,12 +19,14 @@ them personal data is the shape of the whole record.
 
 1. **Codes need a person.** ICD-10, ICD-11, ATC and Italian AIC codes are detectors (`icd10`, `icd11`, `atc-code`,
    `it-aic`) with their structure as the validator (ICD-10 chapter ranges, the ICD-11 stem layout, the ATC
-   anatomical groups, the AIC check digit). Each needs a medical word next to it (`diagnosis`, `icd`, `atc`,
-   `medication`, `farmaco`, in several languages; in a file with columns, the column's name) and a new
-   `NeedsPerson` rule: the same record must name a person. A record is the line and the line before, or the row
-   in a file with columns, as for the personal-field raise of ADR 10. It names a person when it has a patient or
-   person key (`patient_id`, `mrn`, `ssn`, `pesel`), a personal field (`first_name`, `date_of_birth`), or another
-   personal-data value that does not overlap the code. A code inside another identifier (the first group of an
+   anatomical groups, the AIC check digit). Each needs a medical word within 60 bytes before it (`diagnosis`,
+   `icd`, `atc`, `medication`, `farmaco`, in several languages; in a file with columns, the column's name) and a
+   new `NeedsPerson` rule: the same record must name a person. A record is the row in a file with columns, and
+   otherwise the text within 300 bytes of the code on its line and the line before, so that a minified file or a
+   fuzzing corpus is not one record. It names a person when it has a patient or person key (`patient_id`, `mrn`,
+   `ssn`, `pesel`), a personal field (`first_name`, `date_of_birth`), or another personal-data value that does not
+   overlap the code. Short or overloaded words (`dx`, CIE and CIM for ICD, `diagnostic`) are not medical words:
+   in a scan of a Go module cache they matched SVG offsets, colour spaces and linter output. A code inside another identifier (the first group of an
    IBAN read as an ICD-11 code) is dropped. "patient" is a person key but not a medical word: a room number
    next to a patient is not a diagnosis.
 2. **Detectors carry an Art. 9 category.** `Detector.Special` sets `special_category` on their `value` findings.
@@ -52,5 +54,7 @@ them personal data is the shape of the whole record.
   away are missed. FHIR resources whose `resourceType` comes after their name are missed too.
 - On the benchmark corpus of the old detectors the results are unchanged (99.1% precision at the defaults); the
   new detectors, written in records with a patient key, are found without false positives.
+- A scan of a 4.9 GB Go module cache (437,000 files) reports none of the new findings at the default level; the
+  only ones at low are Synthea-generated FHIR encounters in a test fixture, marked as samples.
 - `.vcf.gz`, BCF and other binary genomic formats are not read.
 - `ato fix` replaces codes with synthetic codes of the same layout; it does not rewrite records.

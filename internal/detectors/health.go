@@ -31,8 +31,8 @@ import (
 // two digits for the therapeutic subgroup, two letters for the pharmacological and chemical subgroups and two
 // digits for the substance.
 func init() {
-	diagnosisWords := []string{"icd", "diagnosis", "diagnoses", "diagnose", "diagnosi", "diagnostico", "diagnostic", "diagnoza",
-		"diagnózis", "diagnoos", "diagnozė", "diagnoosi", "diagnóza", "диагноза", "διάγνωση", "cim", "cie", "mkb", "мкб", "bno", "dx"}
+	diagnosisWords := []string{"icd", "diagnosis", "diagnoses", "diagnose", "diagnosi", "diagnostico", "diagnoza",
+		"diagnózis", "diagnoos", "diagnozė", "diagnoosi", "diagnóza", "диагноза", "διάγνωση", "mkb", "мкб"}
 	Register(Detector{
 		Name:         "icd10",
 		Label:        "ICD-10 diagnosis code in a record about a person (health data, GDPR Art. 9)",
