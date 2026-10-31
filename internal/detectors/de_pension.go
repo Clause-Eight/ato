@@ -52,7 +52,7 @@ func validDEPension(s string) bool {
 	}
 	d, _ := Digits(s[:8])
 	day, month, yy := d[2]*10+d[3], d[4]*10+d[5], d[6]*10+d[7]
-	if !deAreaNumbers[d[0]*10+d[1]] || !ValidDate(1900+yy, month, day) && !ValidDate(2000+yy, month, day) {
+	if !deAreaNumbers[d[0]*10+d[1]] || !ValidBirthDate(1900+yy, month, day) && !ValidBirthDate(2000+yy, month, day) {
 		return false
 	}
 	return check == int(s[11]-'0')

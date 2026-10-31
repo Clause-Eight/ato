@@ -50,7 +50,7 @@ func validHETU(s string) bool {
 	if !ok {
 		return false
 	}
-	if !ValidDate(century+d[4]*10+d[5], d[2]*10+d[3], d[0]*10+d[1]) || d[6]*100+d[7]*10+d[8] < 2 {
+	if !ValidBirthDate(century+d[4]*10+d[5], d[2]*10+d[3], d[0]*10+d[1]) || d[6]*100+d[7]*10+d[8] < 2 {
 		return false
 	}
 	n, err := strconv.Atoi(digits)

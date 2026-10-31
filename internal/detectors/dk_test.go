@@ -7,7 +7,7 @@ func TestDanishCPR(t *testing.T) {
 		"1900s with dash":                 "120785-1234",
 		"1900s without dash":              "1207851234",
 		"29 February 2000 (seventh 4)":    "290200-4123",
-		"29 February 2056 (seventh 5)":    "290256-5123",
+		"29 February 2008 (seventh 5)":    "290208-5123",
 		"1937 or later with seventh 9":    "010160-9123",
 		"no modulus-11 needed since 2007": "010107-4000",
 	}, map[string]string{

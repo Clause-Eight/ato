@@ -72,5 +72,5 @@ func validBENationalRegister(s string) bool {
 	if month == 0 || day == 0 {
 		return true
 	}
-	return ValidDate(year, month, day)
+	return ValidBirthDate(year, month, day)
 }

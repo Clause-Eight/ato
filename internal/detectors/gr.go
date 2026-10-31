@@ -50,7 +50,7 @@ func validGRAMKA(s string) bool {
 		return false
 	}
 	day, month, yy := d[0]*10+d[1], d[2]*10+d[3], d[4]*10+d[5]
-	if !ValidDate(1900+yy, month, day) && !ValidDate(2000+yy, month, day) {
+	if !ValidBirthDate(1900+yy, month, day) && !ValidBirthDate(2000+yy, month, day) {
 		return false
 	}
 	return Luhn(s)

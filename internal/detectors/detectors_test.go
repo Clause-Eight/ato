@@ -15,6 +15,9 @@ func pad(n, width int) string { return fmt.Sprintf("%0*d", width, n) }
 func genCNP(r *rand.Rand) string {
 	s := 1 + r.Intn(8)
 	year := r.Intn(100)
+	if s == 5 || s == 6 {
+		year %= 20 // born 2000-2019, never in the future
+	}
 	month := 1 + r.Intn(12)
 	day := 1 + r.Intn(28)
 	counties := []int{1, 7, 12, 22, 40, 46, 51, 52}
@@ -39,7 +42,11 @@ func genEGN(r *rand.Rand) string {
 	case 2:
 		month += 20
 	}
-	body := pad(r.Intn(100), 2) + pad(month, 2) + pad(1+r.Intn(28), 2) + pad(r.Intn(1000), 3)
+	year := r.Intn(100)
+	if month > 40 {
+		year %= 20 // born 2000-2019, never in the future
+	}
+	body := pad(year, 2) + pad(month, 2) + pad(1+r.Intn(28), 2) + pad(r.Intn(1000), 3)
 	w := []int{2, 4, 8, 5, 10, 9, 7, 3, 6}
 	sum := 0
 	for i, x := range w {

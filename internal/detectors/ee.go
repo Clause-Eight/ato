@@ -37,7 +37,7 @@ func validBalticCode(s string) bool {
 		return false
 	}
 	year := 1800 + (d[0]-1)/2*100 + d[1]*10 + d[2]
-	if !ValidDate(year, d[3]*10+d[4], d[5]*10+d[6]) {
+	if !ValidBirthDate(year, d[3]*10+d[4], d[5]*10+d[6]) {
 		return false
 	}
 	return balticCheckDigit(d) == d[10]

@@ -37,7 +37,7 @@ func validLUNationalID(s string) bool {
 		return false
 	}
 	year := d[0]*1000 + d[1]*100 + d[2]*10 + d[3]
-	if year < 1900 || year > 2099 || !ValidDate(year, d[4]*10+d[5], d[6]*10+d[7]) {
+	if year < 1900 || year > 2099 || !ValidBirthDate(year, d[4]*10+d[5], d[6]*10+d[7]) {
 		return false
 	}
 	return Luhn(s[:12]) && verhoeffDigit(s[:11]) == d[12]

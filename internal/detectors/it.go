@@ -9,7 +9,8 @@ import (
 
 // Italian tax code (codice fiscale): 16 characters. Three letters from the surname, three from the name, the
 // year (2 digits), a month letter (A B C D E H L M P R S T), the day (01-31, plus 40 for women), the cadastral
-// code of the municipality or Z and a foreign country code (a letter and 3 digits), and a check letter. The check
+// code of the municipality or Z and a foreign country code (a letter and 3 digits, never 000; foreign codes start
+// at Z100), and a check letter. The check
 // letter is the sum of the first 15 characters' values mod 26, read as A-Z: odd positions (1, 3, ...) use the
 // "dispari" table, even positions their plain value (0-9, A-Z as 0-25). For people with the same code (omocodia)
 // any of the seven digits (positions 7, 8, 10, 11, 13, 14, 15) may be replaced by L M N P Q R S T U V for 0-9.
@@ -27,7 +28,7 @@ func init() {
 		Keywords:    []string{"codice fiscale", "codicefiscale", "cod fisc", "cod. fisc.", "c.f.", "cf"},
 		Concepts:    []Concept{TaxID, NationalID},
 		Base:        domain.Medium,
-		Validation:  "date, municipality code and check letter are valid",
+		Validation:  "date, place code range and check letter are valid",
 	})
 }
 
@@ -48,6 +49,10 @@ func validFiscalCode(s string) bool {
 	}
 	d, ok := Digits(string(plain[6:8]) + string(plain[9:11]) + string(plain[12:15]))
 	if !ok {
+		return false
+	}
+	place := d[4]*100 + d[5]*10 + d[6]
+	if place == 0 || s[11] == 'Z' && place < 100 {
 		return false
 	}
 	month := strings.IndexByte("ABCDEHLMPRST", s[8]) + 1
