@@ -328,6 +328,9 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		context, own, text, m.column = seg.keywords, seg.keywords, ctx.line[seg.start:seg.end], seg.column
 	} else {
 		context, own = ctx.keywordText(), ctx.lineText()
+		if d.KeywordOnLine {
+			context = own
+		}
 	}
 	if r := d.Rival; r != nil && r.Valid(value) && keyword(own, r.Words) != "" {
 		return match{}, false

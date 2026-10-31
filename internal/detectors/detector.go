@@ -47,6 +47,9 @@ type Detector struct {
 	// NeedsKeyword drops a match unless a keyword is on the line or the line before, for identifiers with no
 	// check digit that would otherwise match too much (format-only ID card numbers, MAC addresses).
 	NeedsKeyword bool
+	// KeywordOnLine takes the keyword from the value's own line only, not the line before, for identifiers that
+	// are any run of digits of their length, where a keyword one line up labels the next value too often.
+	KeywordOnLine bool
 	// AlsoIn lists other countries that issue the same identifier (the Czech and Slovak birth number).
 	AlsoIn []string
 

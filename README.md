@@ -36,14 +36,14 @@ National identifiers by country:
 | BG | `bg-egn`, `bg-lnch` | – | – | – |
 | CY | – | `cy-tic` | – | `cy-id-card` |
 | CZ | `cz-birth-number` | – | – | `cz-bank-account` |
-| DE | – | `de-tax-id` | `de-kvnr`, `de-pension` | `de-id-card` |
+| DE | – | `de-stnr`, `de-tax-id` | `de-kvnr`, `de-pension` | `de-id-card` |
 | DK | `dk-cpr`* | – | – | – |
 | EE | `ee-isikukood` | – | – | – |
 | ES | `es-dni`, `es-nie` | – | `es-nss` | `es-cadastral-reference`, `es-ccc`, `es-cups` |
-| FI | `fi-hetu` | – | – | – |
+| FI | `fi-hetu` | `fi-veronumero` | – | – |
 | FR | – | `fr-spi` | `fr-nir` | – |
 | GR | – | `gr-afm` | `gr-amka` | – |
-| HR | `hr-oib` | – | – | – |
+| HR | `hr-oib` | – | `hr-mbo` | – |
 | HU | `hu-personal-id` | `hu-tax-id` | `hu-taj` | – |
 | IE | `ie-ppsn` | – | – | – |
 | IT | – | `it-fiscal-code` | – | – |
@@ -54,14 +54,14 @@ National identifiers by country:
 | NL | `nl-bsn` | – | – | `nl-onderwijsnummer` |
 | PL | `pl-pesel` | `pl-nip` | – | `pl-id-card`, `pl-nrb`, `pl-regon` |
 | PT | – | `pt-nif` | `pt-niss` | `pt-citizen-card` |
-| RO | `ro-cnp` | – | – | `ro-id-card` |
+| RO | `ro-cnp` | – | – | `ro-cei`, `ro-id-card` |
 | SE | `se-personnummer` | – | – | – |
 | SI | `si-emso` | `si-tax-number` | – | – |
 | SK | `cz-birth-number` | – | – | – |
 | CH | – | – | `ch-ahv`* | `ch-qr-reference`* |
 | GB | – | `gb-utr`* | `gb-nhs`*, `gb-nino`* | `gb-upn`* |
 | IS | `is-kennitala`* | – | – | – |
-| LI | – | – | – | – |
+| LI | – | – | – | `li-peid`* |
 | NO | `no-fnr`* | – | – | `no-kontonr`* |
 
 * off by default; on when the country is selected with `--countries`. IBANs, cards, VAT numbers, contact data and the other cross-border detectors cover every country.
