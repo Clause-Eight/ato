@@ -35,7 +35,7 @@ func writeHTML(w io.Writer, r Report, _ Options) error {
 	high := 0
 	for _, f := range r.Findings {
 		files[f.Location.Path] = true
-		counts[[2]string{f.Label, f.Country}]++
+		counts[[2]string{f.Title(), strings.Join(f.Countries(), ", ")}]++
 		if f.Confidence == domain.High {
 			high++
 		}

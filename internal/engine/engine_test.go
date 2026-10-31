@@ -366,3 +366,30 @@ func TestWholeQuotedDistinctIdentifiers(t *testing.T) {
 		t.Fatalf("an OIB has a plain checksum and is not raised for being quoted: quoted %s, bare %s", quoted, bare)
 	}
 }
+
+// TestPossibleIdentifiers: Estonian and Lithuanian personal codes share a format and check, so an unlabelled one
+// is reported as possibly either; the word for one of them settles it.
+func TestPossibleIdentifiers(t *testing.T) {
+	var dets []detectors.Detector
+	for _, n := range []string{"ee-isikukood", "lt-asmens-kodas"} {
+		d, _ := detectors.Get(n)
+		dets = append(dets, d)
+	}
+	g, _ := synth.For("lt-asmens-kodas")
+	code := g(rand.New(rand.NewSource(3)))
+	scan := func(text string) domain.Finding {
+		t.Helper()
+		fs, err := ScanReader("app/data.json", strings.NewReader(text+"\n"), dets)
+		if err != nil || len(fs) != 1 {
+			t.Fatalf("%q: %d findings, %v", text, len(fs), err)
+		}
+		return fs[0]
+	}
+	f := scan(`{"ref": "` + code + `"}`)
+	if len(f.Possible) != 1 || f.Title() != "Possibly "+f.Label+" or "+f.Possible[0].Label {
+		t.Fatalf("an unlabelled code should be possibly either: %q, %+v", f.Title(), f.Possible)
+	}
+	if f := scan(`{"isikukood": "` + code + `"}`); f.Detector != "ee-isikukood" || len(f.Possible) != 0 {
+		t.Fatalf("the word isikukood says which: %s, %+v", f.Detector, f.Possible)
+	}
+}

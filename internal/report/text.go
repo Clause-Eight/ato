@@ -29,7 +29,7 @@ func writeText(w io.Writer, r Report, opts Options) error {
 		if f.ColumnName != "" {
 			value += fmt.Sprintf("  in column %q", f.ColumnName)
 		}
-		fmt.Fprintf(&b, "  %d:%d  %-6s  %s  %s\n", f.Location.Line, f.Location.Column, f.Confidence, f.Label, value)
+		fmt.Fprintf(&b, "  %d:%d  %-6s  %s  %s\n", f.Location.Line, f.Location.Column, f.Confidence, f.Title(), value)
 		if len(f.Reasons) > 0 {
 			fmt.Fprintf(&b, "          %s\n", strings.Join(f.Reasons, "; "))
 		}
