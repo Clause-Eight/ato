@@ -14,7 +14,7 @@
 <h1>Personal data map</h1>
 <p class="meta">Drafted from the code by {{.Tool}} {{.Version}}. It shows which personal data the code keeps, where it goes and what needs a decision. It shows field names and file locations, never the data itself.</p>
 </header>
-<p class="lead">{{if .Components}}The code keeps personal data in {{.Stores}} {{if eq .Stores 1}}store{{else}}stores{{end}}, names {{.Recipients}} outside {{if eq .Recipients 1}}company{{else}}companies{{end}} and writes personal data to logs in {{.Sinks}} {{if eq .Sinks 1}}place{{else}}places{{end}}.{{if .Kinds}} Kinds of personal data: {{.Kinds}}.{{end}}{{if .Special}} Special-category data (GDPR Art. 9): {{.Special}}.{{end}}{{else}}No personal data, logging of personal data or outside companies were found in the code.{{end}}</p>
+<p class="lead">{{if .Components}}The code keeps personal data in {{.Stores}} {{if eq .Stores 1}}store{{else}}stores{{end}}, names {{.Recipients}} outside {{if eq .Recipients 1}}company{{else}}companies{{end}} and writes personal data to logs in {{.Sinks}} {{if eq .Sinks 1}}place{{else}}places{{end}}.{{if .Kinds}} Kinds of personal data: {{.Kinds}}.{{end}}{{if .Special}} Special-category data ({{.SpecialLaw}}): {{.Special}}.{{end}}{{else}}No personal data, logging of personal data or outside companies were found in the code.{{end}}</p>
 {{if .Compared}}
 <section aria-labelledby="changes">
 <h2 id="changes">What changed since the last saved map</h2>
@@ -48,7 +48,7 @@
 <h4><span class="sub">Store</span> <span class="mono">{{.Name}}</span></h4>
 <dl>
 {{if .Kinds}}<dt>Holds</dt><dd>{{.Kinds}}</dd>
-{{end}}{{if .Special}}<dt>Special-category data</dt><dd><strong>{{.Special}}</strong> (GDPR Art. 9)</dd>
+{{end}}{{if .Special}}<dt>Special-category data</dt><dd><strong>{{.Special}}</strong> ({{.SpecialLaw}})</dd>
 {{end}}<dt>Erasure on request</dt><dd>{{.Erasure}}{{template "where" .ErasureAt}}</dd>
 <dt>Removal of old data</dt><dd>{{.Retention}}{{template "where" .RetentionAt}}</dd>
 </dl>

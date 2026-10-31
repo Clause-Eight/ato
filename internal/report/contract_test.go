@@ -111,6 +111,20 @@ func withField(r Report) Report {
 	return r
 }
 
+// withCardAuth adds a card security code next to the sample card and a field holding criminal data (GDPR Art. 10).
+func withCardAuth(r Report) Report {
+	r.Findings = append(r.Findings, domain.Finding{
+		Detector: "card-security-code", Label: "Card security code (CVV/CVC)", Country: "EU", Location: domain.Location{Path: "app/config.yml", Line: 5, Column: 8},
+		Value: sentinel, Masked: "•••", Confidence: domain.High, Reasons: []string{"three or four digits under a card security code label, next to a valid card number", `the word "cvv" is nearby`},
+		Fingerprint: "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+	}, domain.Finding{
+		Kind: domain.KindField, Category: domain.CategorySpecial, Special: domain.SpecialCriminal, Detector: "special-category",
+		Label: "Field holding criminal convictions or offences (GDPR Art. 10)", Country: "EU", Location: domain.Location{Path: "db/002.sql", Line: 6, Column: 3},
+		Masked: "applicants.criminal_record", Confidence: domain.Medium, Reasons: []string{`the name contains "criminal record"`}, Fingerprint: "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+	})
+	return r
+}
+
 // syntheticStore is a made-up Terraform data store.
 func syntheticStore() domain.Store {
 	return domain.Store{
@@ -145,7 +159,7 @@ func withStore(r Report) Report {
 
 func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	var buf bytes.Buffer
-	if err := Write("json", &buf, withSink(withStore(withField(sample()))), Options{}); err != nil {
+	if err := Write("json", &buf, withSink(withStore(withField(withCardAuth(sample())))), Options{}); err != nil {
 		t.Fatal(err)
 	}
 	var doc map[string]any
@@ -162,6 +176,9 @@ func TestReportsMatchThePublishedSchemas(t *testing.T) {
 	}, {
 		Field:          domain.Field{Name: "email", Container: "User", Format: "typeorm", Location: domain.Location{Path: "src/user.entity.ts", Line: 9, Column: 5}},
 		Classification: domain.Classification{Category: domain.CategoryContact, Matched: "email"},
+	}, {
+		Field:          domain.Field{Name: "criminal_record", Container: "applicants", Format: "sql", Location: domain.Location{Path: "db/002.sql", Line: 6, Column: 3}},
+		Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialCriminal, Matched: "criminal record"},
 	}}, Stores: []domain.Store{syntheticStore(), syntheticModule()}}
 	if err := WriteInventory("json", &buf, inv); err != nil {
 		t.Fatal(err)

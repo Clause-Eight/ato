@@ -21,11 +21,14 @@ type lineContext struct {
 	number   int
 	line     string
 	previous string
+	// above are the lines just above, the nearest last, for detectors whose values depend on their record.
+	above    []string
 	segments []segment
 	folded   *string
 	uuids    *[][]int
 	record   *string
 	own      *string
+	lines    *string
 }
 
 // segment is one value of a line in a file with columns: a CSV cell, a JSON Lines value or a SQL value. Its
@@ -312,6 +315,12 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	}
 	value := d.Normalize(ctx.line[start:end])
 	m := match{det: d, start: start, end: end, value: value, confidence: d.Base}
+	fit := detectors.Fits
+	if d.Context != nil {
+		if fit = d.Context(ctx.around(seg, start, end)); fit == detectors.Unfit {
+			return match{}, false
+		}
+	}
 	if d.Validate != nil {
 		m.reasons = append(m.reasons, d.Validation)
 	}
@@ -338,7 +347,8 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 	}
 	// A keyword counts on the line before too; a word that labels other numbers only on the value's own line.
 	// Context can lower a valid value by one step at most, however many signals agree; every signal is still
-	// listed as a reason.
+	// listed as a reason. A detector with its own Context has already judged the key before the value (a hash
+	// under phone is a hashed phone number), so the key is not read as another kind of value.
 	demoted := false
 	demote := func(reason string) {
 		if !demoted {
@@ -354,7 +364,7 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.ownWord = contains(d.OwnWords, kw) || d.OwnWords == nil
 	} else if w := keyword(own, d.Unlikely); w != "" {
 		demote(fmt.Sprintf("the word %q is nearby, which usually labels other numbers", w))
-	} else if k := otherKind(ctx.line[:start], d.Name); k != "" {
+	} else if k := otherKind(ctx.line[:start], d.Name); k != "" && d.Context == nil {
 		demote(fmt.Sprintf("its own name %q says it is another kind of value", k))
 	} else if distinct[d.Name] && wholeQuoted(ctx.line, start, end) && !demoted {
 		m.confidence = raise(m.confidence)
@@ -363,7 +373,11 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		m.confidence = raise(m.confidence)
 		m.reasons = append(m.reasons, fmt.Sprintf("next to another personal field (%s), as in a record about a person", f))
 	}
-	if d.Samples[value] {
+	if fit == detectors.FitsSample {
+		m.sample = true
+		m.confidence = domain.Low
+		m.reasons = append(m.reasons, "next to a published sample value")
+	} else if d.Samples[value] {
 		m.sample = true
 		m.confidence = domain.Low
 		m.reasons = append(m.reasons, "a published sample value")
@@ -393,6 +407,27 @@ func evaluate(ctx *lineContext, seg *segment, d detectors.Detector, start, end i
 		}
 	}
 	return m, true
+}
+
+// recordLines is how many lines above a value a detector's Context sees, and aboveBytes how much of the end of
+// each, so that minified files do not make every candidate's record long.
+const recordLines, aboveBytes = 6, 4096
+
+// around is the text a detector's Context judges: the rest of the value's cell or line, its column, and the
+// line with the lines above it.
+func (c *lineContext) around(seg *segment, start, end int) detectors.Around {
+	lo, hi := 0, len(c.line)
+	var a detectors.Around
+	if seg != nil {
+		lo, hi, a.Column = seg.start, seg.end, seg.column
+	}
+	a.Before, a.After = c.line[lo:start], c.line[end:hi]
+	if c.lines == nil {
+		r := strings.Join(append(append([]string{}, c.above...), c.line), "\n")
+		c.lines = &r
+	}
+	a.Record = *c.lines
+	return a
 }
 
 // validEnd returns where a valid value ends, trimming trailing groups when the detector allows it.
