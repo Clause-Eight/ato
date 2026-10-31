@@ -87,7 +87,7 @@ func validSIEMSO(s string) bool {
 	default:
 		return false
 	}
-	if year > time.Now().Year() || !ValidDate(year, month, day) {
+	if year > time.Now().Year() || !ValidBirthDate(year, month, day) {
 		return false
 	}
 	if d[7] != 5 {

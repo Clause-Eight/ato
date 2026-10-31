@@ -11,7 +11,11 @@ func init() {
 		if r.Intn(2) == 1 {
 			day += 40
 		}
-		municipality := Letters(r, 1, "ABCDEFGHILMZ") + Digits(r, 3)
+		// Place codes are a letter and 001-999; foreign countries are Z100 and up.
+		municipality := Letters(r, 1, "ABCDEFGHILM") + Pad(1+r.Intn(999), 3)
+		if r.Intn(6) == 0 {
+			municipality = "Z" + Pad(100+r.Intn(900), 3)
+		}
 		code := []byte(Letters(r, 6, "") + Pad(year%100, 2) + string("ABCDEHLMPRST"[month-1]) + Pad(day, 2) + municipality)
 		if r.Intn(4) == 0 {
 			numeric := []int{14, 13, 12, 10, 9, 7, 6}

@@ -8,8 +8,10 @@ import (
 )
 
 func genPESEL(r *rand.Rand) string {
+	// Births from 1900 to 2019, so no date lies in the future.
 	year, month := r.Intn(100), 1+r.Intn(12)
 	if r.Intn(2) == 1 {
+		year %= 20
 		month += 20
 	}
 	body := pad(year, 2) + pad(month, 2) + pad(1+r.Intn(28), 2) + pad(r.Intn(10000), 4)
@@ -98,7 +100,13 @@ func TestMoreGeneratedValues(t *testing.T) {
 		{"pl-pesel", validPESEL, genPESEL},
 		{"cz-birth-number", validBirthNumber, genBirthNumber},
 		{"hr-oib", func(s string) bool { return mod11_10(s) }, func(r *rand.Rand) string { return genMod1110(r, 11) }},
-		{"vat-de", validVAT, func(r *rand.Rand) string { return "DE" + genMod1110(r, 9) }},
+		{"vat-de", validVAT, func(r *rand.Rand) string {
+			for {
+				if v := genMod1110(r, 9); v[0] != '0' {
+					return "DE" + v
+				}
+			}
+		}},
 		{"vat-ro", validVAT, genVATRO},
 		{"vat-pl", validVAT, genVATPL},
 		{"vat-hu", validVAT, genVATHU},
@@ -117,9 +125,22 @@ func TestMoreGeneratedValues(t *testing.T) {
 }
 
 func TestVATFormats(t *testing.T) {
-	for _, v := range []string{"ATU12345678", "NL123456789B01", "FRXX123456789", "SE123456789001", "IE1234567T"} {
+	// Synthetic numbers: random digits whose check characters python-stdnum 1.20 computed, an implementation
+	// independent of this package. One per member-state rule; changing the check character must be rejected.
+	valid := []string{"ATU02523260", "BE0401381644", "CY11629477P", "CZ689274347", "CZ64497852", "DK54233493",
+		"EE104491968", "EL715122152", "ESB5377224J", "ESX9447699N", "FI97672179", "FR83350992616", "HR78901156224",
+		"IE1677260O", "IE2545403JH", "IE8K97363H", "IT43415640317", "LT404536818", "LU09250635", "LV80172431783",
+		"MT69651507", "NL643733796B01", "PT973158620", "SE930298749101", "SI70574561", "SK1183409491", "XI909841064"}
+	for _, v := range valid {
 		if !validVAT(v) {
-			t.Errorf("format-only VAT %s rejected", v[:2])
+			t.Errorf("valid VAT %s rejected", v)
+		}
+		changed := flipLast(v)
+		if v[:2] == "NL" {
+			changed = flipLast(v[:11]) + v[11:]
+		}
+		if validVAT(changed) {
+			t.Errorf("VAT %s with a changed check character accepted", v)
 		}
 	}
 	for _, v := range []string{"ATX12345678", "NL123456789", "SE123456789002", "ZZ123456789", "DE12"} {

@@ -49,7 +49,7 @@ func validPersonnummer(s string) bool {
 	}
 	dated := false
 	for _, c := range centuries {
-		dated = dated || ValidDate(c+yy, month, day)
+		dated = dated || ValidBirthDate(c+yy, month, day)
 	}
 	if !dated || d[6]*100+d[7]*10+d[8] == 0 {
 		return false
