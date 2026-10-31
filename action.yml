@@ -15,6 +15,9 @@ inputs:
   sarif:
     description: Write a SARIF file to this path (for GitHub code scanning, which needs GitHub Advanced Security on private repositories).
     default: ""
+  license:
+    description: Your ATO license, from a repository or organisation secret (for example secrets.ATO_LICENSE). Without one ATO runs as an evaluation and says so.
+    default: ""
 
 outputs:
   findings:
@@ -42,6 +45,7 @@ runs:
         MIN_CONFIDENCE: ${{ inputs.min-confidence }}
         FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
         SARIF_PATH: ${{ inputs.sarif }}
+        ATO_LICENSE: ${{ inputs.license }}
       run: |
         set +e
         "$RUNNER_TEMP/ato" scan --format json --output "$RUNNER_TEMP/ato.json" --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
