@@ -65,7 +65,8 @@ func validEmail(s string) bool {
 	}
 	domainPart := strings.ToLower(s[at+1:])
 	for _, ex := range exampleDomains {
-		if domainPart == strings.TrimPrefix(ex, ".") || strings.HasSuffix(domainPart, ex) {
+		base := strings.TrimPrefix(ex, ".")
+		if domainPart == base || strings.HasSuffix(domainPart, "."+base) {
 			return false
 		}
 	}
