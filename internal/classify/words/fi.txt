@@ -2,10 +2,11 @@
 health: terveys, terveystiedot, lääketieteellinen, diagnoosi, sairaus, allergia, veriryhmä, lääke, lääkkeet, resepti, oire, oireet, vamma, raskaus, potilas, rokotus, mielenterveys, potilaskertomus, sairausloma
 genetic: geneettinen, genomi, dna, geeni, genotyyppi
 biometric: biometrinen, sormenjälki, sormenjäljet, kasvomalli, iiris, verkkokalvo, äänitunniste
-racial-or-ethnic-origin: rotu, etninen alkuperä, etnisyys, etninen tausta
-political-opinions: poliittinen mielipide, poliittinen kanta, puolue, puoluekanta, puolueen jäsenyys
-religious-or-philosophical-beliefs: uskonto, uskontokunta, vakaumus, uskonnollinen vakaumus, kirkkoon kuuluminen
-trade-union-membership: ammattiliitto, ammattiliiton jäsenyys, ammattiyhdistys
-sex-life-or-sexual-orientation: seksuaalinen suuntautuminen, seksuaalielämä, seksuaalisuus
+racial-or-ethnic-origin: rotu, etninen alkuperä, etnisyys, etninen tausta, rodullinen alkuperä, etninen ryhmä
+political-opinions: poliittinen mielipide, poliittinen kanta, puolue, puoluekanta, puolueen jäsenyys, poliittinen vakaumus, poliittinen suuntautuminen, puolueen jäsen
+religious-or-philosophical-beliefs: uskonto, uskontokunta, vakaumus, uskonnollinen vakaumus, kirkkoon kuuluminen, uskonnollinen yhteisö, elämänkatsomus, maailmankatsomus, kirkon jäsenyys
+trade-union-membership: ammattiliitto, ammattiliiton jäsenyys, ammattiyhdistys, ammattiliiton jäsen, ammattiliiton jäsenmaksu
+sex-life-or-sexual-orientation: seksuaalinen suuntautuminen, seksuaalielämä, seksuaalisuus, seksuaalinen käyttäytyminen, seksuaalinen mieltymys
+criminal-convictions-and-offences: rikosrekisteri, rikosrekisteriote, rikostausta, rikostuomio, rikos, rikokset, vankeusrangaistus
 demographic: sukupuoli, kansalaisuus, siviilisääty, ikä, syntymäpaikka
 online-identifier: ip osoite, laitetunniste, mac osoite, mainostunniste

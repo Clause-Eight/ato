@@ -369,6 +369,10 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 				res.findings = append(res.findings, calls.line(ctx)...)
 			}
 			ctx.previous = line
+			if len(ctx.above) == recordLines {
+				ctx.above = append(ctx.above[:0], ctx.above[1:]...)
+			}
+			ctx.above = append(ctx.above, line[max(0, len(line)-aboveBytes):])
 		}
 		if errors.Is(err, io.EOF) {
 			break

@@ -2,10 +2,11 @@
 health: gezondheid, medisch, diagnose, ziekte, aandoening, allergie, allergieën, bloedgroep, medicijn, medicatie, recept, symptoom, symptomen, handicap, beperking, zwangerschap, patiënt, vaccinatie, geestelijke gezondheid, medisch dossier, ziektegeschiedenis, ziekmelding, ziekteverzuim
 genetic: genetisch, genoom, dna, genotype
 biometric: biometrisch, vingerafdruk, vingerafdrukken, gezichtssjabloon, netvlies, stemafdruk
-racial-or-ethnic-origin: ras, raciale afkomst, etnische afkomst, etniciteit, etnische achtergrond
-political-opinions: politieke mening, politieke voorkeur, politieke partij, partijlidmaatschap
-religious-or-philosophical-beliefs: religie, geloof, godsdienst, kerkgenootschap, levensbeschouwing
-trade-union-membership: vakbond, vakbondslidmaatschap, vakbondslid
-sex-life-or-sexual-orientation: seksuele geaardheid, seksuele oriëntatie, seksleven, seksualiteit
+racial-or-ethnic-origin: ras, raciale afkomst, etnische afkomst, etniciteit, etnische achtergrond, raciale herkomst, etnische herkomst
+political-opinions: politieke mening, politieke voorkeur, politieke partij, partijlidmaatschap, politieke overtuiging, politieke opvattingen, politieke kleur, partijlid
+religious-or-philosophical-beliefs: religie, geloof, godsdienst, kerkgenootschap, levensbeschouwing, religieuze overtuiging, levensovertuiging, geloofsovertuiging, kerklid
+trade-union-membership: vakbond, vakbondslidmaatschap, vakbondslid, vakbondscontributie
+sex-life-or-sexual-orientation: seksuele geaardheid, seksuele oriëntatie, seksleven, seksualiteit, seksuele voorkeur, seksueel gedrag
+criminal-convictions-and-offences: strafblad, strafregister, justitiële documentatie, verklaring omtrent het gedrag, veroordeling, veroordelingen, strafrechtelijke veroordeling, strafbaar feit, strafbare feiten, delict, delicten, gevangenisstraf
 demographic: geslacht, nationaliteit, staatsburgerschap, burgerlijke staat, leeftijd, geboorteplaats
 online-identifier: ip adres, apparaat id, mac adres, advertentie id

@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "2.0",
-      "description": "2.0 renamed the tool from pii-eu to ato (tool.name is ato) and changed no field; 1.2 added the source formats typeorm, mongoose, doctrine, laravel, csv, tsv and jsonl, stores of type module with the module object, and unknown as a store's provider or service; 1.1 added stores. An older 1.x inventory is a 2.0 inventory without those."
+      "const": "2.1",
+      "description": "2.1 added criminal-convictions-and-offences (GDPR Art. 10) to special_category; 2.0 renamed the tool from pii-eu to ato (tool.name is ato) and changed no field; 1.2 added the source formats typeorm, mongoose, doctrine, laravel, csv, tsv and jsonl, stores of type module with the module object, and unknown as a store's provider or service; 1.1 added stores. An older 1.x inventory is a 2.0 inventory without those."
     },
     "tool": {
       "type": "object",
@@ -82,7 +82,8 @@
               "genetic",
               "biometric",
               "health",
-              "sex-life-or-sexual-orientation"
+              "sex-life-or-sexual-orientation",
+              "criminal-convictions-and-offences"
             ]
           },
           "matched": {

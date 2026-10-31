@@ -48,6 +48,30 @@
     }
   },
   {
+    "description": "Card security code (CVV/CVC) ••• (high confidence): three or four digits under a card security code label, next to a valid card number; the word \"cvv\" is nearby",
+    "check_name": "ato/card-security-code",
+    "fingerprint": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+    "severity": "critical",
+    "location": {
+      "path": "app/config.yml",
+      "lines": {
+        "begin": 5
+      }
+    }
+  },
+  {
+    "description": "Field holding criminal convictions or offences (GDPR Art. 10) applicants.criminal_record (medium confidence): the name contains \"criminal record\"",
+    "check_name": "ato/special-category",
+    "fingerprint": "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+    "severity": "major",
+    "location": {
+      "path": "db/002.sql",
+      "lines": {
+        "begin": 6
+      }
+    }
+  },
+  {
     "description": "Personal data written to a log user.Email (medium confidence): the name contains \"email\"; passed to log.Printf, which writes to a log",
     "check_name": "ato/log-sink",
     "fingerprint": "ffeeddccbbaa99887766554433221100",

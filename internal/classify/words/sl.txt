@@ -2,10 +2,11 @@
 health: zdravje, zdravstveni, medicinski, diagnoza, bolezen, alergija, krvna skupina, zdravilo, zdravila, recept, simptom, simptomi, invalidnost, nosečnost, pacient, bolnik, cepljenje, duševno zdravje, zdravstvena dokumentacija, bolniška odsotnost
 genetic: genetski, genom, dnk, genotip
 biometric: biometrični, prstni odtis, prstni odtisi, predloga obraza, šarenica, mrežnica, glasovni odtis
-racial-or-ethnic-origin: rasa, rasno poreklo, etnično poreklo, etnična pripadnost
-political-opinions: politično mnenje, politična stranka, strankarska pripadnost, politično prepričanje
-religious-or-philosophical-beliefs: vera, veroizpoved, religija, versko prepričanje, svetovni nazor
-trade-union-membership: sindikat, članstvo v sindikatu, sindikalna pripadnost
-sex-life-or-sexual-orientation: spolna usmerjenost, spolno življenje, spolnost
+racial-or-ethnic-origin: rasa, rasno poreklo, etnično poreklo, etnična pripadnost, etničnost
+political-opinions: politično mnenje, politična stranka, strankarska pripadnost, politično prepričanje, politična pripadnost, politična prepričanja, članstvo v stranki
+religious-or-philosophical-beliefs: vera, veroizpoved, religija, versko prepričanje, svetovni nazor, verska pripadnost, verska opredelitev, filozofsko prepričanje
+trade-union-membership: sindikat, članstvo v sindikatu, sindikalna pripadnost, član sindikata, sindikalna članarina
+sex-life-or-sexual-orientation: spolna usmerjenost, spolno življenje, spolnost, spolno vedenje, spolna nagnjenost
+criminal-convictions-and-offences: kazenska evidenca, potrdilo o nekaznovanosti, nekaznovanost, obsodba, obsodbe, kaznivo dejanje, kazniva dejanja, zaporna kazen
 demographic: spol, narodnost, državljanstvo, zakonski stan, starost, kraj rojstva
 online-identifier: ip naslov, identifikator naprave, mac naslov

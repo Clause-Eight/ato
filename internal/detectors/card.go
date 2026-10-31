@@ -15,7 +15,7 @@ func init() {
 		Label:       "Payment card number",
 		Country:     "EU",
 		OnByDefault: true,
-		Pattern:     regexp.MustCompile(`\d{4}[ -]?\d{6}[ -]?\d{5}|\d{4}(?:[ -]?\d{4}){2}(?:[ -]?\d{1,4}){1,2}`),
+		Pattern:     cardPattern,
 		Normalize:   DigitsOnly,
 		Validate:    func(s string) bool { return CardBrand(s) != "" },
 		Mask:        MaskKeepLast(4),
@@ -24,15 +24,20 @@ func init() {
 		Unlikely:    []string{"id", "trace", "order", "invoice", "transaction", "txn", "tracking", "correlation", "request", "session", "sequence", "nonce", "timestamp", "serial", "reference", "ref", "build", "gtin", "ean", "barcode", "sku", "upc"},
 		Rival:       &Rival{Words: []string{"gtin", "ean", "barcode", "upc"}, Valid: ValidGTIN},
 		Base:        domain.Medium,
-		Samples: map[string]bool{
-			"4111111111111111": true, "4242424242424242": true, "4012888888881881": true, "4000056655665556": true,
-			"5555555555554444": true, "5105105105105100": true, "2223003122003222": true,
-			"378282246310005": true, "371449635398431": true, "6011111111111117": true, "3530111333300000": true,
-		},
-		TrimGroups: true,
-		Formatted:  regexp.MustCompile(`^\d{4} \d{4} \d{4} \d{4}$|^\d{4}-\d{4}-\d{4}-\d{4}$|^\d{4} \d{6} \d{5}$|^\d{4}-\d{6}-\d{5}$`),
-		Validation: "brand prefix, length and Luhn check are valid",
+		Samples:     sampleCards,
+		TrimGroups:  true,
+		Formatted:   regexp.MustCompile(`^\d{4} \d{4} \d{4} \d{4}$|^\d{4}-\d{4}-\d{4}-\d{4}$|^\d{4} \d{6} \d{5}$|^\d{4}-\d{6}-\d{5}$`),
+		Validation:  "brand prefix, length and Luhn check are valid",
 	})
+}
+
+var cardPattern = regexp.MustCompile(`\d{4}[ -]?\d{6}[ -]?\d{5}|\d{4}(?:[ -]?\d{4}){2}(?:[ -]?\d{1,4}){1,2}`)
+
+// sampleCards are the test numbers payment providers publish.
+var sampleCards = map[string]bool{
+	"4111111111111111": true, "4242424242424242": true, "4012888888881881": true, "4000056655665556": true,
+	"5555555555554444": true, "5105105105105100": true, "2223003122003222": true,
+	"378282246310005": true, "371449635398431": true, "6011111111111117": true, "3530111333300000": true,
 }
 
 type cardRange struct {

@@ -74,10 +74,11 @@ environment variables, in 1.x or 2.x; the `PII_EU_` variables above belong to th
 | 1.x, after #264 | unchanged | `1.2`: source formats `typeorm`, `mongoose`, `doctrine`, `laravel`, `csv`, `tsv` and `jsonl`; stores of type `module` with the optional `module` object; `unknown` as a store's `provider` or `service`, for module calls only | `1.1`: optional `module_source` on `infrastructure` entries |
 | 2.0 | `2.0`: `tool.name` is `ato`; no field changes | `2.0`: the same | `2.0`: the same |
 | 2.x | `2.1`: optional `possible` on findings, the other identifiers a value is just as valid for; `label` stays the first one's, and text, SARIF messages, annotations and HTML say "Possibly A or B" | `2.0` | `2.0` |
+| 2.x, later | `2.2`: `criminal-convictions-and-offences` (GDPR Art. 10) as a `special_category`, on `field` findings with the SARIF rule `special-category/criminal-convictions-and-offences` | `2.1`: the same `special_category` value | `2.0`: unchanged; a store's `special_category` and `special-category/criminal-convictions-and-offences` in `categories` are free text |
 
 Within a major version each schema version only adds optional fields and new enum values, so a reader written for
 an earlier `2.x` keeps working: it ignores the new fields, a finding of an unknown `kind` can be read like a
-`field` finding, and an unknown `source_format` or store `type` can be read as text. A reader written for `1.x`
+`field` finding, and an unknown `source_format`, store `type` or `special_category` can be read as text. A reader written for `1.x`
 reads a `2.0` file once it accepts the new `schema_version` and `tool.name`; no field changed.
 
 ## What a minor release may change
