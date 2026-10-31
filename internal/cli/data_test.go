@@ -110,7 +110,7 @@ func TestCSVInsideATarballIsScannedByColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	code, doc, out := scanJSON(t, dir)
-	if code != ExitFindings || doc.SchemaVersion != "2.1" {
+	if code != ExitFindings || doc.SchemaVersion != "2.2" {
 		t.Fatalf("exit %d\n%s", code, out)
 	}
 	values, fields := 0, 0

@@ -63,6 +63,16 @@ func TestSinkCalls(t *testing.T) {
 		{"src/Ctl.php", `error_log("signup {$user->phone}");`, []want{{domain.SinkLog, "$user->phone", domain.CategoryContact, domain.Medium}}},
 		{"src/Ctl.php", `error_log(print_r($_POST, true));`, []want{{domain.SinkLog, "$_POST", "", domain.Medium}}},
 		{"src/Ctl.php", `\Sentry\captureMessage("no account for " . $customer->iban);`, []want{{domain.SinkErrorTracker, "$customer->iban", domain.CategoryFinancial, domain.Medium}}},
+		{"web/app.js", `LogRocket.identify(user.id, { email: user.email })`, []want{{domain.SinkAnalytics, "email", domain.CategoryContact, domain.Medium}}},
+		{"web/app.js", `hj("identify", user.id, { email: user.email })`, []want{{domain.SinkAnalytics, "email", domain.CategoryContact, domain.Medium}}},
+		{"web/app.ts", `Hotjar.identify(user.id, { phone: profile.phone })`, []want{{domain.SinkAnalytics, "phone", domain.CategoryContact, domain.Medium}}},
+		{"web/app.ts", `Clarity.identify(customer.email)`, []want{{domain.SinkAnalytics, "customer.email", domain.CategoryContact, domain.Medium}}},
+		{"web/app.js", `clarity("identify", customer.email)`, []want{{domain.SinkAnalytics, "customer.email", domain.CategoryContact, domain.Medium}}},
+		{"web/app.js", `smartlook("identify", user.id, { name: user.full_name })`, []want{{domain.SinkAnalytics, "user.full_name", domain.CategoryName, domain.Medium}}},
+		{"web/app.js", `fbq("init", "1234", { em: buyer.email })`, []want{{domain.SinkAnalytics, "buyer.email", domain.CategoryContact, domain.Medium}}},
+		{"web/app.js", `ttq.identify({ phone_number: buyer.phone })`, []want{{domain.SinkAnalytics, "phone_number", domain.CategoryContact, domain.Medium}}},
+		{"web/app.js", `_mfq.push(["setVariable", "email", user.email])`, []want{{domain.SinkAnalytics, `"email"`, domain.CategoryContact, domain.Medium}}},
+		{"web/app.js", `_uxa.push(["trackDynamicVariable", { key: "phone", value: user.phone }])`, []want{{domain.SinkAnalytics, `"phone"`, domain.CategoryContact, domain.Medium}}},
 	} {
 		got := scan(c.path, c.code)
 		if len(got) != len(c.want) {
@@ -114,6 +124,52 @@ func TestQuietCalls(t *testing.T) {
 		{"src/Ctl.php", `echo $user->email;`},
 		{"docs/notes.txt", `log.Printf("%s", u.Email)`},
 		{"app/views.py", `logger.info("file %s", file.name)`},
+		{"web/app.js", `fbq("track", "Purchase", { value: order.total, currency: "EUR" })`},
+		{"web/app.js", `lintrk("track", { conversion_id: 12345 })`},
+		{"web/app.js", `LogRocket.init("app/id")`},
+		{"web/app.js", `const clarityScore = clarity(text)`},
+	} {
+		if got := scan(c.path, c.code); len(got) != 0 {
+			t.Errorf("%s: %q: want no findings, got %+v", c.path, c.code, got)
+		}
+	}
+}
+
+func TestSessionReplay(t *testing.T) {
+	for _, c := range []struct {
+		path, code string
+		want       []want
+	}{
+		{"web/app.js", "posthog.init('phc_x', {\n  session_recording: { maskAllInputs: false },\n})", []want{{domain.SinkSessionReplay, "maskAllInputs: false", "", domain.Medium}}},
+		{"web/sentry.ts", "Sentry.replayIntegration({ maskAllText: false, maskAllInputs: false })", []want{{domain.SinkSessionReplay, "maskAllText: false", "", domain.Medium}, {domain.SinkSessionReplay, "maskAllInputs: false", "", domain.Medium}}},
+		{"web/rum.ts", "datadogRum.init({ applicationId: id, defaultPrivacyLevel: 'allow' })", []want{{domain.SinkSessionReplay, "defaultPrivacyLevel: 'allow'", "", domain.Medium}}},
+		{"web/app.js", "smartlook('record', { forms: true, numbers: true })", []want{{domain.SinkSessionReplay, "smartlook('record', { forms: true", "", domain.Medium}}},
+		{"templates/signup.html", `<input type="text" name="phone_number" data-hj-allow>`, []want{{domain.SinkSessionReplay, "data-hj-allow", domain.CategoryContact, domain.Medium}}},
+		{"web/Signup.vue", `<input v-model="email" type="email" data-clarity-unmask="true">`, []want{{domain.SinkSessionReplay, `data-clarity-unmask="true`, domain.CategoryContact, domain.Medium}}},
+		{"web/Signup.tsx", `<input className="field fs-unmask" name="lastName" />`, []want{{domain.SinkSessionReplay, `className="field fs-unmask`, domain.CategoryName, domain.Medium}}},
+		{"web/Signup.tsx", `<textarea data-dd-privacy="allow"></textarea>`, []want{{domain.SinkSessionReplay, `data-dd-privacy="allow`, "", domain.Low}}},
+	} {
+		got := scan(c.path, c.code)
+		if len(got) != len(c.want) {
+			t.Errorf("%s: %q: got %d findings, want %d: %+v", c.path, c.code, len(got), len(c.want), got)
+			continue
+		}
+		for i, w := range c.want {
+			g := got[i]
+			if g.Sink != w.sink || g.Masked != w.masked || g.Category != w.category || g.Confidence != w.confidence || g.Label != Labels[w.sink] || len(g.Reasons) != 2 {
+				t.Errorf("%s: %q: got %+v, want %+v", c.path, c.code, g, w)
+			}
+		}
+	}
+	for _, c := range []struct{ path, code string }{
+		{"web/app.js", "posthog.init('phc_x', { session_recording: { maskAllInputs: true } })"},
+		{"web/app.js", "// maskAllInputs: false would record passwords"},
+		{"web/rum.ts", "datadogRum.init({ defaultPrivacyLevel: 'mask-user-input' })"},
+		{"templates/search.html", `<input type="search" name="query" data-hj-allow>`},
+		{"templates/page.html", `<div class="banner" data-hj-allow>Welcome</div>`},
+		{"templates/page.html", `<!-- <input name="email" data-hj-allow> -->`},
+		{"app/views.py", `config = {"maskAllInputs": False}`},
+		{"docs/setup.md", "maskAllInputs: false"},
 	} {
 		if got := scan(c.path, c.code); len(got) != 0 {
 			t.Errorf("%s: %q: want no findings, got %+v", c.path, c.code, got)

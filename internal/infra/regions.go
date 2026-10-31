@@ -41,7 +41,7 @@ var regionTables = map[string]map[string]regionInfo{
 		"ap-northeast-2": adequate("KR"), "il-central-1": adequate("IL"), "ap-southeast-6": adequate("NZ"),
 	},
 	"google": {
-		"eu": eea("EU"), "europe": eea("EU"), "eur4": eea("EU"),
+		"eu": eea("EU"), "europe": eea("EU"), "eur3": eea("EU"), "eur4": eea("EU"), "eur6": eea("EU"), "eur5": adequate("GB"),
 		"europe-west1": eea("BE"), "europe-west3": eea("DE"), "europe-west4": eea("NL"), "europe-west8": eea("IT"),
 		"europe-west9": eea("FR"), "europe-west10": eea("DE"), "europe-west12": eea("IT"), "europe-central2": eea("PL"),
 		"europe-north1": eea("FI"), "europe-north2": eea("SE"), "europe-southwest1": eea("ES"),
@@ -64,7 +64,7 @@ var regionTables = map[string]map[string]regionInfo{
 // thirdCountry matches regions outside the EEA and without an adequacy decision that are not listed one by one.
 var thirdCountry = map[string]*regexp.Regexp{
 	"aws":    regexp.MustCompile(`^(us|ap|sa|me|af|mx|cn)(-[a-z]+)+-\d+$`),
-	"google": regexp.MustCompile(`^(us|asia|australia|southamerica|northamerica|me|africa)-[a-z]+\d+$`),
+	"google": regexp.MustCompile(`^(us|asia|australia|southamerica|northamerica|me|africa)-[a-z]+\d+$|^nam\d+$|^nam-eur-asia\d+$`),
 	"azurerm": regexp.MustCompile(`^((east|west|central|northcentral|southcentral|westcentral)us\d?|brazil(south|southeast)|australia(east|southeast|central|central2)|` +
 		`(east|southeast)asia|(central|south|west)india|jioindia(west|central)|southafrica(north|west)|uae(north|central)|qatarcentral|mexicocentral|chilecentral|indonesiacentral|malaysiawest|taiwannorth)$`),
 }
