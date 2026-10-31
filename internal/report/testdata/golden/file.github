@@ -1,0 +1,3 @@
+::error file=backups/shop.sql.gz!/shop.sql,line=41,col=1,title=ato%3A Database dump with rows of personal data::Database dump with rows of personal data customers: email, phone (high confidence): 120 rows inserted into customers; written by mysqldump; columns holding personal data: email, phone
+::warning file=docs/offer.docx,line=1,col=1,title=ato%3A Person name in document metadata (author)::Person name in document metadata (author) •••• ••••••• (medium confidence): a person's name in the document's dc:creator
+2 findings in 2 files · 7 files scanned · 1 skipped · 1 not read in full
