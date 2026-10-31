@@ -10,11 +10,15 @@ import (
 	"os"
 	"sort"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // FileName is the default baseline file in the scanned folder.
-const FileName = ".pii-eu-baseline.json"
+const FileName = ".ato-baseline.json"
+
+// LegacyFileName is the baseline file name before the rename to ATO. It is read, with a warning, when FileName
+// is absent; deprecated in 2.0.
+const LegacyFileName = ".pii-eu-baseline.json"
 
 const version = 1
 
@@ -41,7 +45,7 @@ func Load(path string, explicit bool) (Baseline, error) {
 		return nil, fmt.Errorf("%s is not a valid baseline: %w", path, err)
 	}
 	if f.Version != version {
-		return nil, fmt.Errorf("%s has baseline version %d; this pii-eu reads version %d", path, f.Version, version)
+		return nil, fmt.Errorf("%s has baseline version %d; this ATO reads version %d", path, f.Version, version)
 	}
 	b := Baseline{}
 	for _, fp := range f.Fingerprints {
@@ -63,7 +67,7 @@ func Save(path string, findings []domain.Finding) error {
 	sort.Strings(fps)
 	data, err := json.MarshalIndent(file{
 		Version:      version,
-		Note:         "Findings accepted when this baseline was made. Fingerprints contain no personal data. Regenerate with `pii-eu baseline`.",
+		Note:         "Findings accepted when this baseline was made. Fingerprints contain no personal data. Regenerate with `ato baseline`.",
 		Fingerprints: fps,
 	}, "", "  ")
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // GPS coordinates: a latitude and a longitude in decimal degrees with four or more decimals each (about 11 m),

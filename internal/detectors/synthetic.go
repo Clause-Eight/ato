@@ -6,12 +6,14 @@ import (
 	"unicode"
 )
 
-// SyntheticBits is how many leading zero bits of a value's mark hash make it a synthetic value. `pii-eu fix`
+// SyntheticBits is how many leading zero bits of a value's mark hash make it a synthetic value. `ato fix`
 // only writes values that carry the mark, so a later scan recognises them without a list of what was written.
 // A real value carries the mark by chance about once in 65,536; it is then reported at low confidence as a
 // sample, not dropped.
 const SyntheticBits = 16
 
+// syntheticSalt keeps the product's former name: changing it would stop values written by earlier versions from
+// being recognised (docs/adr/0012-rename-to-ato.md).
 const syntheticSalt = "pii-eu synthetic v1\x00"
 
 // Synthetic reports whether a value, as written in text, carries the mark of a synthetic value. Only letters

@@ -1,5 +1,5 @@
-::error file=app/config.yml,line=3,col=9,title=pii-eu%3A Payment card number::Payment card number ••••••••••••0006 (high confidence): brand prefix, length and Luhn check are valid; the word "card" is nearby
-::notice file=tests/fixtures/users.json,line=14,col=12,title=pii-eu%3A Romanian personal number (CNP)::Romanian personal number (CNP) ••••••••••••• (low confidence): date, county code and check digit are valid; in a test, fixture or example path
-::warning file=exports/users.csv.gz!/users.csv,line=2,col=7,title=pii-eu%3A Romanian personal number (CNP)::Romanian personal number (CNP) ••••••••••••• in column "cnp" (medium confidence): date, county code and check digit are valid; the word "cnp" is nearby
-::warning file=app/handler.go,line=12,col=30,title=pii-eu%3A Personal data written to a log::Personal data written to a log user.Email (medium confidence): the name contains "email"; passed to log.Printf, which writes to a log
+::error file=app/config.yml,line=3,col=9,title=ato%3A Payment card number::Payment card number ••••••••••••0006 (high confidence): brand prefix, length and Luhn check are valid; the word "card" is nearby
+::notice file=tests/fixtures/users.json,line=14,col=12,title=ato%3A Romanian personal number (CNP)::Romanian personal number (CNP) ••••••••••••• (low confidence): date, county code and check digit are valid; in a test, fixture or example path
+::warning file=exports/users.csv.gz!/users.csv,line=2,col=7,title=ato%3A Romanian personal number (CNP)::Romanian personal number (CNP) ••••••••••••• in column "cnp" (medium confidence): date, county code and check digit are valid; the word "cnp" is nearby
+::warning file=app/handler.go,line=12,col=30,title=ato%3A Personal data written to a log::Personal data written to a log user.Email (medium confidence): the name contains "email"; passed to log.Printf, which writes to a log
 4 findings in 4 files · 42 files scanned · 1 skipped · 1 sampled

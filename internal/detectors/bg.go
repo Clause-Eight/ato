@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Bulgarian unified civil number (EGN): YY MM DD RRR C. Months 21-32 mean the 1800s, 41-52 the 2000s.

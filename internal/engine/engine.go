@@ -12,13 +12,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/infra"
-	"github.com/Clause-Eight/pii-eu/internal/lifecycle"
-	"github.com/Clause-Eight/pii-eu/internal/recipients"
-	"github.com/Clause-Eight/pii-eu/internal/schema"
-	"github.com/Clause-Eight/pii-eu/internal/walk"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/infra"
+	"github.com/Clause-Eight/ato/v2/internal/lifecycle"
+	"github.com/Clause-Eight/ato/v2/internal/recipients"
+	"github.com/Clause-Eight/ato/v2/internal/schema"
+	"github.com/Clause-Eight/ato/v2/internal/walk"
 )
 
 // maxLine caps how much of one line is read; the rest of a very long line is skipped.
@@ -266,7 +266,7 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	head, _ := r.Peek(8000)
 	if walk.IsBinary(head) {
 		if walk.Unopened(rel) {
-			return fileResult{}, &domain.Skipped{Path: rel, Reason: "a document format pii-eu does not open", NotRead: true}, nil
+			return fileResult{}, &domain.Skipped{Path: rel, Reason: "a document format ATO does not open", NotRead: true}, nil
 		}
 		return fileResult{}, &domain.Skipped{Path: rel, Reason: "binary"}, nil
 	}

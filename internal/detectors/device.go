@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // IMEI (3GPP TS 23.003 section 6.2.1): 15 digits, written AA-BBBBBB-CCCCCC-D. The first eight are the type

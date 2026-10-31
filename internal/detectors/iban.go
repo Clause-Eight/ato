@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // IBAN (ISO 13616): country code, two check digits, a national account number of fixed length per country.

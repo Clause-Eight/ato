@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/datamap"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/datamap"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 func sampleMap() DataMap {
-	return DataMap{Tool: "pii-eu", Version: "test", Map: datamap.Build(datamap.Input{
+	return DataMap{Tool: "ato", Version: "test", Map: datamap.Build(datamap.Input{
 		Inventory: []domain.InventoryEntry{
 			{Field: domain.Field{Name: "first_name", Container: "patients", Location: domain.Location{Path: "services/clinic/db/001.sql", Line: 3}}, Classification: domain.Classification{Category: domain.CategoryName}},
 			{Field: domain.Field{Name: "diagnosis", Container: "patients", Location: domain.Location{Path: "services/clinic/db/001.sql", Line: 4}}, Classification: domain.Classification{Category: domain.CategorySpecial, Special: domain.SpecialHealth}},
@@ -53,7 +53,7 @@ func TestMapMatchesSchemaAndReadsBack(t *testing.T) {
 }
 
 func TestMapModuleCall(t *testing.T) {
-	m := DataMap{Tool: "pii-eu", Version: "test", Map: datamap.Build(datamap.Input{Infra: []domain.Store{syntheticModule()}})}
+	m := DataMap{Tool: "ato", Version: "test", Map: datamap.Build(datamap.Input{Infra: []domain.Store{syntheticModule()}})}
 	var buf bytes.Buffer
 	if err := WriteMap("json", &buf, m); err != nil {
 		t.Fatal(err)
@@ -81,7 +81,7 @@ func TestMapGolden(t *testing.T) {
 			t.Fatal(err)
 		}
 		path := filepath.Join("testdata", "golden", "map."+format)
-		if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+		if os.Getenv("ATO_UPDATE_GOLDEN") == "1" {
 			if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
 				t.Fatal(err)
 			}
@@ -89,7 +89,7 @@ func TestMapGolden(t *testing.T) {
 		}
 		want, err := os.ReadFile(path)
 		if err != nil {
-			t.Fatalf("%v (run with PII_EU_UPDATE_GOLDEN=1 to create it)", err)
+			t.Fatalf("%v (run with ATO_UPDATE_GOLDEN=1 to create it)", err)
 		}
 		if got := strings.ReplaceAll(buf.String(), "\r\n", "\n"); got != strings.ReplaceAll(string(want), "\r\n", "\n") {
 			t.Errorf("%s differs from %s:\n%s", format, path, got)
@@ -114,13 +114,13 @@ func olderMap() *datamap.Map {
 
 func TestMapHTMLWithDiffGolden(t *testing.T) {
 	m := sampleMap()
-	m.Previous, m.PreviousName = olderMap(), "pii-eu-map.json"
+	m.Previous, m.PreviousName = olderMap(), "ato-map.json"
 	var buf bytes.Buffer
 	if err := WriteMap("html", &buf, m); err != nil {
 		t.Fatal(err)
 	}
 	path := filepath.Join("testdata", "golden", "map_diff.html")
-	if os.Getenv("PII_EU_UPDATE_GOLDEN") == "1" {
+	if os.Getenv("ATO_UPDATE_GOLDEN") == "1" {
 		if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -128,7 +128,7 @@ func TestMapHTMLWithDiffGolden(t *testing.T) {
 	}
 	want, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("%v (run with PII_EU_UPDATE_GOLDEN=1 to create it)", err)
+		t.Fatalf("%v (run with ATO_UPDATE_GOLDEN=1 to create it)", err)
 	}
 	if got := strings.ReplaceAll(buf.String(), "\r\n", "\n"); got != strings.ReplaceAll(string(want), "\r\n", "\n") {
 		t.Errorf("html differs from %s:\n%s", path, got)
@@ -160,7 +160,7 @@ func TestMapHTMLIsSelfContainedAndHasNoValues(t *testing.T) {
 	current := datamap.Build(in)
 	for _, previous := range []*datamap.Map{nil, olderMap(), {}} {
 		var buf bytes.Buffer
-		if err := WriteMap("html", &buf, DataMap{Tool: "pii-eu", Version: "test", Map: current, Previous: previous}); err != nil {
+		if err := WriteMap("html", &buf, DataMap{Tool: "ato", Version: "test", Map: current, Previous: previous}); err != nil {
 			t.Fatal(err)
 		}
 		page := strings.ToLower(buf.String())
@@ -193,9 +193,22 @@ func TestMapHTMLLinkIsRelative(t *testing.T) {
 }
 
 func TestReadMapRejectsOtherDocuments(t *testing.T) {
-	for _, doc := range []string{`not json`, `{"schema_version": "2.0", "components": []}`} {
+	for _, doc := range []string{`not json`, `{"schema_version": "3.0", "components": []}`} {
 		if _, err := ReadMap(strings.NewReader(doc)); err == nil {
 			t.Errorf("%s: want an error", doc)
 		}
+	}
+}
+
+// TestReadMapReadsMapsSavedBy1x keeps `map --diff` working against a map saved before the rename.
+func TestReadMapReadsMapsSavedBy1x(t *testing.T) {
+	doc := `{"schema_version": "1.1", "tool": {"name": "pii-eu", "version": "1.6.0"}, "categories": ["name"],
+		"components": [{"name": "app", "stores": [], "sinks": [{"label": "Personal data written to a log", "category": "contact", "path": "app/api.py", "line": 3}], "recipients": [], "infrastructure": []}]}`
+	m, err := ReadMap(strings.NewReader(doc))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(m.Components) != 1 || len(m.Components[0].Sinks) != 1 {
+		t.Errorf("read %+v", m)
 	}
 }

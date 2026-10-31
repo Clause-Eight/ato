@@ -16,7 +16,7 @@ func TestLogSinkFindingsAndSetting(t *testing.T) {
 	if code != ExitFindings || !strings.Contains(out, `"ruleId": "log-sink/log"`) {
 		t.Fatalf("sarif: %d %s", code, out)
 	}
-	writeFile(t, dir, ".pii-eu.toml", "[detectors]\nlog-sink = false\n")
+	writeFile(t, dir, ".ato.toml", "[detectors]\nlog-sink = false\n")
 	if code, out, errOut := run("scan", "--no-git", dir); code != ExitClean {
 		t.Fatalf("log-sink = false should switch sink findings off: %d %q %q", code, out, errOut)
 	}

@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/datamap"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/datamap"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // The HTML data map is written for a data protection officer: what changed since the last saved map, what needs a
@@ -188,7 +188,7 @@ func settingWords(s string) string {
 }
 
 func writeMapHTML(w io.Writer, m DataMap) error {
-	page := mapPage{CSS: htmlCSS() + mapCSS(), Tool: m.Tool, Version: m.Version}
+	page := mapPage{CSS: htmlCSS() + mapCSS(), Tool: Product, Version: m.Version}
 	var cats, specials []string
 	for _, c := range m.Map.Categories() {
 		if sp, ok := strings.CutPrefix(c, string(domain.CategorySpecial)+"/"); ok {

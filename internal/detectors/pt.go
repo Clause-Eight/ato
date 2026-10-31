@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Portuguese tax number (NIF, número de identificação fiscal): nine digits, the last a mod-11 check digit.

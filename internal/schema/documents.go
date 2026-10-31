@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 func init() {

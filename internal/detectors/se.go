@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Swedish personal identity number (personnummer): YYMMDD-NNNC, with + instead of - from the year the person

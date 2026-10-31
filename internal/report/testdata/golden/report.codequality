@@ -1,7 +1,7 @@
 [
   {
     "description": "Payment card number ••••••••••••0006 (high confidence): brand prefix, length and Luhn check are valid; the word \"card\" is nearby",
-    "check_name": "pii-eu/card",
+    "check_name": "ato/card",
     "fingerprint": "0123456789abcdef0123456789abcdef",
     "severity": "critical",
     "location": {
@@ -13,7 +13,7 @@
   },
   {
     "description": "Romanian personal number (CNP) ••••••••••••• (low confidence): date, county code and check digit are valid; in a test, fixture or example path",
-    "check_name": "pii-eu/ro-cnp",
+    "check_name": "ato/ro-cnp",
     "fingerprint": "fedcba9876543210fedcba9876543210",
     "severity": "minor",
     "location": {
@@ -25,7 +25,7 @@
   },
   {
     "description": "Romanian personal number (CNP) ••••••••••••• in column \"cnp\" (medium confidence): date, county code and check digit are valid; the word \"cnp\" is nearby",
-    "check_name": "pii-eu/ro-cnp",
+    "check_name": "ato/ro-cnp",
     "fingerprint": "00ff00ff00ff00ff00ff00ff00ff00ff",
     "severity": "major",
     "location": {
@@ -37,7 +37,7 @@
   },
   {
     "description": "Personal data written to a log user.Email (medium confidence): the name contains \"email\"; passed to log.Printf, which writes to a log",
-    "check_name": "pii-eu/log-sink",
+    "check_name": "ato/log-sink",
     "fingerprint": "ffeeddccbbaa99887766554433221100",
     "severity": "major",
     "location": {

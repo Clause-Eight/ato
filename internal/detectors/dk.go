@@ -3,7 +3,7 @@ package detectors
 import (
 	"regexp"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 // Danish CPR number (CPR-nummer): DDMMYY-SSSS. The seventh digit together with the year gives the century:

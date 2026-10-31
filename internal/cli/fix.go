@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/baseline"
-	"github.com/Clause-Eight/pii-eu/internal/config"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
-	"github.com/Clause-Eight/pii-eu/internal/fix"
+	"github.com/Clause-Eight/ato/v2/internal/baseline"
+	"github.com/Clause-Eight/ato/v2/internal/config"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/fix"
 )
 
 // runFix replaces the values a scan would report with synthetic ones. Only test, fixture and example paths
@@ -70,7 +70,7 @@ func runFix(args []string, stdout, stderr io.Writer) (int, error) {
 	for _, p := range paths {
 		data, err := os.ReadFile(diskPath(root, p))
 		if err != nil {
-			fmt.Fprintf(stderr, "pii-eu: could not read %s (%s)\n", p, err)
+			fmt.Fprintf(stderr, "ato: could not read %s (%s)\n", p, err)
 			unreadable++
 			continue
 		}

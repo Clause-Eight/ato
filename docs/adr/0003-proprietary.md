@@ -2,6 +2,8 @@
 
 Date: 2026-10-19 · Status: accepted
 
+pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
+
 ## Context
 
 pii-eu was published under Apache-2.0 up to v0.2.0, as a free tool next to Clause Eight. Clause Eight itself

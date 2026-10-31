@@ -1,16 +1,16 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/pii-eu-banner-dark.png">
-  <img alt="cl. Clause Eight · pii-eu" src=".github/assets/pii-eu-banner-light.png" width="600">
+  <source media="(prefers-color-scheme: dark)" srcset=".github/assets/ato-banner-dark.png">
+  <img alt="c8. Clause Eight · ATO" src=".github/assets/ato-banner-light.png" width="600">
 </picture>
 
-# pii-eu
+# ATO
 
-A Clause Eight tool. Proprietary: see [Licence](#licence).
+ATO, Clause Eight's EU personal-data scanner. A Clause Eight tool, called pii-eu before 2.0 (see [Upgrading from pii-eu](#upgrading-from-pii-eu)). Proprietary: see [Licence](#licence).
 
 Find EU personal data in code, test fixtures and logs before it spreads. Every match is confirmed with the identifier's own rules (check digits, dates, lengths), so findings are few and real, and found values are never printed in reports.
 
 ```text
-$ pii-eu scan .
+$ ato scan .
 app/config.yml
   3:17  high    Payment card number  ••••••••••••7892
           brand prefix, length and Luhn check are valid; the word "card" is nearby
@@ -69,18 +69,18 @@ National identifiers by country:
 
 ## Install
 
-pii-eu is distributed to Clause Eight customers. With access to the repository:
+ATO is distributed to Clause Eight customers. With access to the repository:
 
 ```bash
 export GOPRIVATE=github.com/Clause-Eight/*
-go install github.com/Clause-Eight/pii-eu/cmd/pii-eu@latest
+go install github.com/Clause-Eight/ato/v2/cmd/ato@latest
 ```
 
 Binaries for Linux, macOS and Windows (amd64 and arm64) are attached to each release, with an SBOM per archive and a signed `checksums.txt`. To verify a download:
 
 ```bash
 cosign verify-blob checksums.txt --bundle checksums.txt.sigstore.json \
-  --certificate-identity-regexp '^https://github.com/Clause-Eight/pii-eu/\.github/workflows/release\.yml@refs/tags/v' \
+  --certificate-identity-regexp '^https://github.com/Clause-Eight/(ato|pii-eu)/\.github/workflows/release\.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 sha256sum --ignore-missing -c checksums.txt
 ```
@@ -88,15 +88,15 @@ sha256sum --ignore-missing -c checksums.txt
 ## Use
 
 ```bash
-pii-eu scan                       # the current folder
-pii-eu scan --format json --output pii-eu.json path/to/repo
-pii-eu scan --staged .            # staged changes only, for pre-commit
-kubectl logs deploy/api | pii-eu scan -     # a log stream
-pii-eu scan exports/              # CSV, TSV, JSON Lines and SQL dumps, by column; .gz and .tar inside
-pii-eu scan --image app.tar       # a container image saved with `docker save app:latest -o app.tar`
-pii-eu baseline                   # accept what is there today; report only new findings
-pii-eu fix --dry-run              # show how fixture values would be replaced with synthetic ones
-pii-eu fix                        # replace them
+ato scan                       # the current folder
+ato scan --format json --output ato.json path/to/repo
+ato scan --staged .            # staged changes only, for pre-commit
+kubectl logs deploy/api | ato scan -     # a log stream
+ato scan exports/              # CSV, TSV, JSON Lines and SQL dumps, by column; .gz and .tar inside
+ato scan --image app.tar       # a container image saved with `docker save app:latest -o app.tar`
+ato baseline                   # accept what is there today; report only new findings
+ato fix --dry-run              # show how fixture values would be replaced with synthetic ones
+ato fix                        # replace them
 ```
 
 | Flag | Meaning |
@@ -107,17 +107,17 @@ pii-eu fix                        # replace them
 | `--countries` | only these countries' national detectors, as ISO codes or presets: `--countries ro,bg` or `--countries cee`. Cross-border detectors (IBAN, cards, VAT, contact data) always run |
 | `--include`, `--exclude` | glob patterns; `**` crosses folders; repeatable |
 | `--staged` | scan the staged version of staged files |
-| `--baseline FILE` | baseline file (default `.pii-eu-baseline.json` in the scanned folder) |
+| `--baseline FILE` | baseline file (default `.ato-baseline.json` in the scanned folder) |
 | `--no-git` | walk the folder instead of asking git (inside a work tree, `.gitignore` is honoured) |
 | `--show-values` | print found values on screen; never in JSON, SARIF or files |
 | `--max-rows N` | read at most N rows of each CSV, TSV or JSON Lines file (default 100000); `0` reads every row |
 | `--image FILE` | scan a saved container image instead of a path |
 
-Exit codes: `0` nothing found, `1` findings, `2` usage or settings error, `3` the scan is incomplete: a file could not be read, or a file that may hold personal data was not read in full (cut at `max_rows`, over a size or archive limit, or a document format pii-eu does not open, such as `.xlsx` or `.pdf`). Each such file is listed with the reason. `--allow-partial` (or `allow_partial = true`) keeps the exit code at `0` or `1` for files not read in full; unreadable files still exit `3`.
+Exit codes: `0` nothing found, `1` findings, `2` usage or settings error, `3` the scan is incomplete: a file could not be read, or a file that may hold personal data was not read in full (cut at `max_rows`, over a size or archive limit, or a document format ATO does not open, such as `.xlsx` or `.pdf`). Each such file is listed with the reason. `--allow-partial` (or `allow_partial = true`) keeps the exit code at `0` or `1` for files not read in full; unreadable files still exit `3`.
 
 ### Settings
 
-`.pii-eu.toml` in the scanned folder:
+`.ato.toml` in the scanned folder (a `.pii-eu.toml` from 1.x is still read when there is no `.ato.toml`, with a warning):
 
 ```toml
 include = ["src/**", "config/**"]
@@ -146,13 +146,13 @@ Presets: `eu` (the 27 member states, the default), `eea` (adds Iceland, Liechten
 
 ### Data exports, dumps and archives
 
-pii-eu reads exports column by column, so a header like `cnp` raises confidence for every value in that column, and a keyword in one column never raises a value in another.
+ATO reads exports column by column, so a header like `cnp` raises confidence for every value in that column, and a keyword in one column never raises a value in another.
 
 - **CSV and TSV** (`.csv`, `.tsv`, `.tab`): the first line is the header unless it looks like data (a cell with five or more digits); the delimiter (comma, semicolon, tab or pipe) is sniffed from it. Quoted values may hold delimiters and line breaks. Without a header, columns are named `#1`, `#2` and so on.
 - **JSON Lines** (`.jsonl`, `.ndjson`): every string and number is named by its key path, such as `customer.cnp`.
 - **SQL dumps** (`.sql`): `INSERT` values are named by the statement's column list, or by the table's `CREATE TABLE` earlier in the dump; extended inserts and PostgreSQL `COPY ... FROM stdin` blocks work too.
 
-Findings carry the column name (`column_name` in JSON), and the JSON summary groups them by file and column with counts per detector (`summary.columns`). Column headers and JSON keys also go into `pii-eu inventory` and, for special categories such as `diagnosis`, into scan findings.
+Findings carry the column name (`column_name` in JSON), and the JSON summary groups them by file and column with counts per detector (`summary.columns`). Column headers and JSON keys also go into `ato inventory` and, for special categories such as `diagnosis`, into scan findings.
 
 Large data files are sampled: only the first `max_rows` rows of a CSV, TSV or JSON Lines file are read (default 100000; `--max-rows 0` reads every row), and the file is listed under `summary.sampled`. Data files are not skipped by `max_file_size`; SQL dumps are, so raise `max_file_size` for a large dump.
 
@@ -160,19 +160,19 @@ Gzip, tar and zip files (`.gz`, `.tar`, `.tar.gz`, `.tgz`, `.zip`) are scanned i
 
 ### Container images
 
-`pii-eu scan --image app.tar` reads an image saved with `docker save` (the classic `manifest.json` layout and the OCI layout with `index.json`; gzip-compressed layers included). Decompress an image saved through `gzip` first. Each layer is scanned in parallel, the image configuration (environment, labels, build history) too, and findings name the layer by its short digest: `app.tar!/3f2a9c1b7d4e/etc/app/config.yml`.
+`ato scan --image app.tar` reads an image saved with `docker save` (the classic `manifest.json` layout and the OCI layout with `index.json`; gzip-compressed layers included). Decompress an image saved through `gzip` first. Each layer is scanned in parallel, the image configuration (environment, labels, build history) too, and findings name the layer by its short digest: `app.tar!/3f2a9c1b7d4e/etc/app/config.yml`.
 
 A file deleted or replaced in a later layer is still in the image, so it is still reported, and the finding says which layer deleted it. `include` and `exclude` match paths inside the image (`etc/app/**`). Operating system package folders (`/usr/share/`, `/usr/lib/`, `/lib/`, `/var/lib/dpkg/` and the like) are skipped by default; set `image_exclude` to change that list, or to `[]` to scan everything.
 
 ### Schemas, special categories and a data inventory
 
-pii-eu also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Laravel migrations (`Schema::create`, `Schema::table`), Django, SQLAlchemy, ActiveRecord, GORM, JPA, Doctrine (attributes and annotations), TypeORM and Prisma models, Mongoose schemas, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
+ATO also reads field names from schemas and models: SQL migrations (`CREATE TABLE`, `ALTER TABLE ... ADD`), Laravel migrations (`Schema::create`, `Schema::table`), Django, SQLAlchemy, ActiveRecord, GORM, JPA, Doctrine (attributes and annotations), TypeORM and Prisma models, Mongoose schemas, OpenAPI and JSON Schema documents, protobuf messages and dbt `schema.yml` files. Field names are matched against a dictionary in all 24 EU languages; values are never read for this.
 
-- `pii-eu scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
-- `pii-eu inventory` writes every personal-data field it finds as CSV (default), HTML (`--format html`) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
+- `ato scan` reports fields whose names say they hold special-category data under GDPR Art. 9 (health, genetic, biometric, racial or ethnic origin, political opinions, religious or philosophical beliefs, trade union membership, sex life or sexual orientation) as `special-category` findings, with the category. Switch them off with `special-category = false` under `[detectors]`.
+- `ato inventory` writes every personal-data field it finds as CSV (default), HTML (`--format html`) or JSON (`--format json`, see [schemas/inventory.schema.json](schemas/inventory.schema.json)): field, table or model, category of personal data, special category, source format, file and line. It is a first draft for a record of processing activities (Art. 30), not a replacement for one.
 
 ```console
-$ pii-eu inventory --format csv db/
+$ ato inventory --format csv db/
 Field,Table or model,Category of personal data,Special category (Art. 9),Source format,Source file,Line
 first_name,patients,name,,sql,db/migrations/001_patients.sql,3
 diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
@@ -180,7 +180,7 @@ diagnosis,patients,special-category,health,sql,db/migrations/001_patients.sql,4
 
 ### A data map for the record of processing
 
-`pii-eu map` drafts a data map from the code: per component (a folder under `services/`, `apps/`, `packages/` and similar, or a top-level folder), the tables and models holding personal data and their categories, where personal data is written to logs or telemetry, and the third-party services the code names in dependency files, imports and API host names (payments, email, analytics, error tracking, support, AI providers and more; `established_in_eea` says whether the provider is established in the EEA). Every line cites its source file and line. Formats: `markdown` (default), `json` ([schemas/map.schema.json](schemas/map.schema.json)) and `html`.
+`ato map` drafts a data map from the code: per component (a folder under `services/`, `apps/`, `packages/` and similar, or a top-level folder), the tables and models holding personal data and their categories, where personal data is written to logs or telemetry, and the third-party services the code names in dependency files, imports and API host names (payments, email, analytics, error tracking, support, AI providers and more; `established_in_eea` says whether the provider is established in the EEA). Every line cites its source file and line. Formats: `markdown` (default), `json` ([schemas/map.schema.json](schemas/map.schema.json)) and `html`.
 
 For each store the map also shows whether the code can erase a person's data (GDPR Art. 17: a delete, an anonymising update, or a cascade from a parent that can be erased) and whether old data is removed (Art. 5(1)(e): a time-based delete, a TTL index or a partition drop), in SQL and the supported ORMs. To report stores without either as findings, switch them on:
 
@@ -193,18 +193,18 @@ no-retention = true
 The map is a draft for the record of processing activities (GDPR Art. 30). Purposes, legal bases and retention periods need a person; naming a recipient in code does not prove personal data goes to it.
 
 ```bash
-pii-eu map --format json --output pii-eu-map.json   # save the map, e.g. on the main branch
-pii-eu map --diff pii-eu-map.json                   # in a pull request: exit 1 if a category, store, recipient or log of personal data is new
-pii-eu map --diff pii-eu-map.json --format html --output map.html   # the same, as a page for the DPO
+ato map --format json --output ato-map.json   # save the map, e.g. on the main branch
+ato map --diff ato-map.json                   # in a pull request: exit 1 if a category, store, recipient or log of personal data is new
+ato map --diff ato-map.json --format html --output map.html   # the same, as a page for the DPO
 ```
 
 The HTML page is written for a data protection officer. It opens with what changed since the saved map (new kinds of personal data, new special-category data, new outside companies, new stores and stores that lost encryption, a retention rule, an EU region or an erasure path, and what was removed), then lists what needs a decision, each with why it matters, what to decide and a link to its file and line. Without `--diff`, the decisions come from the whole map. The full map follows, grouped by store, with categories in words. The page is one file with no external resources, prints cleanly and follows the system's light or dark setting.
 
 ### Data stores in Terraform
 
-pii-eu reads the databases, buckets, queues, streams, caches and log groups declared in `.tf` files, for AWS, Google Cloud and Azure, without running Terraform: no binary, no providers, no credentials. For each store it reads encryption at rest, retention (lifecycle rules, retention periods, TTL), backups or versioning, public access and the region, following variables with defaults, `terraform.tfvars`, `*.auto.tfvars`, locals and references between resources in the same folder, including the provider block's region.
+ATO reads the databases, buckets, queues, streams, caches and log groups declared in `.tf` files, for AWS, Google Cloud and Azure, without running Terraform: no binary, no providers, no credentials. For each store it reads encryption at rest, retention (lifecycle rules, retention periods, TTL), backups or versioning, public access and the region, following variables with defaults, `terraform.tfvars`, `*.auto.tfvars`, locals and references between resources in the same folder, including the provider block's region.
 
-`pii-eu scan` reports four checks as `infra` findings:
+`ato scan` reports four checks as `infra` findings:
 
 | Check | Reported when |
 |---|---|
@@ -213,20 +213,20 @@ pii-eu reads the databases, buckets, queues, streams, caches and log groups decl
 | `tf-non-eea-region` | a region is outside the EEA, such as `us-east-1`; one step lower for a country with an EU adequacy decision, such as `eu-west-2` (London) or `eu-central-2` (Zurich) |
 | `tf-public` | a public ACL, a grant to `allUsers` or an internet-facing endpoint opens the store |
 
-A finding is high when the store is linked to personal data, and medium otherwise. A store is linked by a tag or label (`data_classification = "pii"`, `pii = true` and similar) or when its name matches a table or model in the inventory: a bucket `acme-patient-exports` is linked to a `patients` table. A setting that comes from something the code does not show, such as a variable without a default, is never treated as missing: it is reported at low confidence, and only for linked stores. Put `pii-eu:ignore` and a reason on the line before a resource to accept it, or switch a check off under `[detectors]`.
+A finding is high when the store is linked to personal data, and medium otherwise. A store is linked by a tag or label (`data_classification = "pii"`, `pii = true` and similar) or when its name matches a table or model in the inventory: a bucket `acme-patient-exports` is linked to a `patients` table. A setting that comes from something the code does not show, such as a variable without a default, is never treated as missing: it is reported at low confidence, and only for linked stores. Put `ato:ignore` and a reason on the line before a resource to accept it, or switch a check off under `[detectors]`.
 
 ```text
-$ pii-eu scan infra/
+$ ato scan infra/
 infra/main.tf
   9:1  high    Data store outside the EEA  aws_s3_bucket.customer_exports
           region us-east-1 is outside the EEA (from the aws provider block); linked to personal data: tagged data_classification with "pii"
 ```
 
-`pii-eu inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. A `module` block whose source is not read (a registry or git module) is listed as type `module` with its source and the setting-like arguments it passes, every setting unknown, when its source, label or arguments point to a data store; a local module that was scanned is read as its own folder. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
+`ato inventory --format json` lists every store under `stores`, with its regions and a yes, no or unknown for each setting. A `module` block whose source is not read (a registry or git module) is listed as type `module` with its source and the setting-like arguments it passes, every setting unknown, when its source, label or arguments point to a data store; a local module that was scanned is read as its own folder. The supported resource types are listed in [docs/DETECTORS.md](docs/DETECTORS.md#terraform-data-stores); how the reader works and where it stops is in [docs/adr/0004-terraform-stores.md](docs/adr/0004-terraform-stores.md).
 
 ### Personal data in logs, error trackers and analytics
 
-`pii-eu scan` also reads source code in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP for log, print, error-tracker (Sentry, Bugsnag, Rollbar, Crashlytics and others) and analytics (Segment, Mixpanel, Amplitude, PostHog, Google tag and others) calls. A call is a `log-sink` finding when it is passed:
+`ato scan` also reads source code in Go, Python, JavaScript and TypeScript, Java, Kotlin, Ruby and PHP for log, print, error-tracker (Sentry, Bugsnag, Rollbar, Crashlytics and others) and analytics (Segment, Mixpanel, Amplitude, PostHog, Google tag and others) calls. A call is a `log-sink` finding when it is passed:
 
 - a field whose name says it holds personal data, such as `user.email`, `customer.getIban()` or `{"phone": ...}`: medium confidence, with the data category;
 - a whole request body, such as `req.body`, `request.json`, `$request->all()` or `$_POST`: medium confidence;
@@ -244,7 +244,7 @@ app/signup.py
 
 ### Fixing test fixtures
 
-`pii-eu fix [path]` replaces the values a scan reports in test, fixture and example paths with synthetic ones from the same generators the test suite uses. It takes the scan flags (`--min-confidence`, `--include`, `--countries` and so on), and:
+`ato fix [path]` replaces the values a scan reports in test, fixture and example paths with synthetic ones from the same generators the test suite uses. It takes the scan flags (`--min-confidence`, `--include`, `--countries` and so on), and:
 
 - each replacement passes the same detector's checks, keeps the original's separators, case, length and letter and digit positions where the format allows, and is the same for the same value in every file and every run;
 - each replacement keeps what tests commonly check: an IBAN's country and account layout, a card's brand, a phone number's country code and leading digits, a VAT number's country, the sex and century of a CNP or EGN (with a new, valid birth date), an IP address's version, a wallet's address type, a plate's or postcode's leading letters. An email address keeps the shape of its local part and its top-level domain (with a short second level such as `co.uk`), and gets a made-up domain name rather than `example.com`: addresses on reserved example domains are not reported at all, so they would no longer be recognised as samples;
@@ -256,7 +256,7 @@ app/signup.py
 Values that are ignored by comment or in the baseline are left alone. For a few detectors with few possible values (dates of birth, names) a marked value cannot always be found; `fix` still replaces the value and says how many replacements are unmarked.
 
 ```console
-$ pii-eu fix --dry-run
+$ ato fix --dry-run
 --- a/tests/fixtures/users.json
 +++ b/tests/fixtures/users.json
 @@ -14 +14 @@
@@ -267,10 +267,10 @@ Would replace 1 value in 1 file.
 
 ### Keeping a deliberate value
 
-Put `pii-eu:ignore` and a reason on the same line or the line before. Without a reason the comment does not apply.
+Put `ato:ignore` and a reason on the same line or the line before. Without a reason the comment does not apply. The 1.x form `pii-eu:ignore` still works in 2.x and prints a warning; it is deprecated.
 
 ```python
-SAMPLE_IBAN = "RO49AAAA1B31007593840000"  # pii-eu:ignore documented example from the bank's API guide
+SAMPLE_IBAN = "RO49AAAA1B31007593840000"  # ato:ignore documented example from the bank's API guide
 ```
 
 ## In CI
@@ -279,10 +279,10 @@ SAMPLE_IBAN = "RO49AAAA1B31007593840000"  # pii-eu:ignore documented example fro
 
 ```yaml
 - uses: actions/checkout@<sha>
-- uses: Clause-Eight/pii-eu@<sha>
+- uses: Clause-Eight/ato@<sha>
   with:
     path: .
-    sarif: pii-eu.sarif      # optional; upload it with github/codeql-action/upload-sarif
+    sarif: ato.sarif      # optional; upload it with github/codeql-action/upload-sarif
 ```
 
 Findings appear as annotations on the pull request; the step fails on findings unless `fail-on-findings: "false"`.
@@ -291,13 +291,13 @@ Findings appear as annotations on the pull request; the step fails on findings u
 
 ```yaml
 repos:
-  - repo: https://github.com/Clause-Eight/pii-eu
+  - repo: https://github.com/Clause-Eight/ato
     rev: <tag or sha>
     hooks:
-      - id: pii-eu
+      - id: ato
 ```
 
-**GitLab and Bitbucket**: [ci/gitlab/pii-eu.gitlab-ci.yml](ci/gitlab/pii-eu.gitlab-ci.yml) (Code Quality widget) and [ci/bitbucket/bitbucket-pipelines.yml](ci/bitbucket/bitbucket-pipelines.yml).
+**GitLab and Bitbucket**: [ci/gitlab/ato.gitlab-ci.yml](ci/gitlab/ato.gitlab-ci.yml) (Code Quality widget) and [ci/bitbucket/bitbucket-pipelines.yml](ci/bitbucket/bitbucket-pipelines.yml).
 
 ## How it decides
 
@@ -306,10 +306,14 @@ repos:
 3. The validator checks the identifier's rules. Only valid values become findings. A card number that is also a valid GTIN product code, with gtin, ean, barcode or upc on its line, is not reported.
 4. Confidence starts at the detector's base. It rises one step when the value is written in the identifier's usual format (an IBAN in groups of four, a birth number with its slash) and one step when a keyword is on the line or the line before, or, in a file with columns, in the value's column name. Keywords come in all 24 EU languages and match without regard to case or diacritics. It drops one step in test, fixture and example paths and when, without a keyword, the value's own line has a word that usually labels other numbers (order, invoice, request, trace, transaction), and is always low for published sample values (documentation IBANs, well-known test cards).
 5. Overlapping matches keep the most confident one. A value that is valid for two detectors is reported once, preferring the detector whose own name is nearby, and the finding says what else it could be.
-6. Values that carry the synthetic mark written by `pii-eu fix` are treated like published sample values.
+6. Values that carry the synthetic mark written by `ato fix` are treated like published sample values.
 7. Reports show masked values. Fingerprints, used by baselines and SARIF, come from the detector, path and the line with values replaced, never from the value.
 
-The JSON report follows [schemas/findings.schema.json](schemas/findings.schema.json). What stays stable across 1.x releases, and how deprecations work, is in [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
+The JSON report follows [schemas/findings.schema.json](schemas/findings.schema.json). What stays stable across 2.x releases, and how deprecations work, is in [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md).
+
+## Upgrading from pii-eu
+
+The product was renamed from pii-eu to ATO in 2.0.0 ([ADR 12](docs/adr/0012-rename-to-ato.md)). Install the `ato` command and replace `pii-eu` with `ato` in scripts, CI and pre-commit settings. Rename `.pii-eu.toml` to `.ato.toml` and `.pii-eu-baseline.json` to `.ato-baseline.json`, and write `ato:ignore` in new comments. The old file names, `pii-eu:ignore`, the `pii-eu` pre-commit hook id and the `PII_EU_` variables of the CI templates keep working in 2.x with a warning. Baselines and fingerprints are unchanged, and SARIF results still carry the `piiEu/v1` fingerprint, so GitHub code scanning keeps its alerts. Every change is listed in [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md#changes-in-20).
 
 ## Adding detectors
 
@@ -317,4 +321,4 @@ A new identifier is one detector file, a generator and its tests. See [CONTRIBUT
 
 ## Licence
 
-Copyright 2026 Clause Eight. All rights reserved. pii-eu is proprietary from version 0.3.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Versions 0.2.0 and earlier were published under the Apache License 2.0, and copies of those versions keep that licence.
+Copyright 2026 Clause Eight. All rights reserved. ATO (called pii-eu before 2.0) is proprietary from version 0.3.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Versions 0.2.0 and earlier were published under the Apache License 2.0, and copies of those versions keep that licence.

@@ -6,10 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
-// A module call can create stores that pii-eu cannot see: registry and git modules are not downloaded, and a
+// A module call can create stores that ATO cannot see: registry and git modules are not downloaded, and a
 // local module outside the scanned files is not read. Such a call is listed as a store of type "module" with
 // every setting unknown, when its source or its arguments say it holds data. A local module whose folder was
 // scanned is not listed: its own resources are read as stores of that folder.
@@ -98,7 +98,7 @@ func moduleStore(m *module, call *resource, scanned map[string]bool) (domain.Sto
 	s.Names = c.names(moduleNames)
 	s.Tags = c.tags()
 	s.PersonalData, s.PersonalWhy = personalTags(s.Tags)
-	inside := fmt.Sprintf("decided inside module %q (%s), which pii-eu does not read", call.name, src)
+	inside := fmt.Sprintf("decided inside module %q (%s), which ATO does not read", call.name, src)
 	unknown := func(setting, label string) domain.Setting {
 		set := domain.Setting{State: domain.Unknown, Why: label + " is " + inside}
 		var passed []string

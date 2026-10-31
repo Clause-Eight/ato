@@ -1,5 +1,5 @@
-name: pii-eu
-description: Find EU personal data (national IDs, IBANs, cards) in the repository, confirmed by check digits.
+name: ATO
+description: ATO, Clause Eight's EU personal-data scanner. Finds national IDs, IBANs and cards in the repository, confirmed by check digits.
 author: Clause Eight
 
 inputs:
@@ -29,10 +29,10 @@ runs:
         go-version-file: ${{ github.action_path }}/go.mod
         cache: false
 
-    - name: Build pii-eu from this action's pinned source
+    - name: Build ato from this action's pinned source
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: go build -trimpath -o "$RUNNER_TEMP/pii-eu" ./cmd/pii-eu
+      run: go build -trimpath -o "$RUNNER_TEMP/ato" ./cmd/ato
 
     - id: scan
       name: Scan
@@ -44,17 +44,17 @@ runs:
         SARIF_PATH: ${{ inputs.sarif }}
       run: |
         set +e
-        "$RUNNER_TEMP/pii-eu" scan --format json --output "$RUNNER_TEMP/pii-eu.json" --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
+        "$RUNNER_TEMP/ato" scan --format json --output "$RUNNER_TEMP/ato.json" --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
         code=$?
         if [ "$code" -ge 2 ]; then
-          "$RUNNER_TEMP/pii-eu" scan --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
+          "$RUNNER_TEMP/ato" scan --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
           exit "$code"
         fi
-        "$RUNNER_TEMP/pii-eu" scan --format github --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
+        "$RUNNER_TEMP/ato" scan --format github --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
         if [ -n "$SARIF_PATH" ]; then
-          "$RUNNER_TEMP/pii-eu" scan --format sarif --output "$SARIF_PATH" --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
+          "$RUNNER_TEMP/ato" scan --format sarif --output "$SARIF_PATH" --min-confidence "$MIN_CONFIDENCE" "$SCAN_PATH"
         fi
-        findings=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["summary"]["findings"])' "$RUNNER_TEMP/pii-eu.json")
+        findings=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["summary"]["findings"])' "$RUNNER_TEMP/ato.json")
         echo "findings=$findings" >> "$GITHUB_OUTPUT"
         if [ "$code" -eq 1 ] && [ "$FAIL_ON_FINDINGS" = "true" ]; then
           exit 1

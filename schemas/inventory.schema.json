@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Clause-Eight/pii-eu/schemas/inventory.schema.json",
-  "title": "pii-eu data inventory",
-  "description": "Output of `pii-eu inventory --format json`: fields declared in schemas and models that hold personal data, and the data stores declared in Terraform. Names and locations only, never values.",
+  "$id": "https://github.com/Clause-Eight/ato/schemas/inventory.schema.json",
+  "title": "ATO data inventory",
+  "description": "Output of `ato inventory --format json`: fields declared in schemas and models that hold personal data, and the data stores declared in Terraform. Names and locations only, never values.",
   "type": "object",
   "required": [
     "schema_version",
@@ -13,8 +13,8 @@
   "additionalProperties": false,
   "properties": {
     "schema_version": {
-      "const": "1.2",
-      "description": "1.2 added the source formats typeorm, mongoose, doctrine, laravel, csv, tsv and jsonl, stores of type module with the module object, and unknown as a store's provider or service; 1.1 added stores. An older inventory is a 1.2 inventory without those."
+      "const": "2.0",
+      "description": "2.0 renamed the tool from pii-eu to ato (tool.name is ato) and changed no field; 1.2 added the source formats typeorm, mongoose, doctrine, laravel, csv, tsv and jsonl, stores of type module with the module object, and unknown as a store's provider or service; 1.1 added stores. An older 1.x inventory is a 2.0 inventory without those."
     },
     "tool": {
       "type": "object",
@@ -24,7 +24,8 @@
       ],
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The command that wrote the file: ato from 2.0, pii-eu before."
         },
         "version": {
           "type": "string"
@@ -250,7 +251,7 @@
           },
           "module": {
             "type": "object",
-            "description": "For type module: a module call that may create a store pii-eu does not read inside (a registry or git module, or a local folder that was not scanned). Every setting is unknown.",
+            "description": "For type module: a module call that may create a store ATO does not read inside (a registry or git module, or a local folder that was not scanned). Every setting is unknown.",
             "additionalProperties": false,
             "required": [
               "source",

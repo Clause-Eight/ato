@@ -1,7 +1,14 @@
+- id: ato
+  name: ato
+  description: Find EU personal data in staged files before they are committed (ATO, Clause Eight's EU personal-data scanner).
+  entry: ato scan --staged .
+  language: golang
+  pass_filenames: false
+  always_run: true
 - id: pii-eu
-  name: pii-eu
-  description: Find EU personal data in staged files before they are committed.
-  entry: pii-eu scan --staged .
+  name: ato (the hook id pii-eu is deprecated; use ato)
+  description: Deprecated in 2.0 and removed in the next major version. Runs the same scan as the ato hook.
+  entry: ato scan --staged .
   language: golang
   pass_filenames: false
   always_run: true

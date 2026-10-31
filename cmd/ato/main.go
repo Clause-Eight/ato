@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/Clause-Eight/pii-eu/internal/cli"
+	"github.com/Clause-Eight/ato/v2/internal/cli"
 )
 
 func main() {

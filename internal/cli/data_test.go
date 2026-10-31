@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/synth"
+	"github.com/Clause-Eight/ato/v2/internal/synth"
 )
 
 func syntheticCNPs(t *testing.T, n int) []string {
@@ -110,7 +110,7 @@ func TestCSVInsideATarballIsScannedByColumn(t *testing.T) {
 		t.Fatal(err)
 	}
 	code, doc, out := scanJSON(t, dir)
-	if code != ExitFindings || doc.SchemaVersion != "1.3" {
+	if code != ExitFindings || doc.SchemaVersion != "2.0" {
 		t.Fatalf("exit %d\n%s", code, out)
 	}
 	values, fields := 0, 0
@@ -162,7 +162,7 @@ func TestMaxRowsFlagAndSetting(t *testing.T) {
 	if count(doc) != 5 || len(doc.Summary.Sampled) != 1 || doc.Summary.Sampled[0].Path != "users.csv" {
 		t.Fatalf("--max-rows 5: %d %+v", count(doc), doc.Summary.Sampled)
 	}
-	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("max_rows = 3\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".ato.toml"), []byte("max_rows = 3\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, doc, _ = scanJSON(t, dir); count(doc) != 3 {
@@ -218,7 +218,7 @@ func TestScanSavedImage(t *testing.T) {
 	if len(got) != 2 || !strings.Contains(got["srv/export/users.csv"], "deleted in later layer 222222222222") || strings.Contains(got["etc/app/config.yml"], "later layer") {
 		t.Fatalf("image findings: %v\n%s", got, out)
 	}
-	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("image_exclude = []\nexclude = [\"srv/\"]\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".ato.toml"), []byte("image_exclude = []\nexclude = [\"srv/\"]\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	_, doc, _ = scanJSON(t, "--image", p)
@@ -244,7 +244,7 @@ func TestArchiveLimitMakesTheScanIncomplete(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, "zeros.txt.gz"), gzBytes(t, make([]byte, 4<<20)), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("max_archive_bytes = 1048576\nmax_file_size = 104857600\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".ato.toml"), []byte("max_archive_bytes = 1048576\nmax_file_size = 104857600\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	code, out, _ := run("scan", "--no-git", dir)
@@ -254,7 +254,7 @@ func TestArchiveLimitMakesTheScanIncomplete(t *testing.T) {
 }
 
 // TestPartlyReadFilesMakeTheScanIncomplete: a clean result must mean everything that may hold personal data was
-// read. A document format pii-eu does not open, or a data file cut at max_rows, exits 3 unless allow_partial.
+// read. A document format ATO does not open, or a data file cut at max_rows, exits 3 unless allow_partial.
 func TestPartlyReadFilesMakeTheScanIncomplete(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "export.xlsx"), []byte("PK\x03\x04\x00\x00binary"), 0o600); err != nil {
@@ -270,7 +270,7 @@ func TestPartlyReadFilesMakeTheScanIncomplete(t *testing.T) {
 	if code, _, _ := run("scan", "--no-git", "--allow-partial", dir); code != ExitClean {
 		t.Fatalf("--allow-partial: exit %d", code)
 	}
-	if err := os.WriteFile(filepath.Join(dir, ".pii-eu.toml"), []byte("allow_partial = true\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, ".ato.toml"), []byte("allow_partial = true\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if code, _, _ := run("scan", "--no-git", dir); code != ExitClean {

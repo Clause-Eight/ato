@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Clause-Eight/pii-eu/internal/detectors"
-	"github.com/Clause-Eight/pii-eu/internal/domain"
+	"github.com/Clause-Eight/ato/v2/internal/detectors"
+	"github.com/Clause-Eight/ato/v2/internal/domain"
 )
 
 func scanRows(t *testing.T, path, text string, maxRows int) textResult {
