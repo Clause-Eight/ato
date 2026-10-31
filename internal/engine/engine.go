@@ -46,6 +46,8 @@ type Request struct {
 	RetentionFindings bool
 	// Infra names the checks on Terraform data stores to report, such as tf-unencrypted.
 	Infra []string
+	// Files names the file-level detectors to run, such as database-dump (ADR 13).
+	Files []string
 }
 
 func (r Request) infra() bool { return r.Inventory || r.Lifecycle || len(r.Infra) > 0 }
@@ -64,8 +66,11 @@ type Result struct {
 	Summary domain.Summary
 }
 
-// fileResult is one scanned file or archive entry. Layer and name place an image entry for Shadowed.
+// fileResult is one scanned file or archive entry. Layer and name place an image entry for Shadowed. notRead is
+// set for a file whose metadata was read but whose content was not: it is listed as not read, not as scanned.
 type fileResult struct {
+	rel      string
+	notRead  *domain.Skipped
 	findings []domain.Finding
 	entries  []domain.InventoryEntry
 	sampled  *domain.Skipped
@@ -91,6 +96,10 @@ func (b *batch) add(rel string, fr fileResult, skip *domain.Skipped, err error) 
 	case skip != nil:
 		b.skipped = append(b.skipped, *skip)
 	default:
+		fr.rel = rel
+		if fr.notRead != nil {
+			b.skipped = append(b.skipped, *fr.notRead)
+		}
 		b.files = append(b.files, fr)
 	}
 }
@@ -194,8 +203,13 @@ func fold(batches []batch, req Request) Result {
 	for _, b := range batches {
 		res.Summary.FilesSkipped = append(res.Summary.FilesSkipped, b.skipped...)
 		res.Summary.Unreadable = append(res.Summary.Unreadable, b.unreadable...)
+		if req.file(IDScanDetector) {
+			res.Findings = append(res.Findings, idScanFindings(b)...)
+		}
 		for _, fr := range b.files {
-			res.Summary.FilesScanned++
+			if fr.notRead == nil {
+				res.Summary.FilesScanned++
+			}
 			res.Findings = append(res.Findings, fr.findings...)
 			entries = append(entries, fr.entries...)
 			res.Recipients = append(res.Recipients, fr.uses...)
@@ -264,6 +278,9 @@ func scanFile(f walk.File, req Request) batch {
 func scanContent(rel string, content io.Reader, req Request) (fileResult, *domain.Skipped, error) {
 	r := bufio.NewReaderSize(content, 64<<10)
 	head, _ := r.Peek(8000)
+	if format := binaryFormat(rel, head, req); format != "" {
+		return scanBinary(format, rel, r, req)
+	}
 	if walk.IsBinary(head) {
 		if walk.Unopened(rel) {
 			return fileResult{}, &domain.Skipped{Path: rel, Reason: "a document format ATO does not open", NotRead: true}, nil
@@ -277,11 +294,11 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 			return fileResult{}, nil, fmt.Errorf("read error: %w", err)
 		}
 		tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, 0, req.Sinks)
-		return fileResult{findings: tr.findings, tf: infra.Parse(rel, data)}, nil, err
+		return fileResult{findings: tr.all(req), tf: infra.Parse(rel, data)}, nil, err
 	}
 	if walk.DataKind(rel) != "" {
 		tr, err := scanText(rel, r, req.Detectors, req.MaxRows, false)
-		fr := fileResult{findings: tr.findings}
+		fr := fileResult{findings: tr.all(req)}
 		if tr.sampled {
 			fr.sampled = &domain.Skipped{Path: rel, Reason: fmt.Sprintf("only the first %d rows were read (max_rows)", req.MaxRows), NotRead: true}
 		}
@@ -298,14 +315,14 @@ func scanContent(rel string, content io.Reader, req Request) (fileResult, *domai
 	wantLifecycle := req.Lifecycle && lifecycle.Candidate(rel)
 	if !wantSchema && !wantRecipients && !wantLifecycle {
 		tr, err := scanText(rel, r, req.Detectors, 0, req.Sinks)
-		return fileResult{findings: tr.findings}, nil, err
+		return fileResult{findings: tr.all(req)}, nil, err
 	}
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return fileResult{}, nil, fmt.Errorf("read error: %w", err)
 	}
 	tr, err := scanText(rel, bytes.NewReader(data), req.Detectors, 0, req.Sinks)
-	fr := fileResult{findings: tr.findings}
+	fr := fileResult{findings: tr.all(req)}
 	if wantSchema {
 		fr.entries = inventory(rel, data)
 		if req.SpecialCategories {
@@ -332,6 +349,15 @@ type textResult struct {
 	findings []domain.Finding
 	fields   []domain.Field
 	sampled  bool
+	dump     []domain.Finding
+}
+
+// all is the findings of a text file, with the database-dump findings when that detector is on.
+func (tr textResult) all(req Request) []domain.Finding {
+	if !req.file(DumpDetector) {
+		return tr.findings
+	}
+	return append(tr.findings, tr.dump...)
 }
 
 // scanText scans lines, split into columns where the format has them. With maxRows above zero it stops after
@@ -382,6 +408,9 @@ func scanText(path string, r io.Reader, dets []detectors.Detector, maxRows int, 
 	}
 	if sp != nil {
 		res.fields = sp.fields()
+	}
+	if sd, ok := sp.(*sqlDump); ok {
+		res.dump = dumpFindings(path, sd)
 	}
 	return res, nil
 }
