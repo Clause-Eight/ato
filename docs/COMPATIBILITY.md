@@ -74,6 +74,7 @@ environment variables, in 1.x or 2.x; the `PII_EU_` variables above belong to th
 | 1.x, after #264 | unchanged | `1.2`: source formats `typeorm`, `mongoose`, `doctrine`, `laravel`, `csv`, `tsv` and `jsonl`; stores of type `module` with the optional `module` object; `unknown` as a store's `provider` or `service`, for module calls only | `1.1`: optional `module_source` on `infrastructure` entries |
 | 2.0 | `2.0`: `tool.name` is `ato`; no field changes | `2.0`: the same | `2.0`: the same |
 | 2.x | `2.1`: optional `possible` on findings, the other identifiers a value is just as valid for; `label` stays the first one's, and text, SARIF messages, annotations and HTML say "Possibly A or B" | `2.0` | `2.0` |
+| 2.x, after ADR 13 | `2.2`: kind `record` (HL7 and FHIR patients, genotype files, biometric templates); `special_category` also on `value` findings of diagnosis and medicine codes | `2.0` | `2.0` |
 
 Within a major version each schema version only adds optional fields and new enum values, so a reader written for
 an earlier `2.x` keeps working: it ignores the new fields, a finding of an unknown `kind` can be read like a

@@ -152,6 +152,9 @@ func TestFixEveryGenerator(t *testing.T) {
 		if len(d.Keywords) > 0 {
 			word = d.Keywords[0]
 		}
+		if d.NeedsPerson {
+			word = "patient_id: 7, " + word
+		}
 		body.WriteString(word + ": " + generate(t, name, 11) + "\n\n")
 	}
 	writeFile(t, dir, ".ato.toml", cfg.String())
