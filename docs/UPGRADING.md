@@ -1,0 +1,3 @@
+# Upgrading from pii-eu
+
+The product was renamed from pii-eu to ATO in 2.0.0 ([ADR 12](adr/0012-rename-to-ato.md)). Install the `ato` command and replace `pii-eu` with `ato` in scripts, CI and pre-commit settings. Rename `.pii-eu.toml` to `.ato.toml` and `.pii-eu-baseline.json` to `.ato-baseline.json`, and write `ato:ignore` in new comments. The old file names, `pii-eu:ignore`, the `pii-eu` pre-commit hook id and the `PII_EU_` variables of the CI templates keep working in 2.x with a warning. Baselines and fingerprints are unchanged, and SARIF results still carry the `piiEu/v1` fingerprint, so GitHub code scanning keeps its alerts. Every change is listed in [docs/COMPATIBILITY.md](COMPATIBILITY.md#changes-in-20).
