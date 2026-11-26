@@ -1,6 +1,6 @@
 # 3. pii-eu is proprietary
 
-Date: 2026-10-19 · Status: accepted
+Date: 2026-10-19 · Status: superseded by [ADR 16](0016-open-source.md)
 
 pii-eu is called ATO since 2.0.0; see [ADR 12](0012-rename-to-ato.md).
 
