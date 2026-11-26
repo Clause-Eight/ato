@@ -29,7 +29,6 @@ var allowed = map[string][]string{
 	"lifecycle":  {"domain"},
 	"baseline":   {"domain"},
 	"synth":      {},
-	"license":    {},
 	"classify":   {"domain", "detectors", "textfold"},
 }
 

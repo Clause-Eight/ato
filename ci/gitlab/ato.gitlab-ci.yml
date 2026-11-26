@@ -1,5 +1,4 @@
 # Include this file, or copy the job, to scan merge requests for EU personal data with ATO.
-# Set ATO_LICENSE as a masked, protected CI/CD variable holding your license.
 # Findings appear in the merge request's Code Quality widget. Set ATO_VERSION to a release tag or commit
 # (default: main) and ATO_MIN_CONFIDENCE to low, medium or high (default: medium). PII_EU_VERSION and
 # PII_EU_MIN_CONFIDENCE are deprecated and still read when the ATO_ variables are not set.
