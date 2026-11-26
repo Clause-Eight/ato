@@ -1,7 +1,7 @@
 # Issuing ATO licenses
 
 How Clause Eight sets up signing keys and issues, renews and replaces customer licenses. How licenses work and
-why: [ADR 15](adr/0015-licensing.md). What a customer does with one: README, "Your license".
+why: [ADR 15](adr/0015-licensing.md). What a customer does with one: [CONFIGURATION.md](CONFIGURATION.md#license-key).
 
 The private signing key is the only secret in this process. Anyone who has it can make licenses that every
 released ATO accepts. It never goes into a repository, a CI variable, a chat, an email or a ticket.
