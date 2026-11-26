@@ -1,6 +1,6 @@
 # 15. Licenses checked offline
 
-Date: 2026-10-31 · Status: accepted
+Date: 2026-10-31 · Status: superseded by [ADR 16](0016-open-source.md)
 
 ## Context
 
