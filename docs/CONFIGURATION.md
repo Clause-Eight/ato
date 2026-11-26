@@ -1,6 +1,6 @@
 # Configuration
 
-Everything ATO can be told: command-line flags, the `.ato.toml` file, exit codes, ignore comments and the optional license key. For what each command does, see [USAGE.md](USAGE.md).
+Everything ATO can be told: command-line flags, the `.ato.toml` file, exit codes, ignore comments and baselines. For what each command does, see [USAGE.md](USAGE.md).
 
 ## Command-line flags
 
@@ -62,14 +62,3 @@ SAMPLE_IBAN = "RO49AAAA1B31007593840000"  # ato:ignore documented example from t
 ## Baselines
 
 `ato baseline` records what is found today in `.ato-baseline.json`; later scans report only new findings. Commit the file. Use `--baseline FILE` to keep it elsewhere.
-
-## License key
-
-ATO checks its license on your machine and never contacts a server. Install the license file you received once per machine:
-
-```sh
-ato license install acme.license   # checks it and copies it to your config folder
-ato license                        # who it is for, the plan and how many days are left
-```
-
-In CI, put the license (the line starting `ato-license-v1.`, or the path of the file) in the `ATO_LICENSE` variable instead. A license keeps working for 30 days after its end date, with a notice. Without one ATO still runs, as an evaluation, and says so in one line on stderr; reports and exit codes are the same. How licenses work: [ADR 15](adr/0015-licensing.md).

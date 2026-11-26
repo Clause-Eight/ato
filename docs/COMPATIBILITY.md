@@ -63,9 +63,8 @@ when it is used and is removed no earlier than 3.0.
 
 Unchanged: detector names and rule IDs, flags, settings keys, exit codes, the baseline format and every
 fingerprint, the synthetic mark and the values `fix` writes, and every JSON field. The `ato` command read no
-environment variables in 1.x and 2.0; the `PII_EU_` variables above belong to the CI templates. Since licensing
-([ADR 15](adr/0015-licensing.md)) it reads `ATO_LICENSE`, and prints one line on stderr when it runs without a
-valid license; reports and exit codes do not change.
+environment variables in 1.x and 2.0; the `PII_EU_` variables above belong to the CI templates. Licensing
+([ADR 15](adr/0015-licensing.md)) was removed before the first 2.x release ([ADR 16](adr/0016-open-source.md)).
 
 ## Schema versions
 

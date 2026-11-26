@@ -12,6 +12,6 @@ Supersedes [ADR 3](0003-proprietary.md).
 
 ## Consequences
 
-- The offline license check from [ADR 15](0015-licensing.md) stays in the code for now. Anyone can remove it,
-  so it only marks paid use; whether to keep it is a separate decision.
+- The offline license check from [ADR 15](0015-licensing.md) is removed: no `ato license` command, no
+  `ATO_LICENSE` variable, no evaluation notice, and no `cmd/ato-license`. It never shipped in a release.
 - Versions released while the repository was private keep the licence they were released under.
