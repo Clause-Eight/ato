@@ -5,7 +5,7 @@
 
 # ATO
 
-ATO, Clause Eight's EU personal-data scanner. A Clause Eight tool, called pii-eu before 2.0 (see [Upgrading from pii-eu](#upgrading-from-pii-eu)). Proprietary: see [Licence](#licence).
+ATO, Clause Eight's EU personal-data scanner. A Clause Eight tool, called pii-eu before 2.0 (see [Upgrading from pii-eu](#upgrading-from-pii-eu)). Open source under the Apache License 2.0: see [Licence](#licence).
 
 Find EU personal data in code, test fixtures and logs before it spreads. Every match is confirmed with the identifier's own rules (check digits, dates, lengths), so findings are few and real, and found values are never printed in reports.
 
@@ -69,10 +69,7 @@ National identifiers by country:
 
 ## Install
 
-ATO is distributed to Clause Eight customers. With access to the repository:
-
 ```bash
-export GOPRIVATE=github.com/Clause-Eight/*
 go install github.com/Clause-Eight/ato/v2/cmd/ato@latest
 ```
 
@@ -346,4 +343,4 @@ A new identifier is one detector file, a generator and its tests. See [CONTRIBUT
 
 ## Licence
 
-Copyright 2026 Clause Eight. All rights reserved. ATO (called pii-eu before 2.0) is proprietary from version 0.3.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Versions 0.2.0 and earlier were published under the Apache License 2.0, and copies of those versions keep that licence.
+Copyright 2026 Clause Eight. ATO is licensed under the [Apache License 2.0](LICENSE); see also [NOTICE](NOTICE).
