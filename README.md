@@ -24,11 +24,19 @@ tests/fixtures/users.json
 
 ## Install
 
+macOS and Linux, with Homebrew:
+
+```bash
+brew install clause-eight/tap/ato
+```
+
+With Go 1.24 or later:
+
 ```bash
 go install github.com/Clause-Eight/ato/v2/cmd/ato@latest
 ```
 
-Needs Go 1.24 or later. Other ways (from source, release binaries) and how to put `ato` on your `PATH`: [docs/INSTALL.md](docs/INSTALL.md).
+Release binaries, building from source and verifying downloads: [docs/INSTALL.md](docs/INSTALL.md).
 
 ## Quick start
 
@@ -64,7 +72,7 @@ Findings appear as annotations on the pull request. pre-commit, GitLab and Bitbu
 
 | Guide | What's in it |
 |---|---|
-| [Install](docs/INSTALL.md) | Go, source, release binaries, verifying downloads |
+| [Install](docs/INSTALL.md) | Homebrew, Go, source, release binaries, verifying downloads |
 | [Usage](docs/USAGE.md) | Every command: scan, exports and archives, container images, inventory, data map, Terraform, logs, fix |
 | [Configuration](docs/CONFIGURATION.md) | Flags, `.ato.toml`, exit codes, ignore comments, baselines |
 | [CI and pre-commit](docs/CI.md) | GitHub Actions, pre-commit, GitLab, Bitbucket |
