@@ -594,7 +594,7 @@ func runDetectors(args []string, stdout io.Writer) (int, error) {
 	return ExitClean, err
 }
 
-// coverageColumns are the kinds of national identifier shown in the README's coverage matrix.
+// coverageColumns are the kinds of national identifier shown in docs/COVERAGE.md.
 var coverageColumns = []struct {
 	title   string
 	concept detectors.Concept
@@ -605,7 +605,7 @@ var coverageColumns = []struct {
 	{"ID card or passport", detectors.IDCard},
 }
 
-// CoverageMatrix is the table of national identifiers per country in the README, generated from the registry.
+// CoverageMatrix is the table of national identifiers per country in docs/COVERAGE.md, generated from the registry.
 // A detector appears under the first of its concepts that has a column, or under the last column otherwise.
 func CoverageMatrix() string {
 	cells := map[string]map[int][]string{}

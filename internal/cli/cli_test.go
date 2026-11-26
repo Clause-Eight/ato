@@ -173,8 +173,8 @@ func TestDetectorReferenceIsUpToDate(t *testing.T) {
 	}
 }
 
-func TestCoverageMatrixInReadmeIsUpToDate(t *testing.T) {
-	path := filepath.Join("..", "..", "README.md")
+func TestCoverageMatrixIsUpToDate(t *testing.T) {
+	path := filepath.Join("..", "..", "docs", "COVERAGE.md")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
@@ -183,7 +183,7 @@ func TestCoverageMatrixInReadmeIsUpToDate(t *testing.T) {
 	const start, end = "<!-- coverage:start -->\n", "<!-- coverage:end -->"
 	i, j := strings.Index(text, start), strings.Index(text, end)
 	if i < 0 || j < i {
-		t.Fatal("README.md has no coverage markers")
+		t.Fatal("docs/COVERAGE.md has no coverage markers")
 	}
 	want := text[:i+len(start)] + CoverageMatrix() + text[j:]
 	if os.Getenv("ATO_UPDATE_GOLDEN") == "1" {
@@ -193,7 +193,7 @@ func TestCoverageMatrixInReadmeIsUpToDate(t *testing.T) {
 		return
 	}
 	if text != want {
-		t.Fatal("the coverage matrix in README.md is out of date: run ATO_UPDATE_GOLDEN=1 go test ./internal/cli")
+		t.Fatal("docs/COVERAGE.md is out of date: run ATO_UPDATE_GOLDEN=1 go test ./internal/cli")
 	}
 }
 
