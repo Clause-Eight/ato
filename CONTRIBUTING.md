@@ -1,6 +1,6 @@
 # Contributing
 
-This is the internal guide for working on ATO, which is proprietary (see LICENSE). The most common change is a new identifier: one detector file, a generator and its tests.
+This is the guide for working on ATO, which is open source under the Apache License 2.0 (see LICENSE). Contributions are accepted under the same licence. The most common change is a new identifier: one detector file, a generator and its tests.
 
 ## Clean-room rule
 
